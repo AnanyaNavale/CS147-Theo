@@ -1,24 +1,30 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  Image,
-  Modal,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, Pressable, Image, Modal, StyleSheet } from "react-native";
 import { router } from "expo-router";
 
 export default function SessionScreen() {
-  const [secondsLeft, setSecondsLeft] = useState(1500);
-  const [isRunning, setIsRunning] = useState(true);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const goal = "Complete Chapter 3 notes";
 
+  const tasks = [
+    { name: "Read pages 20–30", time: 10 },
+    { name: "Write summary", time: 15 },
+    { name: "Create flashcards", time: 8 * 60 },
+  ];
+
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const currentTask = tasks[currentTaskIndex];
+
+  const [secondsLeft, setSecondsLeft] = useState(currentTask.time);
+  const [isRunning, setIsRunning] = useState(true);
+  const [showTimer, setShowTimer] = useState(true);
+  const [isBreak, setIsBreak] = useState(false);
+  const [breakType, setBreakType] = useState<"manual" | "auto" | null>(null);
+  const [savedTime, setSavedTime] = useState(currentTask.time);
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [theoImage, setTheoImage] = useState(
     require("../../assets/theo/working.png")
   );
-
   const [showStopModal, setShowStopModal] = useState(false);
 
   const formatTime = (totalSeconds: number) => {
@@ -27,12 +33,10 @@ export default function SessionScreen() {
     return `${m}:${s < 10 ? "0" + s : s}`;
   };
 
-  // Timer start/stop logic
+  // Timer effect
   useEffect(() => {
-    if (isRunning) {
-      // ensure Theo shows working while running
+    if (isRunning && !isBreak) {
       setTheoImage(require("../../assets/theo/working.png"));
-
       intervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => prev - 1);
       }, 1000);
@@ -42,58 +46,136 @@ export default function SessionScreen() {
         intervalRef.current = null;
       }
     }
-
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
-  }, [isRunning]);
+  }, [isRunning, currentTaskIndex, isBreak]);
 
-  // auto-stop at zero
+  // Auto-trigger break when task finishes
   useEffect(() => {
-    if (secondsLeft <= 0) {
+    if (!isBreak && secondsLeft <= 0) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
       setIsRunning(false);
-      setSecondsLeft(0);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      Alert.alert("Session complete", "Great work!");
+      setBreakType("auto");
+      setIsBreak(true);
+      setTheoImage(require("../../assets/theo/break.png"));
     }
-  }, [secondsLeft]);
+  }, [secondsLeft, isBreak]);
 
-  const handlePlayPause = () => {
-    setIsRunning((prev) => !prev);
-    // When starting, the effect sets Theo to working; when pausing, we leave current image alone.
-  };
+  const handlePlayPause = () => setIsRunning((prev) => !prev);
 
-  const handleBreak = () => {
-    // Pause timer and show break Theo
-    setIsRunning(false);
-    setTheoImage(require("../../assets/theo/break.png"));
-  };
-
-  const handleStop = () => {
-    setShowStopModal(true);
-  };
-
+  const handleStop = () => setShowStopModal(true);
+  const cancelStop = () => setShowStopModal(false);
   const confirmStop = () => {
     setShowStopModal(false);
     setIsRunning(false);
-    setSecondsLeft(1500);
+    setSecondsLeft(currentTask.time);
     setTheoImage(require("../../assets/theo/working.png"));
+    setIsBreak(false);
+    setBreakType(null);
   };
 
-  const cancelStop = () => setShowStopModal(false);
+  const handleNextTask = () => {
+    if (currentTaskIndex < tasks.length - 1) {
+      const nextIndex = currentTaskIndex + 1;
+      setCurrentTaskIndex(nextIndex);
+      setSecondsLeft(tasks[nextIndex].time);
+      setSavedTime(tasks[nextIndex].time);
+      setIsRunning(true);
+      setIsBreak(false);
+      setTheoImage(require("../../assets/theo/working.png"));
+    } else {
+      // All tasks done
+      setIsBreak(false);
+      setIsRunning(false);
+      setTheoImage(require("../../assets/theo/working.png"));
+      alert("All tasks completed! Session ended.");
+    }
+  };
+
+  const startManualBreak = () => {
+    setSavedTime(secondsLeft);
+    setIsBreak(true);
+    setBreakType("manual");
+    setTheoImage(require("../../assets/theo/break.png"));
+  };
+
+  const handleEndBreak = () => {
+    if (breakType === "manual") {
+      setIsBreak(false);
+      setSecondsLeft(savedTime);
+      setIsRunning(true);
+      setTheoImage(require("../../assets/theo/working.png"));
+    } else if (breakType === "auto") {
+      setIsBreak(false);
+      handleNextTask();
+    }
+    setBreakType(null);
+  };
 
   return (
     <View style={styles.container}>
+      {/* Goal + Task */}
+      <View style={styles.infoContainer}>
+        <Text style={styles.goalLabel}>Goal</Text>
+        <Text style={styles.goalText}>{goal}</Text>
+
+        <Text style={styles.taskLabel}>Task</Text>
+        <View style={styles.taskRow}>
+          <Text style={styles.taskText}>
+            {isBreak
+              ? "Take a break! You’ve been working really hard."
+              : currentTask.name}
+          </Text>
+          {!isBreak && (
+            <Pressable onPress={handleNextTask}>
+              <Image
+                source={require("../../assets/icons/fast-forward.png")}
+                style={styles.fastForwardIcon}
+              />
+            </Pressable>
+          )}
+        </View>
+
+        {isBreak ? (
+          <View style={styles.breakBox}>
+            <Text style={styles.breakText}>Break time!</Text>
+            <Pressable style={styles.endBreakBtn} onPress={handleEndBreak}>
+              <Text style={styles.endBreakText}>End break</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.timerContainer}>
+            {showTimer && (
+              <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
+            )}
+            <Pressable
+              style={styles.expandCollapseBtn}
+              onPress={() => setShowTimer((p) => !p)}
+            >
+              <Image
+                source={
+                  showTimer
+                    ? require("../../assets/icons/collapse.png")
+                    : require("../../assets/icons/expand.png")
+                }
+                style={[
+                  styles.expandCollapseIcon,
+                  { transform: [{ rotate: showTimer ? "0deg" : "180deg" }] },
+                ]}
+              />
+            </Pressable>
+          </View>
+        )}
+      </View>
+
+      {/* Theo */}
       <Image source={theoImage} style={styles.theo} />
 
-      <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
-
+      {/* Buttons */}
       <View style={styles.row}>
         <Pressable style={styles.button} onPress={handlePlayPause}>
           <Image
@@ -113,19 +195,14 @@ export default function SessionScreen() {
           />
         </Pressable>
 
-        <Pressable
-          style={styles.button}
-          onPress={() => {
-            router.push("/chat");
-          }}
-        >
+        <Pressable style={styles.button} onPress={() => router.push("/chat")}>
           <Image
             source={require("../../assets/icons/chat.png")}
             style={styles.icon}
           />
         </Pressable>
 
-        <Pressable style={styles.button} onPress={handleBreak}>
+        <Pressable style={styles.button} onPress={startManualBreak}>
           <Image
             source={require("../../assets/icons/break.png")}
             style={styles.icon}
@@ -133,16 +210,15 @@ export default function SessionScreen() {
         </Pressable>
       </View>
 
+      {/* Stop Modal */}
       <Modal visible={showStopModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalText}>End session?</Text>
-
             <View style={styles.modalButtons}>
               <Pressable style={styles.cancelBtn} onPress={cancelStop}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </Pressable>
-
               <Pressable style={styles.confirmBtn} onPress={confirmStop}>
                 <Text style={styles.confirmText}>End</Text>
               </Pressable>
@@ -155,13 +231,49 @@ export default function SessionScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center" },
-  theo: { width: 220, height: 220, resizeMode: "contain", marginBottom: 16 },
-  timer: { fontSize: 48, fontWeight: "600", marginBottom: 24 },
-  row: { flexDirection: "row", gap: 20 },
-  button: { padding: 8 },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "space-around",
+    paddingTop: 50,
+    backgroundColor: "#fff",
+    paddingBottom: 50,
+  },
+  infoContainer: { alignItems: "center" },
+  goalLabel: { fontSize: 18, fontWeight: "600", color: "#8b5e3c" },
+  goalText: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#8b5e3c",
+    marginBottom: 12,
+  },
+  taskLabel: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#3c3c3c",
+    marginTop: 8,
+  },
+  taskRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
+  taskText: { fontSize: 18, color: "#3c3c3c" },
+  fastForwardIcon: { width: 24, height: 24, resizeMode: "contain" },
+  theo: { width: 250, height: 250, resizeMode: "contain", marginBottom: 20 },
+  timerContainer: { flexDirection: "row" },
+  timer: { fontSize: 48, fontWeight: "700", color: "#3c3c3c" },
+  expandCollapseBtn: {
+    padding: 8,
+    borderRadius: 12,
+    alignSelf: "center",
+    marginBottom: 8,
+  },
+  expandCollapseIcon: { width: 38, height: 38, resizeMode: "contain" },
+  row: { flexDirection: "row", gap: 20, marginTop: 10 },
+  button: {},
   icon: { width: 48, height: 48, resizeMode: "contain" },
-
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -175,7 +287,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
   },
-  modalText: { fontSize: 18, marginBottom: 16 },
+  modalText: { fontSize: 18, marginBottom: 16, fontWeight: "500" },
   modalButtons: { flexDirection: "row", gap: 16 },
   cancelBtn: {
     paddingHorizontal: 18,
@@ -191,4 +303,24 @@ const styles = StyleSheet.create({
   },
   cancelText: { fontSize: 16 },
   confirmText: { color: "white", fontSize: 16 },
+  breakBox: {
+    backgroundColor: "#8b5e3c",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  breakText: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  endBreakBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#d4a373",
+    borderRadius: 8,
+  },
+  endBreakText: { color: "white", fontWeight: "600", fontSize: 16 },
 });
