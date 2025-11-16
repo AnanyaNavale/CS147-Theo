@@ -7,6 +7,7 @@ interface Task {
   time: number;
 }
 
+// TODO: pass in goal + tasks
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
 
@@ -259,6 +260,7 @@ export default function SessionScreen() {
   );
 }
 
+// TODO: adjust styles for consistency
 const styles = StyleSheet.create({
   container: {
     flex: 1,
