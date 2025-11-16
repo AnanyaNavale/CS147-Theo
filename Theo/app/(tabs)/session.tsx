@@ -2,24 +2,34 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Image, Modal, StyleSheet } from "react-native";
 import { router } from "expo-router";
 
+interface Task {
+  name: string;
+  time: number;
+}
+
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
 
-  const tasks = [
+  const tasks: Task[] = [
     { name: "Read pages 20–30", time: 10 },
     { name: "Write summary", time: 15 },
     { name: "Create flashcards", time: 8 * 60 },
   ];
 
+  const hasTasks = tasks.length > 0;
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  const currentTask = tasks[currentTaskIndex];
+  const currentTask = hasTasks ? tasks[currentTaskIndex] : null;
 
-  const [secondsLeft, setSecondsLeft] = useState(currentTask.time);
-  const [isRunning, setIsRunning] = useState(true);
-  const [showTimer, setShowTimer] = useState(true);
+  const [secondsLeft, setSecondsLeft] = useState(
+    currentTask ? currentTask.time : 0
+  );
+  const [savedTime, setSavedTime] = useState(
+    currentTask ? currentTask.time : 0
+  );
+  const [isRunning, setIsRunning] = useState(hasTasks);
+  const [showTimer, setShowTimer] = useState(hasTasks);
   const [isBreak, setIsBreak] = useState(false);
-  const [breakType, setBreakType] = useState<"manual" | "auto" | null>(null);
-  const [savedTime, setSavedTime] = useState(currentTask.time);
+  const [breakAfterTaskComplete, setBreakAfterTaskComplete] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [theoImage, setTheoImage] = useState(
@@ -35,16 +45,14 @@ export default function SessionScreen() {
 
   // Timer effect
   useEffect(() => {
-    if (isRunning && !isBreak) {
+    if (isRunning && !isBreak && currentTask) {
       setTheoImage(require("../../assets/theo/working.png"));
       intervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => prev - 1);
       }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
     return () => {
       if (intervalRef.current) {
@@ -52,33 +60,47 @@ export default function SessionScreen() {
         intervalRef.current = null;
       }
     };
-  }, [isRunning, currentTaskIndex, isBreak]);
+  }, [isRunning, currentTaskIndex, isBreak, currentTask]);
 
-  // Auto-trigger break when task finishes
+  // Detect end of task
   useEffect(() => {
-    if (!isBreak && secondsLeft <= 0) {
+    if (!isBreak && currentTask && secondsLeft <= 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setIsRunning(false);
-      setBreakType("auto");
+      setSavedTime(0);
       setIsBreak(true);
       setTheoImage(require("../../assets/theo/break.png"));
+      setBreakAfterTaskComplete(true);
     }
-  }, [secondsLeft, isBreak]);
 
-  const handlePlayPause = () => setIsRunning((prev) => !prev);
+    // End session if no tasks and timer reaches 0
+    if (!currentTask && secondsLeft <= 0) {
+      console.log("Session ended (no tasks left)");
+    }
+  }, [secondsLeft, isBreak, currentTask]);
+
+  const handlePlayPause = () => {
+    if (!currentTask) return;
+    setIsRunning((prev) => !prev);
+  };
 
   const handleStop = () => setShowStopModal(true);
   const cancelStop = () => setShowStopModal(false);
   const confirmStop = () => {
     setShowStopModal(false);
     setIsRunning(false);
-    setSecondsLeft(currentTask.time);
+    if (currentTask) {
+      setSecondsLeft(currentTask.time);
+      setSavedTime(currentTask.time);
+    }
     setTheoImage(require("../../assets/theo/working.png"));
     setIsBreak(false);
-    setBreakType(null);
+    setBreakAfterTaskComplete(false);
+    console.log("session complete");
   };
 
   const handleNextTask = () => {
+    if (!hasTasks) return;
     if (currentTaskIndex < tasks.length - 1) {
       const nextIndex = currentTaskIndex + 1;
       setCurrentTaskIndex(nextIndex);
@@ -88,32 +110,29 @@ export default function SessionScreen() {
       setIsBreak(false);
       setTheoImage(require("../../assets/theo/working.png"));
     } else {
-      // All tasks done
-      setIsBreak(false);
-      setIsRunning(false);
-      setTheoImage(require("../../assets/theo/working.png"));
-      alert("All tasks completed! Session ended.");
+      console.log("Session ended (all tasks completed)");
     }
   };
 
-  const startManualBreak = () => {
+  const handleStartBreak = () => {
+    if (!currentTask) return;
     setSavedTime(secondsLeft);
     setIsBreak(true);
-    setBreakType("manual");
+    setIsRunning(false);
     setTheoImage(require("../../assets/theo/break.png"));
+    setBreakAfterTaskComplete(false);
   };
 
   const handleEndBreak = () => {
-    if (breakType === "manual") {
-      setIsBreak(false);
+    setIsBreak(false);
+    if (breakAfterTaskComplete) {
+      setBreakAfterTaskComplete(false);
+      handleNextTask();
+    } else if (currentTask) {
       setSecondsLeft(savedTime);
       setIsRunning(true);
       setTheoImage(require("../../assets/theo/working.png"));
-    } else if (breakType === "auto") {
-      setIsBreak(false);
-      handleNextTask();
     }
-    setBreakType(null);
   };
 
   return (
@@ -123,31 +142,30 @@ export default function SessionScreen() {
         <Text style={styles.goalLabel}>Goal</Text>
         <Text style={styles.goalText}>{goal}</Text>
 
-        <Text style={styles.taskLabel}>Task</Text>
-        <View style={styles.taskRow}>
-          <Text style={styles.taskText}>
-            {isBreak
-              ? "Take a break! You’ve been working really hard."
-              : currentTask.name}
-          </Text>
-          {!isBreak && (
-            <Pressable onPress={handleNextTask}>
-              <Image
-                source={require("../../assets/icons/fast-forward.png")}
-                style={styles.fastForwardIcon}
-              />
-            </Pressable>
-          )}
-        </View>
+        {hasTasks && (
+          <>
+            <Text style={styles.taskLabel}>Task</Text>
+            <View style={styles.taskRow}>
+              <Text style={styles.taskText}>
+                {isBreak
+                  ? "Take a break! You’ve been working really hard."
+                  : currentTask?.name}
+              </Text>
+              {!isBreak &&
+                currentTask &&
+                currentTaskIndex < tasks.length - 1 && (
+                  <Pressable onPress={handleNextTask}>
+                    <Image
+                      source={require("../../assets/icons/fast-forward.png")}
+                      style={styles.fastForwardIcon}
+                    />
+                  </Pressable>
+                )}
+            </View>
+          </>
+        )}
 
-        {isBreak ? (
-          <View style={styles.breakBox}>
-            <Text style={styles.breakText}>Break time!</Text>
-            <Pressable style={styles.endBreakBtn} onPress={handleEndBreak}>
-              <Text style={styles.endBreakText}>End break</Text>
-            </Pressable>
-          </View>
-        ) : (
+        {!isBreak && (
           <View style={styles.timerContainer}>
             {showTimer && (
               <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
@@ -167,6 +185,15 @@ export default function SessionScreen() {
                   { transform: [{ rotate: showTimer ? "0deg" : "180deg" }] },
                 ]}
               />
+            </Pressable>
+          </View>
+        )}
+
+        {isBreak && (
+          <View style={styles.breakBox}>
+            <Text style={styles.breakText}>Break time!</Text>
+            <Pressable style={styles.endBreakBtn} onPress={handleEndBreak}>
+              <Text style={styles.endBreakText}>End break</Text>
             </Pressable>
           </View>
         )}
@@ -202,12 +229,14 @@ export default function SessionScreen() {
           />
         </Pressable>
 
-        <Pressable style={styles.button} onPress={startManualBreak}>
-          <Image
-            source={require("../../assets/icons/break.png")}
-            style={styles.icon}
-          />
-        </Pressable>
+        {hasTasks && !isBreak && (
+          <Pressable style={styles.button} onPress={handleStartBreak}>
+            <Image
+              source={require("../../assets/icons/break.png")}
+              style={styles.icon}
+            />
+          </Pressable>
+        )}
       </View>
 
       {/* Stop Modal */}
