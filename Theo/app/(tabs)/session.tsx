@@ -76,6 +76,7 @@ export default function SessionScreen() {
 
     // End session if no tasks and timer reaches 0
     if (!currentTask && secondsLeft <= 0) {
+      // TODO: handle the actual end of a session
       console.log("Session ended (no tasks left)");
     }
   }, [secondsLeft, isBreak, currentTask]);
@@ -97,6 +98,7 @@ export default function SessionScreen() {
     setTheoImage(require("../../assets/theo/working.png"));
     setIsBreak(false);
     setBreakAfterTaskComplete(false);
+    // TODO: handle session end
     console.log("session complete");
   };
 
@@ -111,6 +113,7 @@ export default function SessionScreen() {
       setIsBreak(false);
       setTheoImage(require("../../assets/theo/working.png"));
     } else {
+      // TODO: handle session end
       console.log("Session ended (all tasks completed)");
     }
   };
