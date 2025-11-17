@@ -9,7 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
-
+import { ThemeProvider } from "../hooks/ThemeContext";
 import { useColorScheme } from "@/components/useColorScheme";
 import { SupabaseProvider } from "@/providers/SupabaseProvider";
 
