@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Image, StyleSheet, Pressable } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
@@ -14,25 +14,27 @@ import { InputField } from "@/components/ui/InputField";
 
 import { theme } from "@/design/theme";
 
-interface Task {
-  name: string;
-  time: number;
-}
+import { TASKS, Task } from "./tasks";
 
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
 
-  /* ---------------- STATE ---------------- */
+  /* PARAM: Selected task from end-session screen */
+  const { task: taskParam } = useLocalSearchParams<{ task?: string }>();
+  const selectedTaskName = Array.isArray(taskParam) ? taskParam[0] : taskParam;
 
-  const [tasks, setTasks] = useState<Task[]>([
-    { name: "Read pages 20–30", time: 10 },
-    { name: "Write summary", time: 15 },
-    { name: "Create flashcards", time: 8 * 60 },
-  ]);
+  /* TASKS: From shared TASKS file */
+  const hasTasks = TASKS.length > 0;
 
-  const hasTasks = tasks.length > 0;
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  const currentTask = hasTasks ? tasks[currentTaskIndex] : null;
+  const initialTaskIndex = selectedTaskName
+    ? TASKS.findIndex((t) => t.name === selectedTaskName)
+    : 0;
+
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(
+    initialTaskIndex >= 0 ? initialTaskIndex : 0
+  );
+
+  const currentTask: Task | null = hasTasks ? TASKS[currentTaskIndex] : null;
 
   const [secondsLeft, setSecondsLeft] = useState(
     currentTask ? currentTask.time : 0
@@ -48,13 +50,12 @@ export default function SessionScreen() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [theoImage, setTheoImage] = useState(
-    require("../../assets/theo/working.png")
+    require("../../../assets/theo/working.png")
   );
 
   /* ---------------- MODALS ---------------- */
 
   const [showStopModal, setShowStopModal] = useState(false);
-
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
 
@@ -63,11 +64,11 @@ export default function SessionScreen() {
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
 
-  /* ---------------- TIMER EFFECT ---------------- */
+  /* ---------------- TIMER ---------------- */
 
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
-      setTheoImage(require("../../assets/theo/working.png"));
+      setTheoImage(require("../../../assets/theo/working.png"));
 
       intervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => prev - 1);
@@ -80,57 +81,61 @@ export default function SessionScreen() {
     }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [isRunning, currentTaskIndex, isBreak, currentTask]);
+  }, [isRunning, isBreak, currentTaskIndex, currentTask]);
 
-  /* ---------------- END-OF-TASK DETECTION ---------------- */
+  /* ---------------- END OF TASK ---------------- */
 
   useEffect(() => {
     if (!isBreak && currentTask && secondsLeft <= 0) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current && clearInterval(intervalRef.current);
 
       setIsRunning(false);
       setSavedTime(0);
 
       setIsBreak(true);
-      setTheoImage(require("../../assets/theo/break.png"));
-
+      setTheoImage(require("../../../assets/theo/break.png"));
       setBreakAfterTaskComplete(true);
-    }
-  }, [secondsLeft, isBreak, currentTask]);
-
-  /* ---------------- HANDLERS ---------------- */
-
-  const handleNextTask = () => {
-    if (currentTaskIndex < tasks.length - 1) {
-      const nextIndex = currentTaskIndex + 1;
-      const next = tasks[nextIndex];
-
-      setCurrentTaskIndex(nextIndex);
-      setSecondsLeft(next.time);
-      setSavedTime(next.time);
-
-      setIsRunning(true);
-      setIsBreak(false);
-
-      setTheoImage(require("../../assets/theo/working.png"));
       return;
     }
 
-    console.log("Session complete");
-  };
+    if (!currentTask && secondsLeft <= 0) {
+      router.replace("/(tabs)/session/end-session");
+    }
+  }, [secondsLeft, currentTask, isBreak]);
+
+  /* LOAD A SPECIFIC TASK FROM END-SCREEN */
+  useEffect(() => {
+    if (!selectedTaskName) return;
+
+    const i = TASKS.findIndex((t) => t.name === selectedTaskName);
+    if (i >= 0 && i !== currentTaskIndex) {
+      const time = TASKS[i].time;
+      setCurrentTaskIndex(i);
+      setSecondsLeft(time);
+      setSavedTime(time);
+      setIsRunning(true);
+      setIsBreak(false);
+      setTheoImage(require("../../../assets/theo/working.png"));
+    }
+  }, [selectedTaskName]);
+
+  /* ---------------- HANDLERS ---------------- */
 
   const handlePlayPause = () => {
-    if (!currentTask) return;
-    setIsRunning((prev) => !prev);
+    if (currentTask) setIsRunning((p) => !p);
   };
 
   const handleStartBreak = () => {
     setSavedTime(secondsLeft);
     setIsBreak(true);
     setIsRunning(false);
-    setTheoImage(require("../../assets/theo/break.png"));
+    setBreakAfterTaskComplete(false);
+    setTheoImage(require("../../../assets/theo/break.png"));
   };
 
   const handleEndBreak = () => {
@@ -139,10 +144,27 @@ export default function SessionScreen() {
     if (breakAfterTaskComplete) {
       setBreakAfterTaskComplete(false);
       handleNextTask();
-    } else {
-      setSecondsLeft(savedTime);
+      return;
+    }
+
+    setSecondsLeft(savedTime);
+    setIsRunning(true);
+    setTheoImage(require("../../../assets/theo/working.png"));
+  };
+
+  const handleNextTask = () => {
+    if (currentTaskIndex < TASKS.length - 1) {
+      const next = currentTaskIndex + 1;
+      const nextTime = TASKS[next].time;
+
+      setCurrentTaskIndex(next);
+      setSecondsLeft(nextTime);
+      setSavedTime(nextTime);
       setIsRunning(true);
-      setTheoImage(require("../../assets/theo/working.png"));
+      setIsBreak(false);
+      setTheoImage(require("../../../assets/theo/working.png"));
+    } else {
+      router.push("/(tabs)/session/end-session");
     }
   };
 
@@ -150,24 +172,23 @@ export default function SessionScreen() {
     setShowStopModal(false);
     setIsRunning(false);
 
-    const reset = currentTask?.time ?? 0;
-    setSecondsLeft(reset);
-    setSavedTime(reset);
+    if (currentTask) {
+      setSecondsLeft(currentTask.time);
+      setSavedTime(currentTask.time);
+    }
 
-    setTheoImage(require("../../assets/theo/working.png"));
     setIsBreak(false);
+    setBreakAfterTaskComplete(false);
 
-    console.log("Session ended");
+    router.push("/(tabs)/session/end-session");
   };
 
-  /* ---------------- MODAL ACTIONS ---------------- */
-
   const handleApplyTime = () => {
-    const extraMinutes = Number(newTime);
-    if (!extraMinutes || extraMinutes <= 0) return;
+    const m = Number(newTime);
+    if (!m || m <= 0) return;
 
-    const extraSeconds = extraMinutes * 60;
-    const updated = secondsLeft + extraSeconds;
+    const added = m * 60;
+    const updated = secondsLeft + added;
 
     setSecondsLeft(updated);
     setSavedTime(updated);
@@ -177,20 +198,15 @@ export default function SessionScreen() {
 
   const handleSaveTaskEdit = () => {
     if (!editedTaskName.trim()) return;
-
-    setTasks((prev) => {
-      const copy = [...prev];
-      copy[currentTaskIndex] = {
-        ...copy[currentTaskIndex],
-        name: editedTaskName.trim(),
-      };
-      return copy;
-    });
-
+    const updated = [...TASKS];
+    updated[currentTaskIndex] = {
+      ...updated[currentTaskIndex],
+      name: editedTaskName.trim(),
+    };
     setShowEditTaskModal(false);
   };
 
-  /* ---------------- UI ---------------- */
+  /* ---------------- RENDER ---------------- */
 
   return (
     <View style={styles.container}>
@@ -232,11 +248,14 @@ export default function SessionScreen() {
 
         <Spacer size="md" />
 
+        {/* TASK HEADER */}
         {currentTask && (
           <>
             <Text variant="h2" color="accentDark">
               Task
             </Text>
+
+            <Spacer size="xs" />
 
             <View style={styles.taskRow}>
               <Text variant="h3">
@@ -245,7 +264,7 @@ export default function SessionScreen() {
                   : currentTask.name}
               </Text>
 
-              {!isBreak && currentTaskIndex < tasks.length - 1 && (
+              {!isBreak && currentTaskIndex < TASKS.length - 1 && (
                 <Pressable onPress={handleNextTask}>
                   <Icon name="fast-forward" size={28} />
                 </Pressable>
@@ -256,11 +275,12 @@ export default function SessionScreen() {
           </>
         )}
 
+        {/* TIMER / BREAK BOX */}
         {!isBreak ? (
           <Timer secondsLeft={secondsLeft} />
         ) : (
           <View style={styles.breakBox}>
-            <Text variant="h2" weight="bold" color="white">
+            <Text variant="h2" weight="bold">
               Break time!
             </Text>
 
@@ -276,6 +296,7 @@ export default function SessionScreen() {
         )}
       </View>
 
+      {/* THEO */}
       <Image source={theoImage} style={styles.theo} />
 
       {/* CONTROLS */}
@@ -285,6 +306,7 @@ export default function SessionScreen() {
             <Icon name={isRunning ? "pause" : "play"} size={48} />
           </Pressable>
         )}
+
         <Pressable onPress={() => setShowStopModal(true)}>
           <Icon name="stop" size={48} />
         </Pressable>
@@ -300,7 +322,7 @@ export default function SessionScreen() {
         )}
       </View>
 
-      {/* STOP MODAL */}
+      {/* -------- STOP MODAL -------- */}
       <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
@@ -312,7 +334,7 @@ export default function SessionScreen() {
         onConfirm={confirmStop}
       />
 
-      {/* ADD TIME MODAL */}
+      {/* -------- ADD TIME MODAL -------- */}
       <AppModal
         visible={showAddTimeModal}
         onClose={() => setShowAddTimeModal(false)}
@@ -332,7 +354,7 @@ export default function SessionScreen() {
         <Spacer size="sm" />
       </AppModal>
 
-      {/* PROGRESS MODAL */}
+      {/* -------- PROGRESS MODAL -------- */}
       <AppModal
         visible={showProgressModal}
         onClose={() => setShowProgressModal(false)}
@@ -340,15 +362,15 @@ export default function SessionScreen() {
         title="Session progress"
         height={300}
       >
-        {tasks.map((t, i) => {
-          const isDone =
+        {TASKS.map((t, i) => {
+          const done =
             i < currentTaskIndex ||
             (i === currentTaskIndex && isBreak && breakAfterTaskComplete);
 
           return (
             <Checkbox
               key={i}
-              checked={isDone}
+              checked={done}
               onChange={() => {}}
               label={t.name}
               containerStyle={{ width: "100%" }}
@@ -357,7 +379,7 @@ export default function SessionScreen() {
         })}
       </AppModal>
 
-      {/* EDIT TASK MODAL */}
+      {/* -------- EDIT TASK MODAL -------- */}
       <AppModal
         visible={showEditTaskModal}
         onClose={() => setShowEditTaskModal(false)}
@@ -409,7 +431,8 @@ const styles = StyleSheet.create({
 
   breakBox: {
     backgroundColor: theme.colors.accentDark,
-    padding: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
     borderRadius: theme.radii.md,
     alignItems: "center",
     minWidth: 250,
