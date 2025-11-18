@@ -84,48 +84,9 @@ const weightStyles = StyleSheet.create({
 /* Variant scale                              */
 /* ----------------------------------------- */
 
-const variantStyles = StyleSheet.create({
-  h1: {
-    fontSize: theme.typography.sizes.xl,
-  },
-  h2: {
-    fontSize: theme.typography.sizes.lg,
-  },
-  h3: {
-    fontSize: theme.typography.sizes.md * 1.1,
-  },
-  subtitle: {
-    fontSize: theme.typography.sizes.md,
-  },
-  body: {
-    fontSize: theme.typography.sizes.md,
-  },
-  small: {
-    fontSize: theme.typography.sizes.sm,
-  },
-  caption: {
-    fontSize: theme.typography.sizes.xs,
-  },
-});
-
 /* ----------------------------------------- */
 /* Weight scale                               */
 /* ----------------------------------------- */
-
-const weightStyles = StyleSheet.create({
-  regular: {
-    fontFamily: theme.typography.families.regular,
-  },
-  medium: {
-    fontFamily: theme.typography.families.regular,
-  },
-  bold: {
-    fontFamily: theme.typography.families.bold,
-  },
-  handwritten: {
-    fontFamily: theme.typography.families.handwritten,
-  },
-});
 
 /* ----------------------------------------- */
 /* Color scale                                */
