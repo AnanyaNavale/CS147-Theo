@@ -74,24 +74,19 @@ const variantStyles = StyleSheet.create({
   },
 });
 
+const weightStyles = StyleSheet.create({
+  regular: { fontFamily: theme.typography.families.regular },
+  medium: { fontFamily: theme.typography.families.regular },
+  bold: { fontFamily: theme.typography.families.bold },
+});
+
+/* ----------------------------------------- */
+/* Variant scale                              */
+/* ----------------------------------------- */
+
 /* ----------------------------------------- */
 /* Weight scale                               */
 /* ----------------------------------------- */
-
-const weightStyles = StyleSheet.create({
-  regular: {
-    fontFamily: theme.typography.families.regular,
-  },
-  medium: {
-    fontFamily: theme.typography.families.regular,
-  },
-  bold: {
-    fontFamily: theme.typography.families.bold,
-  },
-  handwritten: {
-    fontFamily: theme.typography.families.handwritten,
-  },
-});
 
 /* ----------------------------------------- */
 /* Color scale                                */
