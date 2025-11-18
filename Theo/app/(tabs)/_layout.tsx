@@ -8,11 +8,25 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>["name"];
+type FontAwesomeName = React.ComponentProps<typeof FontAwesome>["name"];
+
+function TabBarIcon({
+  name,
+  color,
+  size = 33,
+}: {
+  name: FontAwesomeName;
   color: string;
+  size?: number;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return (
+    <FontAwesome
+      name={name}
+      color={color}
+      size={size}
+      style={{ marginBottom: -2 }}
+    />
+  );
 }
 
 export default function TabLayout() {
@@ -21,24 +35,57 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
+        tabBarActiveTintColor: "#ffffff",
+        tabBarInactiveTintColor: "#F3DDB4",
+        tabBarLabelStyle: {
+          marginTop: 4,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 2,
+        },
+        tabBarStyle: {
+          backgroundColor: "#8A5E3C",
+          borderTopColor: "#8A5E3C",
+          height: 88,
+          paddingBottom: 10,
+          paddingTop: 8,
+        },
         headerShown: useClientOnlyValue(false, true),
       }}
     >
       <Tabs.Screen
-        name="example"
+        name="index"
         options={{
-          title: "Styles",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: "Home",
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
+
       <Tabs.Screen
         name="session"
         options={{
           title: "Session",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="calendar" color={color} size={28} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="example"
+        options={{
+          title: "Styles",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="code" color={color} size={28} />
+          ),
         }}
       />
     </Tabs>
