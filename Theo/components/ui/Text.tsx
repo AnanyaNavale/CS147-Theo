@@ -1,14 +1,80 @@
 import { Text as RNText, TextProps, StyleSheet } from "react-native";
 import { theme } from "../../design/theme";
 
-export function Text({ style, ...props }: TextProps) {
-  return <RNText {...props} style={[styles.text, style]} />;
+type Variant = "h1" | "h2" | "h3" | "body" | "subtle" | "small" | "label";
+
+type Weight = "regular" | "medium" | "bold";
+
+// Only allow solid colors, not gradients
+type TextColor = keyof typeof theme.solidColors;
+
+interface AppTextProps extends TextProps {
+  variant?: Variant;
+  weight?: Weight;
+  color?: TextColor;
 }
 
-const styles = StyleSheet.create({
+export function Text({
+  style,
+  variant = "body",
+  weight = "regular",
+  color = "text",
+  ...props
+}: AppTextProps) {
+  return (
+    <RNText
+      {...props}
+      style={[
+        baseStyles.text,
+        variantStyles[variant],
+        weightStyles[weight],
+        { color: theme.solidColors[color] },
+        style,
+      ]}
+    />
+  );
+}
+
+const baseStyles = StyleSheet.create({
   text: {
-    color: theme.colors.text,
     fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
   },
+});
+
+const variantStyles = StyleSheet.create({
+  h1: {
+    fontSize: theme.typography.sizes.xl,
+    lineHeight: theme.typography.sizes.xl * 1.2,
+  },
+  h2: {
+    fontSize: theme.typography.sizes.lg,
+    lineHeight: theme.typography.sizes.lg * 1.25,
+  },
+  h3: {
+    fontSize: theme.typography.sizes.md,
+    lineHeight: theme.typography.sizes.md * 1.25,
+  },
+  body: {
+    fontSize: theme.typography.sizes.md,
+    lineHeight: theme.typography.sizes.md * 1.3,
+  },
+  subtle: {
+    fontSize: theme.typography.sizes.sm,
+    opacity: 0.7,
+  },
+  small: {
+    fontSize: theme.typography.sizes.xs,
+    lineHeight: theme.typography.sizes.xs * 1.1,
+  },
+  label: {
+    fontSize: theme.typography.sizes.sm,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+});
+
+const weightStyles = StyleSheet.create({
+  regular: { fontFamily: theme.typography.families.regular },
+  medium: { fontFamily: theme.typography.families.regular },
+  bold: { fontFamily: theme.typography.families.bold },
 });
