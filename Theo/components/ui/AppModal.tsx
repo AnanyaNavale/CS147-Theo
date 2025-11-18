@@ -6,6 +6,9 @@ import {
   StyleSheet,
   Pressable,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { theme } from "../../design/theme";
@@ -97,17 +100,20 @@ export function AppModal({
         <View style={styles.bottomSheetContainer}>
           <TouchableOpacity style={{ flex: 1 }} onPress={onClose} />
 
-          <View style={[styles.bottomSheet, { height }]}>
-            <TouchableOpacity style={styles.closeBtnSheet} onPress={onClose}>
-              <Text style={styles.closeIcon}>×</Text>
-            </TouchableOpacity>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.bottomSheetWrapper}
+          >
+            <View style={[styles.bottomSheet, { maxHeight: height }]}>
+              <TouchableOpacity style={styles.closeBtnSheet} onPress={onClose}>
+                <Text style={styles.closeIcon}>×</Text>
+              </TouchableOpacity>
 
-            {title && <Text style={styles.sheetTitle}>{title}</Text>}
+              {title && <Text style={styles.sheetTitle}>{title}</Text>}
 
-            <View style={{ width: "100%", marginTop: theme.spacing.md }}>
-              {children}
+              <View>{children}</View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </View>
       )}
     </Modal>
@@ -207,8 +213,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
   },
-  bottomSheet: {
+  bottomSheetWrapper: {
     width: "100%",
+    maxHeight: "80%", // prevents overflow behind keyboard
+  },
+  bottomSheet: {
     backgroundColor: theme.modal.cardBg,
     borderTopLeftRadius: theme.radii.xl,
     borderTopRightRadius: theme.radii.xl,
@@ -217,6 +226,7 @@ const styles = StyleSheet.create({
     borderColor: theme.modal.borderColor,
     alignItems: "center",
   },
+
   sheetTitle: {
     fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.xl,

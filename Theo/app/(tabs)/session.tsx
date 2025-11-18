@@ -1,26 +1,40 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Pressable, Image, StyleSheet } from "react-native";
+import { View, Image, StyleSheet, Pressable, TextInput } from "react-native";
 import { router } from "expo-router";
 
-import { Text, AppModal, Spacer } from "../../components";
-import { theme } from "../../design/theme";
+import { Text } from "@/components/ui/Text";
+import { Button } from "@/components/ui/Button";
+import { Spacer } from "@/components/ui/Spacer";
+import { AppModal } from "@/components/ui/AppModal";
+import { Timer } from "@/components/ui/Timer";
+import { Menu } from "@/components/ui/Menu";
+import { Icon } from "@/components/ui/Icon";
+import { Checkbox } from "@/components/ui/Checkbox";
+
+import { theme } from "@/design/theme";
 
 interface Task {
   name: string;
-  time: number;
+  time: number; // seconds
 }
 
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
 
-  const tasks: Task[] = [
+  /* ---------------------------------------------- */
+  /*                     STATE                       */
+  /* ---------------------------------------------- */
+
+  const [tasks, setTasks] = useState<Task[]>([
     { name: "Read pages 20–30", time: 10 },
     { name: "Write summary", time: 15 },
     { name: "Create flashcards", time: 8 * 60 },
-  ];
+  ]);
 
   const hasTasks = tasks.length > 0;
+
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+
   const currentTask = hasTasks ? tasks[currentTaskIndex] : null;
 
   const [secondsLeft, setSecondsLeft] = useState(
@@ -29,25 +43,33 @@ export default function SessionScreen() {
   const [savedTime, setSavedTime] = useState(
     currentTask ? currentTask.time : 0
   );
+
   const [isRunning, setIsRunning] = useState(hasTasks);
-  const [showTimer, setShowTimer] = useState(hasTasks);
   const [isBreak, setIsBreak] = useState(false);
   const [breakAfterTaskComplete, setBreakAfterTaskComplete] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const [theoImage, setTheoImage] = useState(
     require("../../assets/theo/working.png")
   );
 
+  /* ---------------------------------------------- */
+  /*                     MODALS                     */
+  /* ---------------------------------------------- */
   const [showStopModal, setShowStopModal] = useState(false);
 
-  const formatTime = (totalSeconds: number) => {
-    const m = Math.floor(totalSeconds / 60);
-    const s = totalSeconds % 60;
-    return `${m}:${s < 10 ? "0" + s : s}`;
-  };
+  const [showAddTimeModal, setShowAddTimeModal] = useState(false);
+  const [newTime, setNewTime] = useState("");
 
-  /* TIMER LOOP */
+  const [showProgressModal, setShowProgressModal] = useState(false);
+
+  const [showEditTaskModal, setShowEditTaskModal] = useState(false);
+  const [editedTaskName, setEditedTaskName] = useState("");
+
+  /* ---------------------------------------------- */
+  /*                  TIMER EFFECT                  */
+  /* ---------------------------------------------- */
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
       setTheoImage(require("../../assets/theo/working.png"));
@@ -55,9 +77,11 @@ export default function SessionScreen() {
       intervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => prev - 1);
       }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
 
     return () => {
@@ -65,7 +89,9 @@ export default function SessionScreen() {
     };
   }, [isRunning, currentTaskIndex, isBreak, currentTask]);
 
-  /* DETECT END OF TASK */
+  /* ---------------------------------------------- */
+  /*               END-OF-TASK DETECTION            */
+  /* ---------------------------------------------- */
   useEffect(() => {
     if (!isBreak && currentTask && secondsLeft <= 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -78,64 +104,42 @@ export default function SessionScreen() {
 
       setBreakAfterTaskComplete(true);
     }
-
-    if (!currentTask && secondsLeft <= 0) {
-      console.log("Session ended (no tasks left)");
-    }
   }, [secondsLeft, isBreak, currentTask]);
 
-  /* BUTTON HANDLERS */
-  const handlePlayPause = () => {
-    if (!currentTask) return;
-    setIsRunning((prev) => !prev);
-  };
-
-  const handleStop = () => setShowStopModal(true);
-  const cancelStop = () => setShowStopModal(false);
-
-  const confirmStop = () => {
-    setShowStopModal(false);
-    setIsRunning(false);
-
-    if (currentTask) {
-      setSecondsLeft(currentTask.time);
-      setSavedTime(currentTask.time);
-    }
-
-    setTheoImage(require("../../assets/theo/working.png"));
-    setIsBreak(false);
-    setBreakAfterTaskComplete(false);
-
-    console.log("session complete");
-  };
+  /* ---------------------------------------------- */
+  /*                   HANDLERS                     */
+  /* ---------------------------------------------- */
 
   const handleNextTask = () => {
-    if (!hasTasks) return;
-
     if (currentTaskIndex < tasks.length - 1) {
       const nextIndex = currentTaskIndex + 1;
 
       setCurrentTaskIndex(nextIndex);
-      setSecondsLeft(tasks[nextIndex].time);
-      setSavedTime(tasks[nextIndex].time);
+
+      const next = tasks[nextIndex];
+      setSecondsLeft(next.time);
+      setSavedTime(next.time);
 
       setIsRunning(true);
       setIsBreak(false);
 
       setTheoImage(require("../../assets/theo/working.png"));
-    } else {
-      console.log("Session ended (all tasks completed)");
+      return;
     }
+
+    console.log("Session complete");
+  };
+
+  const handlePlayPause = () => {
+    if (!currentTask) return;
+    setIsRunning((p) => !p);
   };
 
   const handleStartBreak = () => {
-    if (!currentTask) return;
-
     setSavedTime(secondsLeft);
     setIsBreak(true);
     setIsRunning(false);
     setTheoImage(require("../../assets/theo/break.png"));
-    setBreakAfterTaskComplete(false);
   };
 
   const handleEndBreak = () => {
@@ -144,217 +148,318 @@ export default function SessionScreen() {
     if (breakAfterTaskComplete) {
       setBreakAfterTaskComplete(false);
       handleNextTask();
-    } else if (currentTask) {
+    } else {
       setSecondsLeft(savedTime);
       setIsRunning(true);
       setTheoImage(require("../../assets/theo/working.png"));
     }
   };
 
+  const confirmStop = () => {
+    setShowStopModal(false);
+    setIsRunning(false);
+
+    const reset = currentTask?.time ?? 0;
+    setSecondsLeft(reset);
+    setSavedTime(reset);
+
+    setTheoImage(require("../../assets/theo/working.png"));
+    setIsBreak(false);
+
+    console.log("Session ended");
+  };
+
+  /* ---------------------------------------------- */
+  /*                  MODAL ACTIONS                 */
+  /* ---------------------------------------------- */
+
+  const handleApplyTime = () => {
+    const extraMinutes = Number(newTime);
+
+    if (!extraMinutes || extraMinutes <= 0) return;
+
+    const extraSeconds = extraMinutes * 60;
+
+    const updated = secondsLeft + extraSeconds;
+
+    setSecondsLeft(updated);
+    setSavedTime(updated);
+
+    setShowAddTimeModal(false);
+  };
+
+  const handleSaveTaskEdit = () => {
+    if (!editedTaskName.trim()) return;
+
+    setTasks((prev) => {
+      const copy = [...prev];
+      copy[currentTaskIndex] = {
+        ...copy[currentTaskIndex],
+        name: editedTaskName.trim(),
+      };
+      return copy;
+    });
+
+    setShowEditTaskModal(false);
+  };
+
+  /* ---------------------------------------------- */
+  /*                     RENDER                     */
+  /* ---------------------------------------------- */
+
   return (
     <View style={styles.container}>
-      {/* GOAL + TASK */}
-      <View style={styles.infoContainer}>
-        <Text variant="h2" weight="bold" color="accentDark">
+      {/* MENU */}
+      <View style={{ position: "absolute", top: 20, right: 20 }}>
+        <Menu
+          options={[
+            {
+              label: "Add time to task",
+              onPress: () => {
+                setNewTime("");
+                setShowAddTimeModal(true);
+              },
+            },
+            {
+              label: "View progress",
+              onPress: () => setShowProgressModal(true),
+            },
+            {
+              label: "Edit task",
+              onPress: () => {
+                setEditedTaskName(currentTask?.name ?? "");
+                setShowEditTaskModal(true);
+              },
+            },
+          ]}
+        />
+      </View>
+
+      {/* GOAL */}
+      <View style={{ alignItems: "center", paddingTop: theme.spacing.lg }}>
+        <Text variant="h2" color="accentDark">
           Goal
         </Text>
 
-        <Text variant="subtitle" weight="bold" color="accentDark">
+        <Text variant="h3" weight="bold">
           {goal}
         </Text>
+
         <Spacer size="md" />
 
-        {hasTasks && (
+        {/* CURRENT TASK */}
+        {currentTask && (
           <>
-            <Text variant="h2" weight="bold">
+            <Text variant="h2" color="accentDark">
               Task
             </Text>
 
+            <Spacer size="xs" />
+
             <View style={styles.taskRow}>
-              <Text variant="body">
+              <Text variant="h3">
                 {isBreak
                   ? "Take a break! You’ve been working really hard."
-                  : currentTask?.name}
+                  : currentTask.name}
               </Text>
 
-              {!isBreak &&
-                currentTask &&
-                currentTaskIndex < tasks.length - 1 && (
-                  <Pressable onPress={handleNextTask}>
-                    <Image
-                      source={require("../../assets/icons/fast-forward.png")}
-                      style={styles.fastForwardIcon}
-                    />
-                  </Pressable>
-                )}
+              {!isBreak && currentTaskIndex < tasks.length - 1 && (
+                <Pressable onPress={handleNextTask}>
+                  <Icon name="fast-forward" size={28} />
+                </Pressable>
+              )}
             </View>
+
+            <Spacer size="md" />
           </>
         )}
 
-        {/* TIMER */}
-        {!isBreak && (
-          <View style={styles.timerContainer}>
-            {showTimer && (
-              <Text variant="h1" weight="bold">
-                {formatTime(secondsLeft)}
-              </Text>
-            )}
-
-            <Pressable
-              style={styles.expandCollapseBtn}
-              onPress={() => setShowTimer((p) => !p)}
-            >
-              <Image
-                source={
-                  showTimer
-                    ? require("../../assets/icons/collapse.png")
-                    : require("../../assets/icons/expand.png")
-                }
-                style={[
-                  styles.expandCollapseIcon,
-                  { transform: [{ rotate: showTimer ? "0deg" : "180deg" }] },
-                ]}
-              />
-            </Pressable>
-          </View>
-        )}
-
-        {/* BREAK MODE */}
-        {isBreak && (
+        {/* TIMER OR BREAK MODE */}
+        {!isBreak ? (
+          <Timer secondsLeft={secondsLeft} />
+        ) : (
           <View style={styles.breakBox}>
-            <Text variant="h2" weight="bold" color="white">
+            <Text variant="h3" weight="bold" color="accent">
               Break time!
             </Text>
 
-            <Pressable style={styles.endBreakBtn} onPress={handleEndBreak}>
-              <Text variant="body" weight="bold" color="white">
-                End break
-              </Text>
-            </Pressable>
+            <Spacer size="sm" />
+
+            <Button label="End break" variant="gold" onPress={handleEndBreak} />
           </View>
         )}
       </View>
 
-      {/* THEO IMAGE */}
+      {/* THEO */}
       <Image source={theoImage} style={styles.theo} />
 
-      {/* ICON BUTTONS */}
+      {/* BUTTON ROW */}
       <View style={styles.row}>
-        <Pressable style={styles.button} onPress={handlePlayPause}>
-          <Image
-            source={
-              isRunning
-                ? require("../../assets/icons/pause.png")
-                : require("../../assets/icons/play.png")
-            }
-            style={styles.icon}
-          />
+        <Pressable onPress={handlePlayPause}>
+          <Icon name={isRunning ? "pause" : "play"} size={48} />
         </Pressable>
 
-        <Pressable style={styles.button} onPress={handleStop}>
-          <Image
-            source={require("../../assets/icons/stop.png")}
-            style={styles.icon}
-          />
+        <Pressable onPress={() => setShowStopModal(true)}>
+          <Icon name="stop" size={48} />
         </Pressable>
 
-        <Pressable style={styles.button} onPress={() => router.push("/chat")}>
-          <Image
-            source={require("../../assets/icons/chat.png")}
-            style={styles.icon}
-          />
+        <Pressable onPress={() => router.push("/chat")}>
+          <Icon name="chat" size={48} />
         </Pressable>
 
-        {hasTasks && !isBreak && (
-          <Pressable style={styles.button} onPress={handleStartBreak}>
-            <Image
-              source={require("../../assets/icons/break.png")}
-              style={styles.icon}
-            />
+        {!isBreak && (
+          <Pressable onPress={handleStartBreak}>
+            <Icon name="break" size={48} />
           </Pressable>
         )}
       </View>
 
-      {/* STOP CONFIRMATION MODAL */}
+      {/* ---------------- STOP MODAL ---------------- */}
       <AppModal
         visible={showStopModal}
-        onClose={cancelStop}
+        onClose={() => setShowStopModal(false)}
         variant="alert"
         title="End session?"
-        message="Are you sure you want to stop now?"
+        message="Are you sure you want to end your work session?"
         cancelLabel="Cancel"
         confirmLabel="End"
         onConfirm={confirmStop}
       />
+
+      {/* ---------------- ADD TIME MODAL ---------------- */}
+      <AppModal
+        visible={showAddTimeModal}
+        onClose={() => setShowAddTimeModal(false)}
+        variant="bottom-sheet"
+        title="Add time to task"
+        height={260}
+      >
+        <Text variant="h3">Minutes to add</Text>
+
+        <Spacer size="sm" />
+
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: theme.radii.md,
+            padding: theme.spacing.md,
+            borderWidth: 1,
+            borderColor: theme.colors.accentLight,
+            width: "100%",
+          }}
+        >
+          <TextInput
+            value={newTime}
+            onChangeText={setNewTime}
+            placeholder="e.g. 10"
+            keyboardType="numeric"
+            style={{
+              fontSize: 20,
+              fontFamily: theme.typography.families.regular,
+            }}
+          />
+        </View>
+
+        <Spacer size="lg" />
+
+        <Button label="Add Time" variant="gold" onPress={handleApplyTime} />
+      </AppModal>
+
+      {/* ---------------- PROGRESS MODAL ---------------- */}
+      <AppModal
+        visible={showProgressModal}
+        onClose={() => setShowProgressModal(false)}
+        variant="bottom-sheet"
+        title="Session progress"
+        height={350}
+      >
+        {tasks.map((t, i) => {
+          const isDone =
+            i < currentTaskIndex ||
+            (i === currentTaskIndex && isBreak && breakAfterTaskComplete);
+
+          return (
+            <Checkbox
+              key={i}
+              checked={isDone}
+              onChange={() => {}}
+              label={t.name}
+              containerStyle={{ width: "100%" }}
+            />
+          );
+        })}
+      </AppModal>
+
+      {/* ---------------- EDIT TASK MODAL ---------------- */}
+      <AppModal
+        visible={showEditTaskModal}
+        onClose={() => setShowEditTaskModal(false)}
+        variant="bottom-sheet"
+        title="Edit task"
+        height={270}
+      >
+        <Text variant="h3">Task name</Text>
+
+        <Spacer size="sm" />
+
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: theme.radii.md,
+            padding: theme.spacing.md,
+            borderWidth: 1,
+            borderColor: theme.colors.accentLight,
+            width: "100%",
+          }}
+        >
+          <TextInput
+            value={editedTaskName}
+            onChangeText={setEditedTaskName}
+            placeholder="Task name"
+            style={{
+              fontSize: 20,
+              fontFamily: theme.typography.families.regular,
+            }}
+          />
+        </View>
+
+        <Spacer size="lg" />
+
+        <Button label="Save" variant="gold" onPress={handleSaveTaskEdit} />
+      </AppModal>
     </View>
   );
 }
 
-/* ------------------------------------------------ */
-/* --------------------- STYLES -------------------- */
-/* ------------------------------------------------ */
+/* ---------------------------------------------- */
+/*                     STYLES                     */
+/* ---------------------------------------------- */
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     backgroundColor: theme.colors.background,
-    paddingTop: theme.spacing.xl,
-    paddingBottom: theme.spacing.xl,
   },
 
-  infoContainer: {
-    alignItems: "center",
-  },
-
-  taskRow: {
+  row: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
-  },
-
-  fastForwardIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: "contain",
+    gap: theme.spacing.md,
   },
 
   theo: {
     width: 250,
     height: 250,
     resizeMode: "contain",
-    marginBottom: theme.spacing.md,
   },
 
-  timerContainer: {
+  taskRow: {
     flexDirection: "row",
     alignItems: "center",
-  },
-
-  expandCollapseBtn: {
-    padding: theme.spacing.xs,
-  },
-
-  expandCollapseIcon: {
-    width: 38,
-    height: 38,
-    resizeMode: "contain",
-  },
-
-  row: {
-    flexDirection: "row",
-    gap: theme.spacing.lg,
-    marginTop: theme.spacing.sm,
-  },
-
-  button: {},
-
-  icon: {
-    width: 48,
-    height: 48,
-    resizeMode: "contain",
+    gap: theme.spacing.xs,
   },
 
   breakBox: {
@@ -362,13 +467,5 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     borderRadius: theme.radii.md,
     alignItems: "center",
-    marginTop: theme.spacing.sm,
-  },
-
-  endBreakBtn: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radii.sm,
   },
 });

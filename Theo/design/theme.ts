@@ -26,6 +26,16 @@ export const theme = {
     overlay: "rgba(0,0,0,0.35)", // for blur + dim backgrounds
   },
 
+  solidColors: {
+    text: "#3C3C3C",
+    textPrimary: "#000",
+    textSecondary: "#666",
+    accentDark: "#8A5E3C",
+    accent: "#D7B47A",
+    accentLight: "#F3DDB4",
+    danger: "#C45B52",
+  },
+
   spacing: {
     xs: 4,
     sm: 8,
