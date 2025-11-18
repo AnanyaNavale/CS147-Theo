@@ -211,7 +211,7 @@ export default function SessionScreen() {
   return (
     <View style={styles.container}>
       {/* MENU */}
-      <View style={{ position: "absolute", top: 20, right: 20 }}>
+      <View style={{ position: "absolute", top: 60, right: 20 }}>
         <Menu
           options={[
             {
@@ -405,7 +405,7 @@ export default function SessionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: theme.spacing.lg,
+    paddingTop: 65,
     paddingBottom: theme.spacing.lg,
     alignItems: "center",
     justifyContent: "space-between",
