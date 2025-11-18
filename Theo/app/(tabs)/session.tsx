@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Image, StyleSheet, Pressable, TextInput } from "react-native";
+import { View, Image, StyleSheet, Pressable } from "react-native";
 import { router } from "expo-router";
 
 import { Text } from "@/components/ui/Text";
@@ -10,20 +10,19 @@ import { Timer } from "@/components/ui/Timer";
 import { Menu } from "@/components/ui/Menu";
 import { Icon } from "@/components/ui/Icon";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { InputField } from "@/components/ui/InputField";
 
 import { theme } from "@/design/theme";
 
 interface Task {
   name: string;
-  time: number; // seconds
+  time: number;
 }
 
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
 
-  /* ---------------------------------------------- */
-  /*                     STATE                       */
-  /* ---------------------------------------------- */
+  /* ---------------- STATE ---------------- */
 
   const [tasks, setTasks] = useState<Task[]>([
     { name: "Read pages 20–30", time: 10 },
@@ -32,9 +31,7 @@ export default function SessionScreen() {
   ]);
 
   const hasTasks = tasks.length > 0;
-
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-
   const currentTask = hasTasks ? tasks[currentTaskIndex] : null;
 
   const [secondsLeft, setSecondsLeft] = useState(
@@ -54,9 +51,8 @@ export default function SessionScreen() {
     require("../../assets/theo/working.png")
   );
 
-  /* ---------------------------------------------- */
-  /*                     MODALS                     */
-  /* ---------------------------------------------- */
+  /* ---------------- MODALS ---------------- */
+
   const [showStopModal, setShowStopModal] = useState(false);
 
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
@@ -67,9 +63,8 @@ export default function SessionScreen() {
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
 
-  /* ---------------------------------------------- */
-  /*                  TIMER EFFECT                  */
-  /* ---------------------------------------------- */
+  /* ---------------- TIMER EFFECT ---------------- */
+
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
       setTheoImage(require("../../assets/theo/working.png"));
@@ -89,9 +84,8 @@ export default function SessionScreen() {
     };
   }, [isRunning, currentTaskIndex, isBreak, currentTask]);
 
-  /* ---------------------------------------------- */
-  /*               END-OF-TASK DETECTION            */
-  /* ---------------------------------------------- */
+  /* ---------------- END-OF-TASK DETECTION ---------------- */
+
   useEffect(() => {
     if (!isBreak && currentTask && secondsLeft <= 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -104,16 +98,14 @@ export default function SessionScreen() {
     }
   }, [secondsLeft, isBreak, currentTask]);
 
-  /* ---------------------------------------------- */
-  /*                   HANDLERS                     */
-  /* ---------------------------------------------- */
+  /* ---------------- HANDLERS ---------------- */
 
   const handleNextTask = () => {
     if (currentTaskIndex < tasks.length - 1) {
       const nextIndex = currentTaskIndex + 1;
-      setCurrentTaskIndex(nextIndex);
-
       const next = tasks[nextIndex];
+
+      setCurrentTaskIndex(nextIndex);
       setSecondsLeft(next.time);
       setSavedTime(next.time);
 
@@ -128,7 +120,7 @@ export default function SessionScreen() {
 
   const handlePlayPause = () => {
     if (!currentTask) return;
-    setIsRunning((p) => !p);
+    setIsRunning((prev) => !prev);
   };
 
   const handleStartBreak = () => {
@@ -165,17 +157,13 @@ export default function SessionScreen() {
     console.log("Session ended");
   };
 
-  /* ---------------------------------------------- */
-  /*                  MODAL ACTIONS                 */
-  /* ---------------------------------------------- */
+  /* ---------------- MODAL ACTIONS ---------------- */
 
   const handleApplyTime = () => {
     const extraMinutes = Number(newTime);
-
     if (!extraMinutes || extraMinutes <= 0) return;
 
     const extraSeconds = extraMinutes * 60;
-
     const updated = secondsLeft + extraSeconds;
 
     setSecondsLeft(updated);
@@ -199,9 +187,7 @@ export default function SessionScreen() {
     setShowEditTaskModal(false);
   };
 
-  /* ---------------------------------------------- */
-  /*                     RENDER                     */
-  /* ---------------------------------------------- */
+  /* ---------------- UI ---------------- */
 
   return (
     <View style={styles.container}>
@@ -243,14 +229,11 @@ export default function SessionScreen() {
 
         <Spacer size="md" />
 
-        {/* CURRENT TASK */}
         {currentTask && (
           <>
             <Text variant="h2" color="accentDark">
               Task
             </Text>
-
-            <Spacer size="xs" />
 
             <View style={styles.taskRow}>
               <Text variant="h3">
@@ -270,31 +253,35 @@ export default function SessionScreen() {
           </>
         )}
 
-        {/* TIMER OR BREAK MODE */}
         {!isBreak ? (
           <Timer secondsLeft={secondsLeft} />
         ) : (
           <View style={styles.breakBox}>
-            <Text variant="h3" weight="bold" color="accent">
+            <Text variant="h2" weight="bold" color="white">
               Break time!
             </Text>
 
             <Spacer size="sm" />
 
-            <Button label="End break" variant="gold" onPress={handleEndBreak} />
+            <Button
+              size="sm"
+              label="End break"
+              variant="gold"
+              onPress={handleEndBreak}
+            />
           </View>
         )}
       </View>
 
-      {/* THEO */}
       <Image source={theoImage} style={styles.theo} />
 
-      {/* BUTTON ROW */}
+      {/* CONTROLS */}
       <View style={styles.row}>
-        <Pressable onPress={handlePlayPause}>
-          <Icon name={isRunning ? "pause" : "play"} size={48} />
-        </Pressable>
-
+        {!isBreak && (
+          <Pressable onPress={handlePlayPause}>
+            <Icon name={isRunning ? "pause" : "play"} size={48} />
+          </Pressable>
+        )}
         <Pressable onPress={() => setShowStopModal(true)}>
           <Icon name="stop" size={48} />
         </Pressable>
@@ -310,7 +297,7 @@ export default function SessionScreen() {
         )}
       </View>
 
-      {/* ---------------- STOP MODAL ---------------- */}
+      {/* STOP MODAL */}
       <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
@@ -322,52 +309,33 @@ export default function SessionScreen() {
         onConfirm={confirmStop}
       />
 
-      {/* ---------------- ADD TIME MODAL ---------------- */}
+      {/* ADD TIME MODAL */}
       <AppModal
         visible={showAddTimeModal}
         onClose={() => setShowAddTimeModal(false)}
         variant="bottom-sheet"
         title="Add time to task"
-        height={260}
+        height={350}
       >
-        <Text variant="h3">Minutes to add</Text>
-
-        <Spacer size="sm" />
-
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: theme.radii.md,
-            padding: theme.spacing.md,
-            borderWidth: 1,
-            borderColor: theme.colors.accentLight,
-            width: "100%",
-          }}
-        >
-          <TextInput
-            value={newTime}
-            onChangeText={setNewTime}
-            placeholder="e.g. 10"
-            keyboardType="numeric"
-            style={{
-              fontSize: 20,
-              fontFamily: theme.typography.families.regular,
-            }}
-          />
-        </View>
-
-        <Spacer size="lg" />
+        <InputField
+          label="Minutes to add"
+          value={newTime}
+          onChangeText={setNewTime}
+          placeholder="e.g. 10"
+          keyboardType="numeric"
+        />
 
         <Button label="Add Time" variant="gold" onPress={handleApplyTime} />
+        <Spacer size="sm" />
       </AppModal>
 
-      {/* ---------------- PROGRESS MODAL ---------------- */}
+      {/* PROGRESS MODAL */}
       <AppModal
         visible={showProgressModal}
         onClose={() => setShowProgressModal(false)}
         variant="bottom-sheet"
         title="Session progress"
-        height={350}
+        height={300}
       >
         {tasks.map((t, i) => {
           const isDone =
@@ -386,7 +354,7 @@ export default function SessionScreen() {
         })}
       </AppModal>
 
-      {/* ---------------- EDIT TASK MODAL ---------------- */}
+      {/* EDIT TASK MODAL */}
       <AppModal
         visible={showEditTaskModal}
         onClose={() => setShowEditTaskModal(false)}
@@ -394,32 +362,12 @@ export default function SessionScreen() {
         title="Edit task"
         height={270}
       >
-        <Text variant="h3">Task name</Text>
-
-        <Spacer size="sm" />
-
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: theme.radii.md,
-            padding: theme.spacing.md,
-            borderWidth: 1,
-            borderColor: theme.colors.accentLight,
-            width: "100%",
-          }}
-        >
-          <TextInput
-            value={editedTaskName}
-            onChangeText={setEditedTaskName}
-            placeholder="Task name"
-            style={{
-              fontSize: 20,
-              fontFamily: theme.typography.families.regular,
-            }}
-          />
-        </View>
-
-        <Spacer size="lg" />
+        <InputField
+          label="Task name"
+          value={editedTaskName}
+          onChangeText={setEditedTaskName}
+          placeholder="Task name"
+        />
 
         <Button label="Save" variant="gold" onPress={handleSaveTaskEdit} />
       </AppModal>
@@ -427,9 +375,7 @@ export default function SessionScreen() {
   );
 }
 
-/* ---------------------------------------------- */
-/*                     STYLES                     */
-/* ---------------------------------------------- */
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
   container: {
@@ -463,5 +409,6 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     borderRadius: theme.radii.md,
     alignItems: "center",
+    minWidth: 250,
   },
 });
