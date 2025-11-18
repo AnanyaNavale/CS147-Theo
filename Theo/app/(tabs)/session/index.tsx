@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
 import { View, Image, StyleSheet, Pressable, TextInput } from "react-native";
 import { router } from "expo-router";
 
@@ -17,10 +18,19 @@ interface Task {
   name: string;
   time: number; // seconds
 }
+=======
+import { View, Pressable, Image, StyleSheet } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+
+import { Text, AppModal, Spacer } from "../../../components";
+import { theme } from "../../../design/theme";
+import { TASKS, Task } from "./tasks";
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
 
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
 
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
   /* ---------------------------------------------- */
   /*                     STATE                       */
   /* ---------------------------------------------- */
@@ -36,6 +46,20 @@ export default function SessionScreen() {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
 
   const currentTask = hasTasks ? tasks[currentTaskIndex] : null;
+=======
+  const { task: taskParam } = useLocalSearchParams<{ task?: string }>();
+  const selectedTaskName = Array.isArray(taskParam) ? taskParam[0] : taskParam;
+
+  const hasTasks = TASKS.length > 0;
+  const initialTaskIndex = selectedTaskName
+    ? TASKS.findIndex((task) => task.name === selectedTaskName)
+    : 0;
+
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(
+    initialTaskIndex >= 0 ? initialTaskIndex : 0
+  );
+  const currentTask = hasTasks ? TASKS[currentTaskIndex] : null;
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
 
   const [secondsLeft, setSecondsLeft] = useState(
     currentTask ? currentTask.time : 0
@@ -51,7 +75,7 @@ export default function SessionScreen() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [theoImage, setTheoImage] = useState(
-    require("../../assets/theo/working.png")
+    require("../../../assets/theo/working.png")
   );
 
   /* ---------------------------------------------- */
@@ -72,7 +96,7 @@ export default function SessionScreen() {
   /* ---------------------------------------------- */
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
-      setTheoImage(require("../../assets/theo/working.png"));
+      setTheoImage(require("../../../assets/theo/working.png"));
 
       intervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => prev - 1);
@@ -100,10 +124,11 @@ export default function SessionScreen() {
       setSavedTime(0);
 
       setIsBreak(true);
-      setTheoImage(require("../../assets/theo/break.png"));
+      setTheoImage(require("../../../assets/theo/break.png"));
 
       setBreakAfterTaskComplete(true);
     }
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
   }, [secondsLeft, isBreak, currentTask]);
 
   /* ---------------------------------------------- */
@@ -119,12 +144,76 @@ export default function SessionScreen() {
       const next = tasks[nextIndex];
       setSecondsLeft(next.time);
       setSavedTime(next.time);
+=======
+
+    if (!currentTask && secondsLeft <= 0) {
+      router.replace("/(tabs)/session/end-session");
+    }
+  }, [secondsLeft, isBreak, currentTask]);
+
+  /* HANDLE TASK SELECTED FROM END SCREEN */
+  useEffect(() => {
+    if (!selectedTaskName) return;
+    const nextIndex = TASKS.findIndex((task) => task.name === selectedTaskName);
+
+    if (nextIndex >= 0 && nextIndex !== currentTaskIndex) {
+      const nextTaskTime = TASKS[nextIndex].time;
+      setCurrentTaskIndex(nextIndex);
+      setSecondsLeft(nextTaskTime);
+      setSavedTime(nextTaskTime);
+      setIsBreak(false);
+      setIsRunning(true);
+      setTheoImage(require("../../../assets/theo/working.png"));
+    }
+  }, [selectedTaskName, currentTaskIndex]);
+
+  /* BUTTON HANDLERS */
+  const handlePlayPause = () => {
+    if (!currentTask) return;
+    setIsRunning((prev) => !prev);
+  };
+
+  const handleStop = () => setShowStopModal(true);
+  const cancelStop = () => setShowStopModal(false);
+
+  const confirmStop = () => {
+    setShowStopModal(false);
+    setIsRunning(false);
+
+    if (currentTask) {
+      setSecondsLeft(currentTask.time);
+      setSavedTime(currentTask.time);
+    }
+
+    setTheoImage(require("../../../assets/theo/working.png"));
+    setIsBreak(false);
+    setBreakAfterTaskComplete(false);
+
+    router.push("/(tabs)/session/end-session");
+  };
+
+  const handleNextTask = () => {
+    if (!hasTasks) return;
+
+    if (currentTaskIndex < TASKS.length - 1) {
+      const nextIndex = currentTaskIndex + 1;
+
+      setCurrentTaskIndex(nextIndex);
+      setSecondsLeft(TASKS[nextIndex].time);
+      setSavedTime(TASKS[nextIndex].time);
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
 
       setIsRunning(true);
       setIsBreak(false);
 
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
       setTheoImage(require("../../assets/theo/working.png"));
       return;
+=======
+      setTheoImage(require("../../../assets/theo/working.png"));
+    } else {
+      router.push("/(tabs)/session/end-session");
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
     }
 
     console.log("Session complete");
@@ -139,7 +228,12 @@ export default function SessionScreen() {
     setSavedTime(secondsLeft);
     setIsBreak(true);
     setIsRunning(false);
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
     setTheoImage(require("../../assets/theo/break.png"));
+=======
+    setTheoImage(require("../../../assets/theo/break.png"));
+    setBreakAfterTaskComplete(false);
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
   };
 
   const handleEndBreak = () => {
@@ -151,7 +245,7 @@ export default function SessionScreen() {
     } else {
       setSecondsLeft(savedTime);
       setIsRunning(true);
-      setTheoImage(require("../../assets/theo/working.png"));
+      setTheoImage(require("../../../assets/theo/working.png"));
     }
   };
 
@@ -263,21 +357,67 @@ export default function SessionScreen() {
                   : currentTask.name}
               </Text>
 
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
               {!isBreak && currentTaskIndex < tasks.length - 1 && (
                 <Pressable onPress={handleNextTask}>
                   <Icon name="fast-forward" size={28} />
                 </Pressable>
               )}
+=======
+              {!isBreak &&
+                currentTask &&
+                currentTaskIndex < TASKS.length - 1 && (
+                  <Pressable onPress={handleNextTask}>
+                    <Image
+                      source={require("../../../assets/icons/fast-forward.png")}
+                      style={styles.fastForwardIcon}
+                    />
+                  </Pressable>
+                )}
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
             </View>
 
             <Spacer size="md" />
           </>
         )}
 
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
         {/* TIMER OR BREAK MODE */}
         {!isBreak ? (
           <Timer secondsLeft={secondsLeft} />
         ) : (
+=======
+        {/* TIMER */}
+        {!isBreak && (
+          <View style={styles.timerContainer}>
+            {showTimer && (
+              <Text variant="h1" weight="bold">
+                {formatTime(secondsLeft)}
+              </Text>
+            )}
+
+            <Pressable
+              style={styles.expandCollapseBtn}
+              onPress={() => setShowTimer((p) => !p)}
+            >
+              <Image
+                source={
+                  showTimer
+                    ? require("../../../assets/icons/collapse.png")
+                    : require("../../../assets/icons/expand.png")
+                }
+                style={[
+                  styles.expandCollapseIcon,
+                  { transform: [{ rotate: showTimer ? "0deg" : "180deg" }] },
+                ]}
+              />
+            </Pressable>
+          </View>
+        )}
+
+        {/* BREAK MODE */}
+        {isBreak && (
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
           <View style={styles.breakBox}>
             <Text variant="h3" weight="bold" color="accent">
               Break time!
@@ -295,6 +435,7 @@ export default function SessionScreen() {
 
       {/* BUTTON ROW */}
       <View style={styles.row}>
+<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
         <Pressable onPress={handlePlayPause}>
           <Icon name={isRunning ? "pause" : "play"} size={48} />
         </Pressable>
@@ -310,6 +451,39 @@ export default function SessionScreen() {
         {!isBreak && (
           <Pressable onPress={handleStartBreak}>
             <Icon name="break" size={48} />
+=======
+        <Pressable style={styles.button} onPress={handlePlayPause}>
+          <Image
+            source={
+              isRunning
+                ? require("../../../assets/icons/pause.png")
+                : require("../../../assets/icons/play.png")
+            }
+            style={styles.icon}
+          />
+        </Pressable>
+
+        <Pressable style={styles.button} onPress={handleStop}>
+          <Image
+            source={require("../../../assets/icons/stop.png")}
+            style={styles.icon}
+          />
+        </Pressable>
+
+        <Pressable style={styles.button} onPress={() => router.push("/chat")}>
+          <Image
+            source={require("../../../assets/icons/chat.png")}
+            style={styles.icon}
+          />
+        </Pressable>
+
+        {hasTasks && !isBreak && (
+          <Pressable style={styles.button} onPress={handleStartBreak}>
+            <Image
+              source={require("../../../assets/icons/break.png")}
+              style={styles.icon}
+            />
+>>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
           </Pressable>
         )}
       </View>
