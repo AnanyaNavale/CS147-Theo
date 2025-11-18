@@ -41,17 +41,17 @@ export function AppModal({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   onConfirm,
-  height = 330,
+  height = 360,
   children,
 }: AppModalProps) {
   return (
     <Modal transparent visible={visible} animationType="fade">
-      {/* Blurred background */}
+      {/* BLUR BACKGROUND */}
       <BlurView intensity={50} tint="light" style={StyleSheet.absoluteFill} />
 
-      {/* ALERT */}
+      {/* --------------------------- ALERT MODAL --------------------------- */}
       {variant === "alert" && (
-        <View style={styles.center}>
+        <View style={styles.centerLayout}>
           <View style={styles.alertCard}>
             {title && <Text style={styles.title}>{title}</Text>}
             {message && <Text style={styles.message}>{message}</Text>}
@@ -78,34 +78,33 @@ export function AppModal({
         </View>
       )}
 
-      {/* CUSTOM (floating center card) */}
+      {/* --------------------------- CUSTOM MODAL --------------------------- */}
       {variant === "custom" && (
-        <View style={styles.center}>
+        <View style={styles.centerLayout}>
           <View style={styles.customCard}>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <TouchableOpacity onPress={onClose} style={styles.closeBtnFloating}>
               <Text style={styles.closeIcon}>×</Text>
             </TouchableOpacity>
 
             {title && <Text style={styles.title}>{title}</Text>}
 
-            <View style={{ width: "100%", marginTop: theme.spacing.md }}>
-              {children}
-            </View>
+            <View style={styles.customContent}>{children}</View>
           </View>
         </View>
       )}
 
-      {/* BOTTOM SHEET */}
+      {/* --------------------------- BOTTOM SHEET --------------------------- */}
       {variant === "bottom-sheet" && (
-        <View style={styles.bottomSheetContainer}>
+        <View style={styles.bottomSheetOverlay}>
+          {/* Tap background to close */}
           <TouchableOpacity style={{ flex: 1 }} onPress={onClose} />
 
           <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.bottomSheetWrapper}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomSheetAvoider}
           >
-            <View style={[styles.bottomSheet, { maxHeight: height }]}>
-              <TouchableOpacity style={styles.closeBtnSheet} onPress={onClose}>
+            <View style={[styles.bottomSheet, { minHeight: height }]}>
+              <TouchableOpacity onPress={onClose} style={styles.closeBtnSheet}>
                 <Text style={styles.closeIcon}>×</Text>
               </TouchableOpacity>
 
@@ -120,23 +119,27 @@ export function AppModal({
   );
 }
 
+/* ===================================================================== */
+/*                                STYLES                                */
+/* ===================================================================== */
+
 const styles = StyleSheet.create({
-  center: {
+  centerLayout: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: theme.spacing.lg,
   },
 
-  /* ALERT MODAL */
+  /* ---------------------- ALERT ---------------------- */
+
   alertCard: {
     width: "80%",
     backgroundColor: theme.modal.cardBg,
+    padding: theme.spacing.xl,
     borderRadius: theme.modal.radius,
     borderWidth: theme.modal.borderWidth,
     borderColor: theme.modal.borderColor,
-    padding: theme.spacing.xl,
-    alignItems: "center",
   },
 
   title: {
@@ -156,7 +159,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginTop: theme.spacing.lg,
-    width: "100%",
   },
 
   btn: {
@@ -170,73 +172,92 @@ const styles = StyleSheet.create({
     backgroundColor: "#EFE8DF",
     marginRight: theme.spacing.sm,
   },
+
   btnCancelText: {
+    fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
-    fontFamily: theme.typography.families.handwritten,
   },
 
   btnConfirm: {
     backgroundColor: theme.colors.accent,
     marginLeft: theme.spacing.sm,
   },
+
   btnConfirmText: {
+    fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.md,
     color: "#fff",
-    fontFamily: theme.typography.families.handwritten,
   },
 
-  /* CUSTOM MODAL */
+  /* ---------------------- CUSTOM ---------------------- */
+
   customCard: {
     width: "85%",
     backgroundColor: theme.modal.cardBg,
-    padding: theme.spacing.xl,
     borderRadius: theme.modal.radius,
     borderWidth: theme.modal.borderWidth,
     borderColor: theme.modal.borderColor,
-    alignItems: "center",
+    padding: theme.spacing.xl,
   },
 
-  closeBtn: {
+  closeBtnFloating: {
     position: "absolute",
     top: 14,
     right: 14,
   },
+
   closeIcon: {
+    fontFamily: theme.typography.families.handwritten,
     fontSize: 32,
     color: theme.colors.accentDark,
-    fontFamily: theme.typography.families.handwritten,
   },
 
-  /* BOTTOM SHEET */
-  bottomSheetContainer: {
+  customContent: {
+    width: "100%",
+    marginTop: theme.spacing.md,
+  },
+
+  /* ---------------------- BOTTOM SHEET ---------------------- */
+
+  bottomSheetOverlay: {
     flex: 1,
     justifyContent: "flex-end",
   },
-  bottomSheetWrapper: {
+
+  bottomSheetAvoider: {
     width: "100%",
-    maxHeight: "80%", // prevents overflow behind keyboard
   },
+
   bottomSheet: {
+    width: "100%",
     backgroundColor: theme.modal.cardBg,
     borderTopLeftRadius: theme.radii.xl,
     borderTopRightRadius: theme.radii.xl,
-    padding: theme.spacing.xl,
     borderWidth: theme.modal.borderWidth,
     borderColor: theme.modal.borderColor,
-    alignItems: "center",
+    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
   },
 
-  sheetTitle: {
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.xl,
-    textAlign: "center",
-    color: theme.colors.text,
-    marginTop: 4,
-  },
   closeBtnSheet: {
     position: "absolute",
     top: 12,
     right: 16,
+  },
+
+  sheetTitle: {
+    textAlign: "center",
+    fontFamily: theme.typography.families.handwritten,
+    fontSize: theme.typography.sizes.xl,
+    marginBottom: theme.spacing.md,
+    color: theme.colors.text,
+  },
+
+  sheetContent: {
+    width: "100%",
+    paddingBottom: theme.spacing.xxl,
+    gap: theme.spacing.md,
   },
 });

@@ -34,6 +34,7 @@ export const theme = {
     accent: "#D7B47A",
     accentLight: "#F3DDB4",
     danger: "#C45B52",
+    white: "#fff",
   },
 
   spacing: {
