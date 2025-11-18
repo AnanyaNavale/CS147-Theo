@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-import { View, Image, StyleSheet, Pressable, TextInput } from "react-native";
-import { router } from "expo-router";
+import { View, Image, StyleSheet, Pressable } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
@@ -11,55 +10,31 @@ import { Timer } from "@/components/ui/Timer";
 import { Menu } from "@/components/ui/Menu";
 import { Icon } from "@/components/ui/Icon";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { InputField } from "@/components/ui/InputField";
 
 import { theme } from "@/design/theme";
 
-interface Task {
-  name: string;
-  time: number; // seconds
-}
-=======
-import { View, Pressable, Image, StyleSheet } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-
-import { Text, AppModal, Spacer } from "../../../components";
-import { theme } from "../../../design/theme";
 import { TASKS, Task } from "./tasks";
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
 
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
 
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-  /* ---------------------------------------------- */
-  /*                     STATE                       */
-  /* ---------------------------------------------- */
-
-  const [tasks, setTasks] = useState<Task[]>([
-    { name: "Read pages 20–30", time: 10 },
-    { name: "Write summary", time: 15 },
-    { name: "Create flashcards", time: 8 * 60 },
-  ]);
-
-  const hasTasks = tasks.length > 0;
-
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-
-  const currentTask = hasTasks ? tasks[currentTaskIndex] : null;
-=======
+  /* PARAM: Selected task from end-session screen */
   const { task: taskParam } = useLocalSearchParams<{ task?: string }>();
   const selectedTaskName = Array.isArray(taskParam) ? taskParam[0] : taskParam;
 
+  /* TASKS: From shared TASKS file */
   const hasTasks = TASKS.length > 0;
+
   const initialTaskIndex = selectedTaskName
-    ? TASKS.findIndex((task) => task.name === selectedTaskName)
+    ? TASKS.findIndex((t) => t.name === selectedTaskName)
     : 0;
 
   const [currentTaskIndex, setCurrentTaskIndex] = useState(
     initialTaskIndex >= 0 ? initialTaskIndex : 0
   );
-  const currentTask = hasTasks ? TASKS[currentTaskIndex] : null;
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
+
+  const currentTask: Task | null = hasTasks ? TASKS[currentTaskIndex] : null;
 
   const [secondsLeft, setSecondsLeft] = useState(
     currentTask ? currentTask.time : 0
@@ -78,11 +53,9 @@ export default function SessionScreen() {
     require("../../../assets/theo/working.png")
   );
 
-  /* ---------------------------------------------- */
-  /*                     MODALS                     */
-  /* ---------------------------------------------- */
-  const [showStopModal, setShowStopModal] = useState(false);
+  /* ---------------- MODALS ---------------- */
 
+  const [showStopModal, setShowStopModal] = useState(false);
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
 
@@ -91,9 +64,8 @@ export default function SessionScreen() {
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
 
-  /* ---------------------------------------------- */
-  /*                  TIMER EFFECT                  */
-  /* ---------------------------------------------- */
+  /* ---------------- TIMER ---------------- */
+
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
       setTheoImage(require("../../../assets/theo/working.png"));
@@ -109,72 +81,92 @@ export default function SessionScreen() {
     }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [isRunning, currentTaskIndex, isBreak, currentTask]);
+  }, [isRunning, isBreak, currentTaskIndex, currentTask]);
 
-  /* ---------------------------------------------- */
-  /*               END-OF-TASK DETECTION            */
-  /* ---------------------------------------------- */
+  /* ---------------- END OF TASK ---------------- */
+
   useEffect(() => {
     if (!isBreak && currentTask && secondsLeft <= 0) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current && clearInterval(intervalRef.current);
 
       setIsRunning(false);
       setSavedTime(0);
 
       setIsBreak(true);
       setTheoImage(require("../../../assets/theo/break.png"));
-
       setBreakAfterTaskComplete(true);
+      return;
     }
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-  }, [secondsLeft, isBreak, currentTask]);
-
-  /* ---------------------------------------------- */
-  /*                   HANDLERS                     */
-  /* ---------------------------------------------- */
-
-  const handleNextTask = () => {
-    if (currentTaskIndex < tasks.length - 1) {
-      const nextIndex = currentTaskIndex + 1;
-
-      setCurrentTaskIndex(nextIndex);
-
-      const next = tasks[nextIndex];
-      setSecondsLeft(next.time);
-      setSavedTime(next.time);
-=======
 
     if (!currentTask && secondsLeft <= 0) {
       router.replace("/(tabs)/session/end-session");
     }
-  }, [secondsLeft, isBreak, currentTask]);
+  }, [secondsLeft, currentTask, isBreak]);
 
-  /* HANDLE TASK SELECTED FROM END SCREEN */
+  /* LOAD A SPECIFIC TASK FROM END-SCREEN */
   useEffect(() => {
     if (!selectedTaskName) return;
-    const nextIndex = TASKS.findIndex((task) => task.name === selectedTaskName);
 
-    if (nextIndex >= 0 && nextIndex !== currentTaskIndex) {
-      const nextTaskTime = TASKS[nextIndex].time;
-      setCurrentTaskIndex(nextIndex);
-      setSecondsLeft(nextTaskTime);
-      setSavedTime(nextTaskTime);
-      setIsBreak(false);
+    const i = TASKS.findIndex((t) => t.name === selectedTaskName);
+    if (i >= 0 && i !== currentTaskIndex) {
+      const time = TASKS[i].time;
+      setCurrentTaskIndex(i);
+      setSecondsLeft(time);
+      setSavedTime(time);
       setIsRunning(true);
+      setIsBreak(false);
       setTheoImage(require("../../../assets/theo/working.png"));
     }
-  }, [selectedTaskName, currentTaskIndex]);
+  }, [selectedTaskName]);
 
-  /* BUTTON HANDLERS */
+  /* ---------------- HANDLERS ---------------- */
+
   const handlePlayPause = () => {
-    if (!currentTask) return;
-    setIsRunning((prev) => !prev);
+    if (currentTask) setIsRunning((p) => !p);
   };
 
-  const handleStop = () => setShowStopModal(true);
-  const cancelStop = () => setShowStopModal(false);
+  const handleStartBreak = () => {
+    setSavedTime(secondsLeft);
+    setIsBreak(true);
+    setIsRunning(false);
+    setBreakAfterTaskComplete(false);
+    setTheoImage(require("../../../assets/theo/break.png"));
+  };
+
+  const handleEndBreak = () => {
+    setIsBreak(false);
+
+    if (breakAfterTaskComplete) {
+      setBreakAfterTaskComplete(false);
+      handleNextTask();
+      return;
+    }
+
+    setSecondsLeft(savedTime);
+    setIsRunning(true);
+    setTheoImage(require("../../../assets/theo/working.png"));
+  };
+
+  const handleNextTask = () => {
+    if (currentTaskIndex < TASKS.length - 1) {
+      const next = currentTaskIndex + 1;
+      const nextTime = TASKS[next].time;
+
+      setCurrentTaskIndex(next);
+      setSecondsLeft(nextTime);
+      setSavedTime(nextTime);
+      setIsRunning(true);
+      setIsBreak(false);
+      setTheoImage(require("../../../assets/theo/working.png"));
+    } else {
+      router.push("/(tabs)/session/end-session");
+    }
+  };
 
   const confirmStop = () => {
     setShowStopModal(false);
@@ -185,96 +177,18 @@ export default function SessionScreen() {
       setSavedTime(currentTask.time);
     }
 
-    setTheoImage(require("../../../assets/theo/working.png"));
     setIsBreak(false);
     setBreakAfterTaskComplete(false);
 
     router.push("/(tabs)/session/end-session");
   };
 
-  const handleNextTask = () => {
-    if (!hasTasks) return;
-
-    if (currentTaskIndex < TASKS.length - 1) {
-      const nextIndex = currentTaskIndex + 1;
-
-      setCurrentTaskIndex(nextIndex);
-      setSecondsLeft(TASKS[nextIndex].time);
-      setSavedTime(TASKS[nextIndex].time);
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
-
-      setIsRunning(true);
-      setIsBreak(false);
-
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-      setTheoImage(require("../../assets/theo/working.png"));
-      return;
-=======
-      setTheoImage(require("../../../assets/theo/working.png"));
-    } else {
-      router.push("/(tabs)/session/end-session");
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
-    }
-
-    console.log("Session complete");
-  };
-
-  const handlePlayPause = () => {
-    if (!currentTask) return;
-    setIsRunning((p) => !p);
-  };
-
-  const handleStartBreak = () => {
-    setSavedTime(secondsLeft);
-    setIsBreak(true);
-    setIsRunning(false);
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-    setTheoImage(require("../../assets/theo/break.png"));
-=======
-    setTheoImage(require("../../../assets/theo/break.png"));
-    setBreakAfterTaskComplete(false);
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
-  };
-
-  const handleEndBreak = () => {
-    setIsBreak(false);
-
-    if (breakAfterTaskComplete) {
-      setBreakAfterTaskComplete(false);
-      handleNextTask();
-    } else {
-      setSecondsLeft(savedTime);
-      setIsRunning(true);
-      setTheoImage(require("../../../assets/theo/working.png"));
-    }
-  };
-
-  const confirmStop = () => {
-    setShowStopModal(false);
-    setIsRunning(false);
-
-    const reset = currentTask?.time ?? 0;
-    setSecondsLeft(reset);
-    setSavedTime(reset);
-
-    setTheoImage(require("../../assets/theo/working.png"));
-    setIsBreak(false);
-
-    console.log("Session ended");
-  };
-
-  /* ---------------------------------------------- */
-  /*                  MODAL ACTIONS                 */
-  /* ---------------------------------------------- */
-
   const handleApplyTime = () => {
-    const extraMinutes = Number(newTime);
+    const m = Number(newTime);
+    if (!m || m <= 0) return;
 
-    if (!extraMinutes || extraMinutes <= 0) return;
-
-    const extraSeconds = extraMinutes * 60;
-
-    const updated = secondsLeft + extraSeconds;
+    const added = m * 60;
+    const updated = secondsLeft + added;
 
     setSecondsLeft(updated);
     setSavedTime(updated);
@@ -284,22 +198,15 @@ export default function SessionScreen() {
 
   const handleSaveTaskEdit = () => {
     if (!editedTaskName.trim()) return;
-
-    setTasks((prev) => {
-      const copy = [...prev];
-      copy[currentTaskIndex] = {
-        ...copy[currentTaskIndex],
-        name: editedTaskName.trim(),
-      };
-      return copy;
-    });
-
+    const updated = [...TASKS];
+    updated[currentTaskIndex] = {
+      ...updated[currentTaskIndex],
+      name: editedTaskName.trim(),
+    };
     setShowEditTaskModal(false);
   };
 
-  /* ---------------------------------------------- */
-  /*                     RENDER                     */
-  /* ---------------------------------------------- */
+  /* ---------------- RENDER ---------------- */
 
   return (
     <View style={styles.container}>
@@ -341,7 +248,7 @@ export default function SessionScreen() {
 
         <Spacer size="md" />
 
-        {/* CURRENT TASK */}
+        {/* TASK HEADER */}
         {currentTask && (
           <>
             <Text variant="h2" color="accentDark">
@@ -357,75 +264,34 @@ export default function SessionScreen() {
                   : currentTask.name}
               </Text>
 
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-              {!isBreak && currentTaskIndex < tasks.length - 1 && (
+              {!isBreak && currentTaskIndex < TASKS.length - 1 && (
                 <Pressable onPress={handleNextTask}>
                   <Icon name="fast-forward" size={28} />
                 </Pressable>
               )}
-=======
-              {!isBreak &&
-                currentTask &&
-                currentTaskIndex < TASKS.length - 1 && (
-                  <Pressable onPress={handleNextTask}>
-                    <Image
-                      source={require("../../../assets/icons/fast-forward.png")}
-                      style={styles.fastForwardIcon}
-                    />
-                  </Pressable>
-                )}
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
             </View>
 
             <Spacer size="md" />
           </>
         )}
 
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-        {/* TIMER OR BREAK MODE */}
+        {/* TIMER / BREAK BOX */}
         {!isBreak ? (
           <Timer secondsLeft={secondsLeft} />
         ) : (
-=======
-        {/* TIMER */}
-        {!isBreak && (
-          <View style={styles.timerContainer}>
-            {showTimer && (
-              <Text variant="h1" weight="bold">
-                {formatTime(secondsLeft)}
-              </Text>
-            )}
-
-            <Pressable
-              style={styles.expandCollapseBtn}
-              onPress={() => setShowTimer((p) => !p)}
-            >
-              <Image
-                source={
-                  showTimer
-                    ? require("../../../assets/icons/collapse.png")
-                    : require("../../../assets/icons/expand.png")
-                }
-                style={[
-                  styles.expandCollapseIcon,
-                  { transform: [{ rotate: showTimer ? "0deg" : "180deg" }] },
-                ]}
-              />
-            </Pressable>
-          </View>
-        )}
-
-        {/* BREAK MODE */}
-        {isBreak && (
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
           <View style={styles.breakBox}>
-            <Text variant="h3" weight="bold" color="accent">
+            <Text variant="h2" weight="bold">
               Break time!
             </Text>
 
             <Spacer size="sm" />
 
-            <Button label="End break" variant="gold" onPress={handleEndBreak} />
+            <Button
+              size="sm"
+              label="End break"
+              variant="gold"
+              onPress={handleEndBreak}
+            />
           </View>
         )}
       </View>
@@ -433,12 +299,13 @@ export default function SessionScreen() {
       {/* THEO */}
       <Image source={theoImage} style={styles.theo} />
 
-      {/* BUTTON ROW */}
+      {/* CONTROLS */}
       <View style={styles.row}>
-<<<<<<< Updated upstream:Theo/app/(tabs)/session.tsx
-        <Pressable onPress={handlePlayPause}>
-          <Icon name={isRunning ? "pause" : "play"} size={48} />
-        </Pressable>
+        {!isBreak && (
+          <Pressable onPress={handlePlayPause}>
+            <Icon name={isRunning ? "pause" : "play"} size={48} />
+          </Pressable>
+        )}
 
         <Pressable onPress={() => setShowStopModal(true)}>
           <Icon name="stop" size={48} />
@@ -451,44 +318,11 @@ export default function SessionScreen() {
         {!isBreak && (
           <Pressable onPress={handleStartBreak}>
             <Icon name="break" size={48} />
-=======
-        <Pressable style={styles.button} onPress={handlePlayPause}>
-          <Image
-            source={
-              isRunning
-                ? require("../../../assets/icons/pause.png")
-                : require("../../../assets/icons/play.png")
-            }
-            style={styles.icon}
-          />
-        </Pressable>
-
-        <Pressable style={styles.button} onPress={handleStop}>
-          <Image
-            source={require("../../../assets/icons/stop.png")}
-            style={styles.icon}
-          />
-        </Pressable>
-
-        <Pressable style={styles.button} onPress={() => router.push("/chat")}>
-          <Image
-            source={require("../../../assets/icons/chat.png")}
-            style={styles.icon}
-          />
-        </Pressable>
-
-        {hasTasks && !isBreak && (
-          <Pressable style={styles.button} onPress={handleStartBreak}>
-            <Image
-              source={require("../../../assets/icons/break.png")}
-              style={styles.icon}
-            />
->>>>>>> Stashed changes:Theo/app/(tabs)/session/index.tsx
           </Pressable>
         )}
       </View>
 
-      {/* ---------------- STOP MODAL ---------------- */}
+      {/* -------- STOP MODAL -------- */}
       <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
@@ -500,62 +334,43 @@ export default function SessionScreen() {
         onConfirm={confirmStop}
       />
 
-      {/* ---------------- ADD TIME MODAL ---------------- */}
+      {/* -------- ADD TIME MODAL -------- */}
       <AppModal
         visible={showAddTimeModal}
         onClose={() => setShowAddTimeModal(false)}
         variant="bottom-sheet"
         title="Add time to task"
-        height={260}
+        height={350}
       >
-        <Text variant="h3">Minutes to add</Text>
-
-        <Spacer size="sm" />
-
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: theme.radii.md,
-            padding: theme.spacing.md,
-            borderWidth: 1,
-            borderColor: theme.colors.accentLight,
-            width: "100%",
-          }}
-        >
-          <TextInput
-            value={newTime}
-            onChangeText={setNewTime}
-            placeholder="e.g. 10"
-            keyboardType="numeric"
-            style={{
-              fontSize: 20,
-              fontFamily: theme.typography.families.regular,
-            }}
-          />
-        </View>
-
-        <Spacer size="lg" />
+        <InputField
+          label="Minutes to add"
+          value={newTime}
+          onChangeText={setNewTime}
+          placeholder="e.g. 10"
+          keyboardType="numeric"
+        />
 
         <Button label="Add Time" variant="gold" onPress={handleApplyTime} />
+        <Spacer size="sm" />
       </AppModal>
 
-      {/* ---------------- PROGRESS MODAL ---------------- */}
+      {/* -------- PROGRESS MODAL -------- */}
       <AppModal
         visible={showProgressModal}
         onClose={() => setShowProgressModal(false)}
         variant="bottom-sheet"
         title="Session progress"
-        height={350}
+        height={300}
       >
-        {tasks.map((t, i) => {
-          const isDone =
+        {TASKS.map((t, i) => {
+          const done =
             i < currentTaskIndex ||
             (i === currentTaskIndex && isBreak && breakAfterTaskComplete);
 
           return (
             <Checkbox
               key={i}
-              checked={isDone}
+              checked={done}
               onChange={() => {}}
               label={t.name}
               containerStyle={{ width: "100%" }}
@@ -564,7 +379,7 @@ export default function SessionScreen() {
         })}
       </AppModal>
 
-      {/* ---------------- EDIT TASK MODAL ---------------- */}
+      {/* -------- EDIT TASK MODAL -------- */}
       <AppModal
         visible={showEditTaskModal}
         onClose={() => setShowEditTaskModal(false)}
@@ -572,32 +387,12 @@ export default function SessionScreen() {
         title="Edit task"
         height={270}
       >
-        <Text variant="h3">Task name</Text>
-
-        <Spacer size="sm" />
-
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: theme.radii.md,
-            padding: theme.spacing.md,
-            borderWidth: 1,
-            borderColor: theme.colors.accentLight,
-            width: "100%",
-          }}
-        >
-          <TextInput
-            value={editedTaskName}
-            onChangeText={setEditedTaskName}
-            placeholder="Task name"
-            style={{
-              fontSize: 20,
-              fontFamily: theme.typography.families.regular,
-            }}
-          />
-        </View>
-
-        <Spacer size="lg" />
+        <InputField
+          label="Task name"
+          value={editedTaskName}
+          onChangeText={setEditedTaskName}
+          placeholder="Task name"
+        />
 
         <Button label="Save" variant="gold" onPress={handleSaveTaskEdit} />
       </AppModal>
@@ -605,9 +400,7 @@ export default function SessionScreen() {
   );
 }
 
-/* ---------------------------------------------- */
-/*                     STYLES                     */
-/* ---------------------------------------------- */
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
   container: {
@@ -638,8 +431,10 @@ const styles = StyleSheet.create({
 
   breakBox: {
     backgroundColor: theme.colors.accentDark,
-    padding: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
     borderRadius: theme.radii.md,
     alignItems: "center",
+    minWidth: 250,
   },
 });

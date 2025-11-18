@@ -1,12 +1,6 @@
 import { router } from "expo-router";
 import React from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { Text, Spacer } from "../../../components";
 import { Button } from "../../../components/ui/Button";
@@ -36,7 +30,10 @@ export default function EndSessionScreen() {
 
       <Spacer size="md" />
 
-      <Image source={require("../../../assets/theo/done.png")} style={styles.image} />
+      <Image
+        source={require("../../../assets/theo/done.png")}
+        style={styles.image}
+      />
 
       <Spacer size="lg" />
 
@@ -50,9 +47,7 @@ export default function EndSessionScreen() {
 
       <Spacer size="lg" />
 
-      <Text variant="subtitle" weight="bold">
-        Start new session with existing tasks
-      </Text>
+      <Text weight="bold">Start new session with existing tasks</Text>
 
       <Spacer size="sm" />
 
