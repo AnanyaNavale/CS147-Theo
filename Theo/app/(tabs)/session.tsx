@@ -92,8 +92,10 @@ export default function SessionScreen() {
 
       setIsRunning(false);
       setSavedTime(0);
+
       setIsBreak(true);
       setTheoImage(require("../../assets/theo/break.png"));
+
       setBreakAfterTaskComplete(true);
     }
   }, [secondsLeft, isBreak, currentTask]);
@@ -111,6 +113,7 @@ export default function SessionScreen() {
 
       setIsRunning(true);
       setIsBreak(false);
+
       setTheoImage(require("../../assets/theo/working.png"));
       return;
     }
