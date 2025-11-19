@@ -1,5 +1,7 @@
+// app/(tabs)/session/index.tsx
+
 import React, { useEffect, useRef, useState } from "react";
-import { View, Image, StyleSheet, Pressable } from "react-native";
+import { View, Image, StyleSheet, Pressable, Animated } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
 import { Text } from "@/components/ui/Text";
@@ -13,28 +15,40 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { InputField } from "@/components/ui/InputField";
 
 import { theme } from "@/design/theme";
+import { TASKS, Task, TaskStatus } from "./tasks";
+import { PawLoader } from "@/components/ui/PawLoader";
 
-import { TASKS, Task } from "./tasks";
+type SessionTask = Task & { status: TaskStatus };
 
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
-
-  /* PARAM: Selected task from end-session screen */
   const { task: taskParam } = useLocalSearchParams<{ task?: string }>();
   const selectedTaskName = Array.isArray(taskParam) ? taskParam[0] : taskParam;
 
-  /* TASKS: From shared TASKS file */
+  /* ---------------- INITIAL TASK SETUP ---------------- */
+
   const hasTasks = TASKS.length > 0;
 
   const initialTaskIndex = selectedTaskName
     ? TASKS.findIndex((t) => t.name === selectedTaskName)
     : 0;
 
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(
-    initialTaskIndex >= 0 ? initialTaskIndex : 0
+  const safeInitialIndex = initialTaskIndex >= 0 ? initialTaskIndex : 0;
+
+  const [sessionTasks, setSessionTasks] = useState<SessionTask[]>(() =>
+    TASKS.map((t, idx) => ({
+      ...t,
+      status: idx === safeInitialIndex ? "in_progress" : "pending",
+    }))
   );
 
-  const currentTask: Task | null = hasTasks ? TASKS[currentTaskIndex] : null;
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(safeInitialIndex);
+  const currentTask: SessionTask | null =
+    hasTasks && sessionTasks[currentTaskIndex]
+      ? sessionTasks[currentTaskIndex]
+      : null;
+
+  /* ---------------- TIMER STATE ---------------- */
 
   const [secondsLeft, setSecondsLeft] = useState(
     currentTask ? currentTask.time : 0
@@ -49,35 +63,70 @@ export default function SessionScreen() {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [theoImage, setTheoImage] = useState(
-    require("../../../assets/theo/working.png")
-  );
+  /* ---------------- THEO ANIMATION ---------------- */
+
+  const workingFrames = [
+    require("../../../assets/theo/working2.png"),
+    require("../../../assets/theo/working3.png"),
+  ];
+  const breakFrames = [require("../../../assets/theo/break.png")];
+
+  const [frameIndex, setFrameIndex] = useState(0);
+  const frameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(t);
+  }, []);
 
   /* ---------------- MODALS ---------------- */
 
   const [showStopModal, setShowStopModal] = useState(false);
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
-
   const [showProgressModal, setShowProgressModal] = useState(false);
-
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
-  /* ---------------- TIMER ---------------- */
+  /* ---------------- ANIMATIONS ---------------- */
+
+  const contentOpacity = useRef(new Animated.Value(1)).current;
+  const timerScale = useRef(new Animated.Value(1)).current;
+
+  /* ---------------- HELPERS ---------------- */
+
+  const updateTaskStatus = (index: number, status: TaskStatus) => {
+    setSessionTasks((prev) =>
+      prev.map((t, i) => (i === index ? { ...t, status } : t))
+    );
+  };
+
+  const goToEndSession = () => {
+    router.push("/(tabs)/session/end-session");
+  };
+
+  /* ---------------- PRELOAD ---------------- */
+
+  useEffect(() => {
+    workingFrames.forEach((img) =>
+      Image.prefetch(Image.resolveAssetSource(img).uri)
+    );
+    breakFrames.forEach((img) =>
+      Image.prefetch(Image.resolveAssetSource(img).uri)
+    );
+  }, []);
+
+  /* ---------------- TIMER EFFECT ---------------- */
 
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
-      setTheoImage(require("../../../assets/theo/working.png"));
-
       intervalRef.current = setInterval(() => {
-        setSecondsLeft((prev) => prev - 1);
+        setSecondsLeft((prev) => Math.max(prev - 1, 0));
       }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
     }
 
     return () => {
@@ -86,48 +135,117 @@ export default function SessionScreen() {
         intervalRef.current = null;
       }
     };
-  }, [isRunning, isBreak, currentTaskIndex, currentTask]);
+  }, [isRunning, isBreak, currentTask]);
 
-  /* ---------------- END OF TASK ---------------- */
+  /* ---------------- THEO FRAME ANIMATION ---------------- */
 
   useEffect(() => {
-    if (!isBreak && currentTask && secondsLeft <= 0) {
-      intervalRef.current && clearInterval(intervalRef.current);
+    if (frameLoopRef.current) {
+      clearInterval(frameLoopRef.current);
+      frameLoopRef.current = null;
+    }
 
-      setIsRunning(false);
-      setSavedTime(0);
-
-      setIsBreak(true);
-      setTheoImage(require("../../../assets/theo/break.png"));
-      setBreakAfterTaskComplete(true);
+    if (!isRunning || isBreak) {
+      setFrameIndex(0);
       return;
     }
 
-    if (!currentTask && secondsLeft <= 0) {
-      router.replace("/(tabs)/session/end-session");
+    frameLoopRef.current = setInterval(() => {
+      setFrameIndex((i) => (i + 1) % workingFrames.length);
+    }, 250);
+
+    return () => {
+      if (frameLoopRef.current) {
+        clearInterval(frameLoopRef.current);
+        frameLoopRef.current = null;
+      }
+    };
+  }, [isRunning, isBreak]);
+
+  /* ---------------- END-OF-TASK CHECK ---------------- */
+
+  useEffect(() => {
+    if (!currentTask) {
+      if (secondsLeft <= 0) goToEndSession();
+      return;
+    }
+
+    if (!isBreak && secondsLeft <= 0) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setIsRunning(false);
+      setShowCompleteModal(true);
     }
   }, [secondsLeft, currentTask, isBreak]);
 
-  /* LOAD A SPECIFIC TASK FROM END-SCREEN */
+  /* ---------------- LOAD TASK FROM END-SCREEN ---------------- */
+
   useEffect(() => {
     if (!selectedTaskName) return;
 
     const i = TASKS.findIndex((t) => t.name === selectedTaskName);
-    if (i >= 0 && i !== currentTaskIndex) {
-      const time = TASKS[i].time;
-      setCurrentTaskIndex(i);
-      setSecondsLeft(time);
-      setSavedTime(time);
-      setIsRunning(true);
-      setIsBreak(false);
-      setTheoImage(require("../../../assets/theo/working.png"));
-    }
+    if (i < 0 || i === currentTaskIndex) return;
+
+    const time = TASKS[i].time;
+
+    setCurrentTaskIndex(i);
+    setSecondsLeft(time);
+    setSavedTime(time);
+    setIsRunning(true);
+    setIsBreak(false);
+
+    updateTaskStatus(i, "in_progress");
   }, [selectedTaskName]);
 
-  /* ---------------- HANDLERS ---------------- */
+  /* ---------------- ANIMATIONS ---------------- */
+
+  useEffect(() => {
+    contentOpacity.setValue(0);
+    Animated.timing(contentOpacity, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [currentTaskIndex, isBreak]);
+
+  useEffect(() => {
+    if (isRunning && !isBreak && currentTask) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(timerScale, {
+            toValue: 1.05,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(timerScale, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      pulse.start();
+      return () => {
+        pulse.stop();
+        timerScale.setValue(1);
+      };
+    } else {
+      timerScale.setValue(1);
+    }
+  }, [isRunning, isBreak, currentTask]);
+
+  /* ---------------- CONTROL HANDLERS ---------------- */
 
   const handlePlayPause = () => {
-    if (currentTask) setIsRunning((p) => !p);
+    if (!currentTask) return;
+
+    setIsRunning((prev) => {
+      const next = !prev;
+      if (next && currentTask.status === "pending") {
+        updateTaskStatus(currentTaskIndex, "in_progress");
+      }
+      return next;
+    });
   };
 
   const handleStartBreak = () => {
@@ -135,7 +253,6 @@ export default function SessionScreen() {
     setIsBreak(true);
     setIsRunning(false);
     setBreakAfterTaskComplete(false);
-    setTheoImage(require("../../../assets/theo/break.png"));
   };
 
   const handleEndBreak = () => {
@@ -149,23 +266,26 @@ export default function SessionScreen() {
 
     setSecondsLeft(savedTime);
     setIsRunning(true);
-    setTheoImage(require("../../../assets/theo/working.png"));
   };
 
   const handleNextTask = () => {
-    if (currentTaskIndex < TASKS.length - 1) {
-      const next = currentTaskIndex + 1;
-      const nextTime = TASKS[next].time;
+    const isLastTask = currentTaskIndex >= sessionTasks.length - 1;
 
-      setCurrentTaskIndex(next);
-      setSecondsLeft(nextTime);
-      setSavedTime(nextTime);
-      setIsRunning(true);
-      setIsBreak(false);
-      setTheoImage(require("../../../assets/theo/working.png"));
-    } else {
-      router.push("/(tabs)/session/end-session");
+    if (isLastTask) {
+      goToEndSession();
+      return;
     }
+
+    const nextIndex = currentTaskIndex + 1;
+    const nextTask = sessionTasks[nextIndex];
+
+    setCurrentTaskIndex(nextIndex);
+    setSecondsLeft(nextTask.time);
+    setSavedTime(nextTask.time);
+    setIsRunning(true);
+    setIsBreak(false);
+
+    updateTaskStatus(nextIndex, "in_progress");
   };
 
   const confirmStop = () => {
@@ -179,35 +299,94 @@ export default function SessionScreen() {
 
     setIsBreak(false);
     setBreakAfterTaskComplete(false);
-
-    router.push("/(tabs)/session/end-session");
+    goToEndSession();
   };
+
+  /* ---------------- COMPLETION MODAL ACTIONS ---------------- */
+
+  const handleMarkTaskDoneAndBreak = () => {
+    if (!currentTask) return;
+
+    updateTaskStatus(currentTaskIndex, "completed");
+    setShowCompleteModal(false);
+
+    setIsBreak(true);
+    setBreakAfterTaskComplete(true);
+    setIsRunning(false);
+  };
+
+  const handleNeedMoreTimeFromComplete = () => {
+    setShowCompleteModal(false);
+    setNewTime("5");
+    setShowAddTimeModal(true);
+  };
+
+  /* ---------------- SKIP TASK LOGIC ---------------- */
+
+  const handleSkipTaskConfirmed = () => {
+    if (!currentTask) return;
+
+    updateTaskStatus(currentTaskIndex, "skipped");
+    setShowSkipConfirm(false);
+    setShowCompleteModal(false);
+    setIsBreak(false);
+    setBreakAfterTaskComplete(false);
+
+    const isLastTask = currentTaskIndex >= sessionTasks.length - 1;
+    if (isLastTask) {
+      goToEndSession();
+      return;
+    }
+
+    const nextIndex = currentTaskIndex + 1;
+    const nextTask = sessionTasks[nextIndex];
+
+    setCurrentTaskIndex(nextIndex);
+    setSecondsLeft(nextTask.time);
+    setSavedTime(nextTask.time);
+    setIsRunning(true);
+    updateTaskStatus(nextIndex, "in_progress");
+  };
+
+  /* ---------------- ADD TIME ---------------- */
 
   const handleApplyTime = () => {
     const m = Number(newTime);
     if (!m || m <= 0) return;
 
-    const added = m * 60;
-    const updated = secondsLeft + added;
+    const extraSeconds = m * 60;
+    const updated = secondsLeft + extraSeconds;
 
     setSecondsLeft(updated);
     setSavedTime(updated);
-
     setShowAddTimeModal(false);
   };
 
   const handleSaveTaskEdit = () => {
     if (!editedTaskName.trim()) return;
-    const updated = [...TASKS];
-    updated[currentTaskIndex] = {
-      ...updated[currentTaskIndex],
-      name: editedTaskName.trim(),
-    };
+
+    const trimmed = editedTaskName.trim();
+
+    setSessionTasks((prev) =>
+      prev.map((t, idx) =>
+        idx === currentTaskIndex ? { ...t, name: trimmed } : t
+      )
+    );
+
     setShowEditTaskModal(false);
   };
 
-  /* ---------------- RENDER ---------------- */
+  /* ---------------- PROGRESS ---------------- */
 
+  const totalTasks = sessionTasks.length;
+  const completedCount = sessionTasks.filter(
+    (t) => t.status === "completed" || t.status === "skipped"
+  ).length;
+
+  const taskPosition = currentTask ? currentTaskIndex + 1 : totalTasks;
+
+  /* ---------------- RENDER ---------------- */
+  if (loading) return <PawLoader />;
   return (
     <View style={styles.container}>
       {/* MENU */}
@@ -215,11 +394,22 @@ export default function SessionScreen() {
         <Menu
           options={[
             {
+              label: "Mark task done",
+              onPress: () => {
+                if (!currentTask) return;
+                setShowCompleteModal(true);
+              },
+            },
+            {
               label: "Add time to task",
               onPress: () => {
                 setNewTime("");
                 setShowAddTimeModal(true);
               },
+            },
+            {
+              label: "Skip task",
+              onPress: () => setShowSkipConfirm(true),
             },
             {
               label: "View progress",
@@ -236,8 +426,14 @@ export default function SessionScreen() {
         />
       </View>
 
-      {/* GOAL */}
-      <View style={{ alignItems: "center", paddingTop: theme.spacing.lg }}>
+      {/* GOAL + TASK */}
+      <Animated.View
+        style={{
+          alignItems: "center",
+          paddingTop: theme.spacing.lg,
+          opacity: contentOpacity,
+        }}
+      >
         <Text variant="h2" color="accentDark">
           Goal
         </Text>
@@ -248,14 +444,11 @@ export default function SessionScreen() {
 
         <Spacer size="md" />
 
-        {/* TASK HEADER */}
         {currentTask && (
           <>
             <Text variant="h2" color="accentDark">
               Task
             </Text>
-
-            <Spacer size="xs" />
 
             <View style={styles.taskRow}>
               <Text variant="h3">
@@ -263,24 +456,47 @@ export default function SessionScreen() {
                   ? "Take a break! You’ve been working really hard."
                   : currentTask.name}
               </Text>
-
-              {!isBreak && currentTaskIndex < TASKS.length - 1 && (
-                <Pressable onPress={handleNextTask}>
-                  <Icon name="fast-forward" size={28} />
-                </Pressable>
-              )}
             </View>
 
             <Spacer size="md" />
+
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text variant="body" color="accentDark">
+                Task {taskPosition} of {totalTasks}
+              </Text>
+
+              {!isBreak && currentTaskIndex < sessionTasks.length - 1 && (
+                <>
+                  <Text variant="body" color="accentDark">
+                    {" "}
+                    .{" "}
+                  </Text>
+
+                  <Pressable onPress={() => setShowSkipConfirm(true)}>
+                    <Text
+                      variant="body"
+                      color="accentDark"
+                      style={{ textDecorationLine: "underline" }}
+                    >
+                      Skip to next task
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+
+            <Spacer size="lg" />
           </>
         )}
 
-        {/* TIMER / BREAK BOX */}
         {!isBreak ? (
-          <Timer secondsLeft={secondsLeft} />
+          <Timer
+            secondsLeft={secondsLeft}
+            taskDuration={currentTask?.time ?? 0}
+          />
         ) : (
           <View style={styles.breakBox}>
-            <Text variant="h2" weight="bold">
+            <Text variant="h2" weight="bold" color="white">
               Break time!
             </Text>
 
@@ -294,10 +510,13 @@ export default function SessionScreen() {
             />
           </View>
         )}
-      </View>
+      </Animated.View>
 
       {/* THEO */}
-      <Image source={theoImage} style={styles.theo} />
+      <Image
+        source={isBreak ? breakFrames[0] : workingFrames[frameIndex]}
+        style={styles.theo}
+      />
 
       {/* CONTROLS */}
       <View style={styles.row}>
@@ -322,7 +541,7 @@ export default function SessionScreen() {
         )}
       </View>
 
-      {/* -------- STOP MODAL -------- */}
+      {/* STOP MODAL */}
       <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
@@ -334,7 +553,67 @@ export default function SessionScreen() {
         onConfirm={confirmStop}
       />
 
-      {/* -------- ADD TIME MODAL -------- */}
+      {/* SKIP CONFIRMATION MODAL */}
+      <AppModal
+        visible={showSkipConfirm}
+        onClose={() => setShowSkipConfirm(false)}
+        variant="alert"
+        title="Skip task?"
+        message="Are you sure you want to skip this task?"
+        cancelLabel="Cancel"
+        confirmLabel="Skip"
+        onConfirm={handleSkipTaskConfirmed}
+      />
+
+      {/* COMPLETION MODAL */}
+      <AppModal
+        visible={showCompleteModal}
+        onClose={() => setShowCompleteModal(false)}
+        variant="bottom-sheet"
+        title="Time is up! How did this task go?"
+        height={360}
+      >
+        <Text variant="h3" weight="bold">
+          Task options
+        </Text>
+        <Spacer size="sm" />
+        <Button
+          label="Need more time"
+          variant="gold"
+          onPress={handleNeedMoreTimeFromComplete}
+        />
+        <Spacer size="sm" />
+        <Button
+          label="Mark task done & start break"
+          variant="gold"
+          onPress={handleMarkTaskDoneAndBreak}
+        />
+        <Spacer size="md" />
+        <Text variant="h3" weight="bold">
+          Session options
+        </Text>
+        <Spacer size="sm" />
+        <Button
+          label="Stop and reflect"
+          variant="gold"
+          onPress={() => {
+            setShowCompleteModal(false);
+            router.push("/chat");
+          }}
+        />
+        <Spacer size="sm" />
+        <Button
+          label="End session"
+          variant="danger"
+          onPress={() => {
+            setShowCompleteModal(false);
+            setShowStopModal(true);
+          }}
+        />
+        <Spacer size="sm" />
+      </AppModal>
+
+      {/* ADD TIME MODAL */}
       <AppModal
         visible={showAddTimeModal}
         onClose={() => setShowAddTimeModal(false)}
@@ -354,7 +633,7 @@ export default function SessionScreen() {
         <Spacer size="sm" />
       </AppModal>
 
-      {/* -------- PROGRESS MODAL -------- */}
+      {/* PROGRESS MODAL */}
       <AppModal
         visible={showProgressModal}
         onClose={() => setShowProgressModal(false)}
@@ -362,24 +641,28 @@ export default function SessionScreen() {
         title="Session progress"
         height={300}
       >
-        {TASKS.map((t, i) => {
-          const done =
-            i < currentTaskIndex ||
-            (i === currentTaskIndex && isBreak && breakAfterTaskComplete);
+        {sessionTasks.map((t, i) => {
+          const done = t.status === "completed" || t.status === "skipped";
 
           return (
             <Checkbox
               key={i}
               checked={done}
               onChange={() => {}}
-              label={t.name}
+              label={t.name + (t.status === "skipped" ? " (skipped)" : "")}
               containerStyle={{ width: "100%" }}
             />
           );
         })}
+
+        <Spacer size="sm" />
+
+        <Text variant="body" color="accent">
+          {completedCount} of {totalTasks} tasks complete
+        </Text>
       </AppModal>
 
-      {/* -------- EDIT TASK MODAL -------- */}
+      {/* EDIT TASK MODAL */}
       <AppModal
         visible={showEditTaskModal}
         onClose={() => setShowEditTaskModal(false)}
@@ -411,24 +694,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: theme.colors.background,
   },
-
   row: {
     flexDirection: "row",
     gap: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
-
   theo: {
-    width: 250,
-    height: 250,
+    width: 300,
+    height: 300,
     resizeMode: "contain",
   },
-
   taskRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.xs,
   },
-
   breakBox: {
     backgroundColor: theme.colors.accentDark,
     paddingHorizontal: theme.spacing.lg,

@@ -68,6 +68,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="calendar" color={color} size={28} />
           ),
+          tabBarStyle: { display: "none" },
         }}
       />
 

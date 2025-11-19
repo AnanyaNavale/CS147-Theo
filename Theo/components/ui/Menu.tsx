@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 120,
     right: 20,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.solidColors.white,
     borderWidth: 2,
     borderColor: theme.colors.accent,
     borderRadius: theme.radii.md,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   option: {
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.solidColors.white,
   },
 
   optionBorder: {
