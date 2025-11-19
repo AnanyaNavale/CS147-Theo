@@ -1,7 +1,7 @@
 // app/(tabs)/session/index.tsx
 
 import React, { useEffect, useRef, useState } from "react";
-import { View, Image, StyleSheet, Pressable } from "react-native";
+import { View, Image, StyleSheet, Pressable, Animated } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
 import { Text } from "@/components/ui/Text";
@@ -16,18 +16,16 @@ import { InputField } from "@/components/ui/InputField";
 
 import { theme } from "@/design/theme";
 import { TASKS, Task, TaskStatus } from "./tasks";
+import { PawLoader } from "@/components/ui/PawLoader";
 
 type SessionTask = Task & { status: TaskStatus };
 
 export default function SessionScreen() {
   const goal = "Complete Chapter 3 notes";
-
-  /* ---------------- PARAM: task selected from end-session ---------------- */
-
   const { task: taskParam } = useLocalSearchParams<{ task?: string }>();
   const selectedTaskName = Array.isArray(taskParam) ? taskParam[0] : taskParam;
 
-  /* ---------------- INITIAL TASK INDEX ---------------- */
+  /* ---------------- INITIAL TASK SETUP ---------------- */
 
   const hasTasks = TASKS.length > 0;
 
@@ -37,8 +35,6 @@ export default function SessionScreen() {
 
   const safeInitialIndex = initialTaskIndex >= 0 ? initialTaskIndex : 0;
 
-  /* ---------------- SESSION TASKS (WITH STATUS) ---------------- */
-
   const [sessionTasks, setSessionTasks] = useState<SessionTask[]>(() =>
     TASKS.map((t, idx) => ({
       ...t,
@@ -47,13 +43,12 @@ export default function SessionScreen() {
   );
 
   const [currentTaskIndex, setCurrentTaskIndex] = useState(safeInitialIndex);
-
   const currentTask: SessionTask | null =
     hasTasks && sessionTasks[currentTaskIndex]
       ? sessionTasks[currentTaskIndex]
       : null;
 
-  /* ---------------- TIMER / SESSION STATE ---------------- */
+  /* ---------------- TIMER STATE ---------------- */
 
   const [secondsLeft, setSecondsLeft] = useState(
     currentTask ? currentTask.time : 0
@@ -68,23 +63,39 @@ export default function SessionScreen() {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [theoImage, setTheoImage] = useState(
-    require("../../../assets/theo/working.png")
-  );
+  /* ---------------- THEO ANIMATION ---------------- */
+
+  const workingFrames = [
+    require("../../../assets/theo/working2.png"),
+    require("../../../assets/theo/working3.png"),
+  ];
+  const breakFrames = [require("../../../assets/theo/break.png")];
+
+  const [frameIndex, setFrameIndex] = useState(0);
+  const frameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(t);
+  }, []);
 
   /* ---------------- MODALS ---------------- */
 
   const [showStopModal, setShowStopModal] = useState(false);
-
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
-
   const [showProgressModal, setShowProgressModal] = useState(false);
-
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
-
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+
+  /* ---------------- ANIMATIONS ---------------- */
+
+  const contentOpacity = useRef(new Animated.Value(1)).current;
+  const timerScale = useRef(new Animated.Value(1)).current;
 
   /* ---------------- HELPERS ---------------- */
 
@@ -94,22 +105,25 @@ export default function SessionScreen() {
     );
   };
 
-  const startWorkingTheo = () =>
-    setTheoImage(require("../../../assets/theo/working.png"));
-
-  const startBreakTheo = () =>
-    setTheoImage(require("../../../assets/theo/break.png"));
-
   const goToEndSession = () => {
     router.push("/(tabs)/session/end-session");
   };
+
+  /* ---------------- PRELOAD ---------------- */
+
+  useEffect(() => {
+    workingFrames.forEach((img) =>
+      Image.prefetch(Image.resolveAssetSource(img).uri)
+    );
+    breakFrames.forEach((img) =>
+      Image.prefetch(Image.resolveAssetSource(img).uri)
+    );
+  }, []);
 
   /* ---------------- TIMER EFFECT ---------------- */
 
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
-      startWorkingTheo();
-
       intervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => Math.max(prev - 1, 0));
       }, 1000);
@@ -121,32 +135,49 @@ export default function SessionScreen() {
         intervalRef.current = null;
       }
     };
-  }, [isRunning, isBreak, currentTaskIndex, currentTask]);
+  }, [isRunning, isBreak, currentTask]);
 
-  /* ---------------- END-OF-TASK DETECTION ---------------- */
+  /* ---------------- THEO FRAME ANIMATION ---------------- */
+
+  useEffect(() => {
+    if (frameLoopRef.current) {
+      clearInterval(frameLoopRef.current);
+      frameLoopRef.current = null;
+    }
+
+    if (!isRunning || isBreak) {
+      setFrameIndex(0);
+      return;
+    }
+
+    frameLoopRef.current = setInterval(() => {
+      setFrameIndex((i) => (i + 1) % workingFrames.length);
+    }, 250);
+
+    return () => {
+      if (frameLoopRef.current) {
+        clearInterval(frameLoopRef.current);
+        frameLoopRef.current = null;
+      }
+    };
+  }, [isRunning, isBreak]);
+
+  /* ---------------- END-OF-TASK CHECK ---------------- */
 
   useEffect(() => {
     if (!currentTask) {
-      if (secondsLeft <= 0) {
-        goToEndSession();
-      }
+      if (secondsLeft <= 0) goToEndSession();
       return;
     }
 
     if (!isBreak && secondsLeft <= 0) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-
+      if (intervalRef.current) clearInterval(intervalRef.current);
       setIsRunning(false);
-      // Do NOT assume the task is "done" here.
-      // Instead, open the explicit completion modal.
       setShowCompleteModal(true);
     }
   }, [secondsLeft, currentTask, isBreak]);
 
-  /* ---------------- LOAD SPECIFIC TASK FROM END-SCREEN ---------------- */
+  /* ---------------- LOAD TASK FROM END-SCREEN ---------------- */
 
   useEffect(() => {
     if (!selectedTaskName) return;
@@ -161,18 +192,49 @@ export default function SessionScreen() {
     setSavedTime(time);
     setIsRunning(true);
     setIsBreak(false);
-    startWorkingTheo();
 
-    setSessionTasks((prev) =>
-      prev.map((t, idx) => {
-        if (idx === i) return { ...t, status: "in_progress" };
-        // Keep existing status for all others
-        return t;
-      })
-    );
+    updateTaskStatus(i, "in_progress");
   }, [selectedTaskName]);
 
-  /* ---------------- HANDLERS: CORE ---------------- */
+  /* ---------------- ANIMATIONS ---------------- */
+
+  useEffect(() => {
+    contentOpacity.setValue(0);
+    Animated.timing(contentOpacity, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [currentTaskIndex, isBreak]);
+
+  useEffect(() => {
+    if (isRunning && !isBreak && currentTask) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(timerScale, {
+            toValue: 1.05,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(timerScale, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      pulse.start();
+      return () => {
+        pulse.stop();
+        timerScale.setValue(1);
+      };
+    } else {
+      timerScale.setValue(1);
+    }
+  }, [isRunning, isBreak, currentTask]);
+
+  /* ---------------- CONTROL HANDLERS ---------------- */
 
   const handlePlayPause = () => {
     if (!currentTask) return;
@@ -191,7 +253,6 @@ export default function SessionScreen() {
     setIsBreak(true);
     setIsRunning(false);
     setBreakAfterTaskComplete(false);
-    startBreakTheo();
   };
 
   const handleEndBreak = () => {
@@ -205,7 +266,6 @@ export default function SessionScreen() {
 
     setSecondsLeft(savedTime);
     setIsRunning(true);
-    startWorkingTheo();
   };
 
   const handleNextTask = () => {
@@ -224,7 +284,6 @@ export default function SessionScreen() {
     setSavedTime(nextTask.time);
     setIsRunning(true);
     setIsBreak(false);
-    startWorkingTheo();
 
     updateTaskStatus(nextIndex, "in_progress");
   };
@@ -240,11 +299,10 @@ export default function SessionScreen() {
 
     setIsBreak(false);
     setBreakAfterTaskComplete(false);
-
     goToEndSession();
   };
 
-  /* ---------------- HANDLERS: COMPLETION MODAL ---------------- */
+  /* ---------------- COMPLETION MODAL ACTIONS ---------------- */
 
   const handleMarkTaskDoneAndBreak = () => {
     if (!currentTask) return;
@@ -252,27 +310,27 @@ export default function SessionScreen() {
     updateTaskStatus(currentTaskIndex, "completed");
     setShowCompleteModal(false);
 
-    // Start a break and move to next task after break
     setIsBreak(true);
     setBreakAfterTaskComplete(true);
     setIsRunning(false);
-    startBreakTheo();
   };
 
   const handleNeedMoreTimeFromComplete = () => {
     setShowCompleteModal(false);
-    setNewTime("5"); // sensible default
+    setNewTime("5");
     setShowAddTimeModal(true);
   };
 
-  const handleSkipTask = () => {
+  /* ---------------- SKIP TASK LOGIC ---------------- */
+
+  const handleSkipTaskConfirmed = () => {
     if (!currentTask) return;
 
     updateTaskStatus(currentTaskIndex, "skipped");
+    setShowSkipConfirm(false);
     setShowCompleteModal(false);
     setIsBreak(false);
     setBreakAfterTaskComplete(false);
-    startWorkingTheo();
 
     const isLastTask = currentTaskIndex >= sessionTasks.length - 1;
     if (isLastTask) {
@@ -290,7 +348,7 @@ export default function SessionScreen() {
     updateTaskStatus(nextIndex, "in_progress");
   };
 
-  /* ---------------- MODAL ACTIONS ---------------- */
+  /* ---------------- ADD TIME ---------------- */
 
   const handleApplyTime = () => {
     const m = Number(newTime);
@@ -301,7 +359,6 @@ export default function SessionScreen() {
 
     setSecondsLeft(updated);
     setSavedTime(updated);
-
     setShowAddTimeModal(false);
   };
 
@@ -319,8 +376,17 @@ export default function SessionScreen() {
     setShowEditTaskModal(false);
   };
 
-  /* ---------------- RENDER ---------------- */
+  /* ---------------- PROGRESS ---------------- */
 
+  const totalTasks = sessionTasks.length;
+  const completedCount = sessionTasks.filter(
+    (t) => t.status === "completed" || t.status === "skipped"
+  ).length;
+
+  const taskPosition = currentTask ? currentTaskIndex + 1 : totalTasks;
+
+  /* ---------------- RENDER ---------------- */
+  if (loading) return <PawLoader />;
   return (
     <View style={styles.container}>
       {/* MENU */}
@@ -342,6 +408,10 @@ export default function SessionScreen() {
               },
             },
             {
+              label: "Skip task",
+              onPress: () => setShowSkipConfirm(true),
+            },
+            {
               label: "View progress",
               onPress: () => setShowProgressModal(true),
             },
@@ -357,7 +427,13 @@ export default function SessionScreen() {
       </View>
 
       {/* GOAL + TASK */}
-      <View style={{ alignItems: "center", paddingTop: theme.spacing.lg }}>
+      <Animated.View
+        style={{
+          alignItems: "center",
+          paddingTop: theme.spacing.lg,
+          opacity: contentOpacity,
+        }}
+      >
         <Text variant="h2" color="accentDark">
           Goal
         </Text>
@@ -374,27 +450,45 @@ export default function SessionScreen() {
               Task
             </Text>
 
-            <Spacer size="xs" />
-
             <View style={styles.taskRow}>
               <Text variant="h3">
                 {isBreak
                   ? "Take a break! You’ve been working really hard."
                   : currentTask.name}
               </Text>
-
-              {!isBreak && currentTaskIndex < sessionTasks.length - 1 && (
-                <Pressable onPress={handleNextTask}>
-                  <Icon name="fast-forward" size={28} />
-                </Pressable>
-              )}
             </View>
 
             <Spacer size="md" />
+
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text variant="body" color="accentDark">
+                Task {taskPosition} of {totalTasks}
+              </Text>
+
+              {!isBreak && currentTaskIndex < sessionTasks.length - 1 && (
+                <>
+                  <Text variant="body" color="accentDark">
+                    {" "}
+                    .{" "}
+                  </Text>
+
+                  <Pressable onPress={() => setShowSkipConfirm(true)}>
+                    <Text
+                      variant="body"
+                      color="accentDark"
+                      style={{ textDecorationLine: "underline" }}
+                    >
+                      Skip to next task
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+
+            <Spacer size="lg" />
           </>
         )}
 
-        {/* TIMER / BREAK BOX */}
         {!isBreak ? (
           <Timer
             secondsLeft={secondsLeft}
@@ -416,10 +510,13 @@ export default function SessionScreen() {
             />
           </View>
         )}
-      </View>
+      </Animated.View>
 
       {/* THEO */}
-      <Image source={theoImage} style={styles.theo} />
+      <Image
+        source={isBreak ? breakFrames[0] : workingFrames[frameIndex]}
+        style={styles.theo}
+      />
 
       {/* CONTROLS */}
       <View style={styles.row}>
@@ -444,7 +541,7 @@ export default function SessionScreen() {
         )}
       </View>
 
-      {/* -------- STOP MODAL -------- */}
+      {/* STOP MODAL */}
       <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
@@ -456,19 +553,33 @@ export default function SessionScreen() {
         onConfirm={confirmStop}
       />
 
-      {/* -------- TASK COMPLETION MODAL -------- */}
+      {/* SKIP CONFIRMATION MODAL */}
+      <AppModal
+        visible={showSkipConfirm}
+        onClose={() => setShowSkipConfirm(false)}
+        variant="alert"
+        title="Skip task?"
+        message="Are you sure you want to skip this task?"
+        cancelLabel="Cancel"
+        confirmLabel="Skip"
+        onConfirm={handleSkipTaskConfirmed}
+      />
+
+      {/* COMPLETION MODAL */}
       <AppModal
         visible={showCompleteModal}
         onClose={() => setShowCompleteModal(false)}
         variant="bottom-sheet"
-        title="How did this task go?"
-        height={320}
+        title="Time is up! How did this task go?"
+        height={360}
       >
+        <Text variant="h3" weight="bold">
+          Task options
+        </Text>
         <Spacer size="sm" />
-
         <Button
           label="Need more time"
-          variant="outlineGold"
+          variant="gold"
           onPress={handleNeedMoreTimeFromComplete}
         />
         <Spacer size="sm" />
@@ -477,14 +588,20 @@ export default function SessionScreen() {
           variant="gold"
           onPress={handleMarkTaskDoneAndBreak}
         />
+        <Spacer size="md" />
+        <Text variant="h3" weight="bold">
+          Session options
+        </Text>
         <Spacer size="sm" />
         <Button
           label="Stop and reflect"
           variant="gold"
-          onPress={() => router.push("/chat")}
+          onPress={() => {
+            setShowCompleteModal(false);
+            router.push("/chat");
+          }}
         />
         <Spacer size="sm" />
-
         <Button
           label="End session"
           variant="danger"
@@ -493,11 +610,10 @@ export default function SessionScreen() {
             setShowStopModal(true);
           }}
         />
-
         <Spacer size="sm" />
       </AppModal>
 
-      {/* -------- ADD TIME MODAL -------- */}
+      {/* ADD TIME MODAL */}
       <AppModal
         visible={showAddTimeModal}
         onClose={() => setShowAddTimeModal(false)}
@@ -517,7 +633,7 @@ export default function SessionScreen() {
         <Spacer size="sm" />
       </AppModal>
 
-      {/* -------- PROGRESS MODAL -------- */}
+      {/* PROGRESS MODAL */}
       <AppModal
         visible={showProgressModal}
         onClose={() => setShowProgressModal(false)}
@@ -533,14 +649,20 @@ export default function SessionScreen() {
               key={i}
               checked={done}
               onChange={() => {}}
-              label={t.name}
+              label={t.name + (t.status === "skipped" ? " (skipped)" : "")}
               containerStyle={{ width: "100%" }}
             />
           );
         })}
+
+        <Spacer size="sm" />
+
+        <Text variant="body" color="accent">
+          {completedCount} of {totalTasks} tasks complete
+        </Text>
       </AppModal>
 
-      {/* -------- EDIT TASK MODAL -------- */}
+      {/* EDIT TASK MODAL */}
       <AppModal
         visible={showEditTaskModal}
         onClose={() => setShowEditTaskModal(false)}
@@ -572,24 +694,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: theme.colors.background,
   },
-
   row: {
     flexDirection: "row",
     gap: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
-
   theo: {
-    width: 250,
-    height: 250,
+    width: 300,
+    height: 300,
     resizeMode: "contain",
   },
-
   taskRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.xs,
   },
-
   breakBox: {
     backgroundColor: theme.colors.accentDark,
     paddingHorizontal: theme.spacing.lg,
