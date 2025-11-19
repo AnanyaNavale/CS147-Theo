@@ -9,7 +9,7 @@ export interface Task {
 
 // These are template tasks. Session-specific status is tracked in SessionScreen.
 export const TASKS: Task[] = [
-  { name: "Read pages 20–30", time: 10 },
-  { name: "Write summary", time: 15 },
+  { name: "Read pages 20–30", time: 10 * 60 },
+  { name: "Write summary", time: 15 * 60 },
   { name: "Create flashcards", time: 8 * 60 },
 ];
