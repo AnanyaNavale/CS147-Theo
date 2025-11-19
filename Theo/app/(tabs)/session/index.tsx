@@ -411,16 +411,17 @@ export default function SessionScreen() {
               label: "Skip task",
               onPress: () => setShowSkipConfirm(true),
             },
-            {
-              label: "View progress",
-              onPress: () => setShowProgressModal(true),
-            },
+
             {
               label: "Edit task",
               onPress: () => {
                 setEditedTaskName(currentTask?.name ?? "");
                 setShowEditTaskModal(true);
               },
+            },
+            {
+              label: "View progress",
+              onPress: () => setShowProgressModal(true),
             },
           ]}
         />

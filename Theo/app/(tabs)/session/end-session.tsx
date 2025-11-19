@@ -79,8 +79,7 @@ export default function EndSessionScreen() {
         <Spacer size="sm" />
 
         <Text variant="h3" color="accentDark" style={{ textAlign: "center" }}>
-          You showed up, stayed focused, and made progress. Theo is proud of
-          you.
+          Theo is proud of you!
         </Text>
 
         <Spacer size="lg" />
