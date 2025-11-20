@@ -1,7 +1,7 @@
 // design/theme.ts
 export const theme = {
   colors: {
-    background: "#FFFFFF",
+    background: "#FDF6EE",
     text: "#4A3728", // warm brown
     mutedText: "#8B7C6A",
     border: "#C8B39A",
@@ -34,6 +34,7 @@ export const theme = {
     accent: "#D7B47A",
     accentLight: "#F3DDB4",
     danger: "#C45B52",
+    white: "#fff",
   },
 
   spacing: {
