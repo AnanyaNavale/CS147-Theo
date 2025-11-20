@@ -79,6 +79,18 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
+            name="session-complete"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="session-summary"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name="chat"
             options={{
               headerShown: false,

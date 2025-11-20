@@ -109,7 +109,7 @@ export default function SessionScreen() {
       return;
     }
 
-    console.log("Session complete");
+    router.replace("/session-complete");
   };
 
   const handlePlayPause = () => {
@@ -157,7 +157,7 @@ export default function SessionScreen() {
     setTheoImage(require("../../assets/theo/working.png"));
     setIsBreak(false);
 
-    console.log("Session ended");
+    router.replace("/session-complete");
   };
 
   const handleApplyTime = () => {
