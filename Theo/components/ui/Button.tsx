@@ -1,12 +1,12 @@
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  TouchableOpacity,
-  Text,
   StyleSheet,
-  ViewStyle,
+  Text,
+  TouchableOpacity,
   View,
+  ViewStyle,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { theme } from "../../design/theme";
 
 type ButtonSize = "sm" | "md" | "lg";
@@ -66,7 +66,8 @@ export function Button({
   style,
 }: ButtonProps) {
   const sizeTokens = sizeStyles[size];
-  const isGradient = GRADIENT_VARIANTS.includes(variant);
+  // const isGradient = GRADIENT_VARIANTS.includes(variant);
+  const isGradient = false;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
@@ -144,6 +145,9 @@ function getBorderColor(v: ButtonVariant) {
 }
 
 function getBackground(v: ButtonVariant) {
+  if (v === "gold") return theme.colors.accent;
+  if (v === "brown") return theme.colors.accentDark;
+  if (v === "danger") return theme.colors.danger;
   if (v === "subtle") return "rgba(0,0,0,0.05)";
   return "transparent";
 }
