@@ -22,6 +22,10 @@ export function Text({
   color = "text",
   ...props
 }: AppTextProps) {
+  const flattened = StyleSheet.flatten(style) || {};
+  const needsAutoLineHeight =
+    flattened.fontSize != null && flattened.lineHeight == null;
+
   return (
     <RNText
       {...props}
@@ -30,6 +34,7 @@ export function Text({
         variantStyles[variant],
         weightStyles[weight],
         { color: theme.solidColors[color] },
+        needsAutoLineHeight && { lineHeight: flattened.fontSize * 1.2 },
         style,
       ]}
     />
