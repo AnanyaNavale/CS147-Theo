@@ -2,9 +2,9 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 
-import { Text, Spacer } from "../../../components";
-import { Button } from "../../../components/ui/Button";
+import { Spacer, Text } from "../../../components";
 import { AppModal } from "../../../components/ui/AppModal";
+import { Button } from "../../../components/ui/Button";
 import { InputField } from "../../../components/ui/InputField";
 import { theme } from "../../../design/theme";
 import { TASKS, Task } from "./tasks";
@@ -72,31 +72,43 @@ export default function EndSessionScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <Text variant="h1" weight="bold" color="accentDark">
-          Session complete!
+        <Spacer size="xl" />
+        <Text variant="h2" weight="bold" color="accentDark">
+          Congrats on finishing the session!
         </Text>
 
-        <Spacer size="sm" />
-
-        <Text variant="h3" color="accentDark" style={{ textAlign: "center" }}>
-          Theo is proud of you!
-        </Text>
-
-        <Spacer size="lg" />
+        <Spacer size="md" />
 
         <Image
           source={require("../../../assets/theo/done.png")}
           style={styles.image}
         />
 
+        <Spacer size="lg" />
+
+        {/* EXIT */}
+        <Button
+          label="Go back home"
+          variant="danger"
+          size="lg"
+          onPress={() => setShowExitModal(true)}
+          style={styles.exitButton}
+        />
+
+        <Spacer size="xl" />
         <Spacer size="xl" />
 
         {/* START FROM RECENT TASKS */}
-        <Text variant="h3" weight="bold" color="accentDark">
-          Want to keep working?{" "}
+        <Text
+          variant="h1"
+          weight="bold"
+          color="accentDark"
+          style={styles.taskHeading}
+        >
+          Work on next task?{" "}
         </Text>
 
-        <Spacer size="sm" />
+        <Spacer size="xs" />
 
         <View style={styles.taskList}>
           {recentTasks.map((task) => (
@@ -106,7 +118,7 @@ export default function EndSessionScreen() {
               variant="brown"
               size="md"
               onPress={() => handleSelectTask(task)}
-              style={styles.fullWidthButton}
+              style={styles.taskButton}
             />
           ))}
           {/* NEW TASK BUTTON */}
@@ -115,18 +127,7 @@ export default function EndSessionScreen() {
             variant="gold"
             size="md"
             onPress={() => setShowNewTaskModal(true)}
-            style={styles.fullWidthButton}
-          />
-
-          <Spacer size="xl" />
-
-          {/* EXIT AT THE BOTTOM */}
-          <Button
-            label="Go back home"
-            variant="gold"
-            size="lg"
-            onPress={() => setShowExitModal(true)}
-            style={[styles.fullWidthButton, { marginBottom: theme.spacing.xl }]}
+            style={styles.taskButton}
           />
         </View>
       </ScrollView>
@@ -196,18 +197,28 @@ const styles = StyleSheet.create({
     paddingTop: 85,
     alignItems: "center",
     backgroundColor: theme.colors.background,
-    justifyContent: "space-around",
+    justifyContent: "flex-start",
   },
   image: {
     width: 260,
     height: 260,
     resizeMode: "contain",
   },
-  fullWidthButton: {
-    width: "100%",
+  exitButton: {
+    width: "80%",
+  },
+  taskHeading: {
+    textAlign: "center",
+    alignSelf: "center",
+    marginBottom: theme.spacing.xs / 2,
   },
   taskList: {
-    width: "100%",
-    gap: theme.spacing.sm,
+    width: "80%",
+    alignSelf: "center",
+    alignItems: "stretch",
+    gap: theme.spacing.md,
+  },
+  taskButton: {
+    alignSelf: "stretch",
   },
 });
