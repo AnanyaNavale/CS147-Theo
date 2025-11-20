@@ -12,6 +12,10 @@ import { Icon } from "@/components/ui/Icon";
 import { Checkbox } from "@/components/ui/Checkbox";
 
 import { theme } from "@/design/theme";
+import {
+  getSessionGoal,
+  subscribeSessionGoal,
+} from "@/state/sessionGoal";
 
 interface Task {
   name: string;
@@ -19,22 +23,15 @@ interface Task {
 }
 
 export default function SessionScreen() {
-  const goal = "Complete Chapter 3 notes";
-
-  /* ---------------------------------------------- */
-  /*                     STATE                       */
-  /* ---------------------------------------------- */
-
+  const [goal, setGoal] = useState(getSessionGoal() || "Complete Chapter 3 notes");
   const [tasks, setTasks] = useState<Task[]>([
-    { name: "Read pages 20–30", time: 10 },
+    { name: "Read pages 20-30", time: 10 },
     { name: "Write summary", time: 15 },
     { name: "Create flashcards", time: 8 * 60 },
   ]);
 
   const hasTasks = tasks.length > 0;
-
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-
   const currentTask = hasTasks ? tasks[currentTaskIndex] : null;
 
   const [secondsLeft, setSecondsLeft] = useState(
@@ -49,27 +46,22 @@ export default function SessionScreen() {
   const [breakAfterTaskComplete, setBreakAfterTaskComplete] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   const [theoImage, setTheoImage] = useState(
     require("../../assets/theo/working.png")
   );
-
-  /* ---------------------------------------------- */
-  /*                     MODALS                     */
-  /* ---------------------------------------------- */
+  useEffect(() => {
+    const unsubscribe = subscribeSessionGoal((updated) => {
+      setGoal(updated || "Complete Chapter 3 notes");
+    });
+    return unsubscribe;
+  }, []);
   const [showStopModal, setShowStopModal] = useState(false);
-
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
-
   const [showProgressModal, setShowProgressModal] = useState(false);
-
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
 
-  /* ---------------------------------------------- */
-  /*                  TIMER EFFECT                  */
-  /* ---------------------------------------------- */
   useEffect(() => {
     if (isRunning && !isBreak && currentTask) {
       setTheoImage(require("../../assets/theo/working.png"));
@@ -89,9 +81,6 @@ export default function SessionScreen() {
     };
   }, [isRunning, currentTaskIndex, isBreak, currentTask]);
 
-  /* ---------------------------------------------- */
-  /*               END-OF-TASK DETECTION            */
-  /* ---------------------------------------------- */
   useEffect(() => {
     if (!isBreak && currentTask && secondsLeft <= 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -101,19 +90,13 @@ export default function SessionScreen() {
 
       setIsBreak(true);
       setTheoImage(require("../../assets/theo/break.png"));
-
       setBreakAfterTaskComplete(true);
     }
   }, [secondsLeft, isBreak, currentTask]);
 
-  /* ---------------------------------------------- */
-  /*                   HANDLERS                     */
-  /* ---------------------------------------------- */
-
   const handleNextTask = () => {
     if (currentTaskIndex < tasks.length - 1) {
       const nextIndex = currentTaskIndex + 1;
-
       setCurrentTaskIndex(nextIndex);
 
       const next = tasks[nextIndex];
@@ -122,7 +105,6 @@ export default function SessionScreen() {
 
       setIsRunning(true);
       setIsBreak(false);
-
       setTheoImage(require("../../assets/theo/working.png"));
       return;
     }
@@ -132,7 +114,16 @@ export default function SessionScreen() {
 
   const handlePlayPause = () => {
     if (!currentTask) return;
-    setIsRunning((p) => !p);
+    if (isBreak) {
+      handleEndBreak();
+      return;
+    }
+    // If currently running, pressing pause should start a break.
+    if (isRunning) {
+      handleStartBreak();
+      return;
+    }
+    setIsRunning(true);
   };
 
   const handleStartBreak = () => {
@@ -169,22 +160,15 @@ export default function SessionScreen() {
     console.log("Session ended");
   };
 
-  /* ---------------------------------------------- */
-  /*                  MODAL ACTIONS                 */
-  /* ---------------------------------------------- */
-
   const handleApplyTime = () => {
     const extraMinutes = Number(newTime);
-
     if (!extraMinutes || extraMinutes <= 0) return;
 
     const extraSeconds = extraMinutes * 60;
-
     const updated = secondsLeft + extraSeconds;
 
     setSecondsLeft(updated);
     setSavedTime(updated);
-
     setShowAddTimeModal(false);
   };
 
@@ -203,14 +187,9 @@ export default function SessionScreen() {
     setShowEditTaskModal(false);
   };
 
-  /* ---------------------------------------------- */
-  /*                     RENDER                     */
-  /* ---------------------------------------------- */
-
   return (
     <View style={styles.container}>
-      {/* MENU */}
-      <View style={{ position: "absolute", top: 20, right: 20 }}>
+      <View style={{ position: "absolute", top: 28, right: 20 }}>
         <Menu
           options={[
             {
@@ -235,8 +214,7 @@ export default function SessionScreen() {
         />
       </View>
 
-      {/* GOAL */}
-      <View style={{ alignItems: "center", paddingTop: theme.spacing.lg }}>
+      <View style={styles.content}>
         <Text variant="h2" color="accentDark">
           Goal
         </Text>
@@ -247,7 +225,6 @@ export default function SessionScreen() {
 
         <Spacer size="md" />
 
-        {/* CURRENT TASK */}
         {currentTask && (
           <>
             <Text variant="h2" color="accentDark">
@@ -257,9 +234,9 @@ export default function SessionScreen() {
             <Spacer size="xs" />
 
             <View style={styles.taskRow}>
-              <Text variant="h3">
+              <Text variant="h3" style={styles.taskDescription}>
                 {isBreak
-                  ? "Take a break! You’ve been working really hard."
+                  ? "Take a break! You've been working really hard."
                   : currentTask.name}
               </Text>
 
@@ -274,7 +251,6 @@ export default function SessionScreen() {
           </>
         )}
 
-        {/* TIMER OR BREAK MODE */}
         {!isBreak ? (
           <Timer secondsLeft={secondsLeft} />
         ) : (
@@ -290,10 +266,10 @@ export default function SessionScreen() {
         )}
       </View>
 
-      {/* THEO */}
+      <Spacer size="lg" />
+
       <Image source={theoImage} style={styles.theo} />
 
-      {/* BUTTON ROW */}
       <View style={styles.row}>
         <Pressable onPress={handlePlayPause}>
           <Icon name={isRunning ? "pause" : "play"} size={48} />
@@ -314,7 +290,6 @@ export default function SessionScreen() {
         )}
       </View>
 
-      {/* ---------------- STOP MODAL ---------------- */}
       <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
@@ -326,7 +301,6 @@ export default function SessionScreen() {
         onConfirm={confirmStop}
       />
 
-      {/* ---------------- ADD TIME MODAL ---------------- */}
       <AppModal
         visible={showAddTimeModal}
         onClose={() => setShowAddTimeModal(false)}
@@ -338,25 +312,13 @@ export default function SessionScreen() {
 
         <Spacer size="sm" />
 
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: theme.radii.md,
-            padding: theme.spacing.md,
-            borderWidth: 1,
-            borderColor: theme.colors.accentLight,
-            width: "100%",
-          }}
-        >
+        <View style={styles.inputShell}>
           <TextInput
             value={newTime}
             onChangeText={setNewTime}
             placeholder="e.g. 10"
             keyboardType="numeric"
-            style={{
-              fontSize: 20,
-              fontFamily: theme.typography.families.regular,
-            }}
+            style={styles.input}
           />
         </View>
 
@@ -365,7 +327,6 @@ export default function SessionScreen() {
         <Button label="Add Time" variant="gold" onPress={handleApplyTime} />
       </AppModal>
 
-      {/* ---------------- PROGRESS MODAL ---------------- */}
       <AppModal
         visible={showProgressModal}
         onClose={() => setShowProgressModal(false)}
@@ -390,7 +351,6 @@ export default function SessionScreen() {
         })}
       </AppModal>
 
-      {/* ---------------- EDIT TASK MODAL ---------------- */}
       <AppModal
         visible={showEditTaskModal}
         onClose={() => setShowEditTaskModal(false)}
@@ -402,24 +362,12 @@ export default function SessionScreen() {
 
         <Spacer size="sm" />
 
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: theme.radii.md,
-            padding: theme.spacing.md,
-            borderWidth: 1,
-            borderColor: theme.colors.accentLight,
-            width: "100%",
-          }}
-        >
+        <View style={styles.inputShell}>
           <TextInput
             value={editedTaskName}
             onChangeText={setEditedTaskName}
             placeholder="Task name"
-            style={{
-              fontSize: 20,
-              fontFamily: theme.typography.families.regular,
-            }}
+            style={styles.input}
           />
         </View>
 
@@ -431,41 +379,61 @@ export default function SessionScreen() {
   );
 }
 
-/* ---------------------------------------------- */
-/*                     STYLES                     */
-/* ---------------------------------------------- */
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.lg,
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     backgroundColor: theme.colors.background,
   },
-
+  content: {
+    alignItems: "center",
+    paddingTop: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+  },
   row: {
     flexDirection: "row",
     gap: theme.spacing.md,
+    position: "absolute",
+    bottom: theme.spacing.md,
+    left: 0,
+    right: 0,
+    justifyContent: "space-evenly",
   },
-
   theo: {
-    width: 250,
-    height: 250,
+    width: 200,
+    height: 200,
     resizeMode: "contain",
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.xl,
   },
-
   taskRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
   },
-
   breakBox: {
     backgroundColor: theme.colors.accentDark,
     padding: theme.spacing.md,
     borderRadius: theme.radii.md,
     alignItems: "center",
+  },
+  taskDescription: {
+    paddingHorizontal: theme.spacing.sm,
+  },
+  inputShell: {
+    backgroundColor: "#fff",
+    borderRadius: theme.radii.md,
+    padding: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.accentLight,
+    width: "100%",
+  },
+  input: {
+    fontSize: 20,
+    fontFamily: theme.typography.families.regular,
   },
 });

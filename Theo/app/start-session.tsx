@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -15,11 +16,11 @@ import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 
 const RECENT_SESSIONS = [
-  "45 min · CS 147 reading",
-  "60 min · Research work",
-  "75 min · Internship app",
-  "50 min · Interview prep",
-  "45 min · Slide deck prep",
+  "45 min - CS 147 reading",
+  "60 min - Research work",
+  "75 min - Internship app",
+  "50 min - Interview prep",
+  "45 min - Slide deck prep",
 ];
 
 type GradientButtonProps = {
@@ -28,6 +29,7 @@ type GradientButtonProps = {
   gradient?: readonly [string, string];
   icon?: React.ComponentProps<typeof FontAwesome>["name"];
   testID?: string;
+  width?: number;
 };
 
 function GradientButton({
@@ -36,12 +38,13 @@ function GradientButton({
   gradient = theme.colors.gradients.brown,
   icon,
   testID,
+  width,
 }: GradientButtonProps) {
   return (
     <TouchableOpacity
       activeOpacity={0.88}
       onPress={onPress}
-      style={styles.buttonWrapper}
+      style={[styles.buttonWrapper, width && { width }]}
       testID={testID}
     >
       <LinearGradient colors={gradient} style={styles.buttonBg}>
@@ -49,7 +52,7 @@ function GradientButton({
 
         {icon ? (
           <View style={styles.buttonIconBadge}>
-            <FontAwesome name={icon} size={18} color="#fff" />
+            <FontAwesome name={icon} size={16} color="#fff" />
           </View>
         ) : null}
       </LinearGradient>
@@ -59,6 +62,8 @@ function GradientButton({
 
 export default function StartSessionScreen() {
   const handleCreateNew = () => router.push("/new-session");
+  const { width } = useWindowDimensions();
+  const buttonWidth = width * 0.66;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -86,7 +91,7 @@ export default function StartSessionScreen() {
               <Text style={styles.titleLine}>Work Session</Text>
               <FontAwesome
                 name="pencil"
-                size={18}
+                size={16}
                 color={theme.colors.text}
                 style={styles.titleIcon}
               />
@@ -96,11 +101,11 @@ export default function StartSessionScreen() {
           <View style={{ width: 22 }} />
         </View>
 
-        <Spacer size="lg" />
+        <Spacer size="md" />
 
         <Text style={styles.subtitle}>How would you like to get started?</Text>
 
-        <Spacer size="lg" />
+        <Spacer size="md" />
 
         <GradientButton
           label="Create a new session"
@@ -108,9 +113,10 @@ export default function StartSessionScreen() {
           gradient={theme.colors.gradients.brown}
           icon="pencil"
           testID="create-new-session"
+          width={buttonWidth}
         />
 
-        <Spacer size="lg" />
+        <Spacer size="md" />
 
         <View style={styles.dividerRow}>
           <View style={styles.line} />
@@ -118,11 +124,11 @@ export default function StartSessionScreen() {
           <View style={styles.line} />
         </View>
 
-        <Spacer size="md" />
+        <Spacer size="sm" />
 
         <Text style={styles.sectionLabel}>Copy a recent session:</Text>
 
-        <Spacer size="md" />
+        <Spacer size="sm" />
 
         <View style={styles.list}>
           {RECENT_SESSIONS.map((session) => (
@@ -130,6 +136,7 @@ export default function StartSessionScreen() {
               key={session}
               label={session}
               gradient={theme.colors.gradients.gold}
+              width={buttonWidth}
             />
           ))}
         </View>
@@ -145,8 +152,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
   },
   headerRow: {
     flexDirection: "row",
@@ -163,7 +170,7 @@ const styles = StyleSheet.create({
   },
   titleLine: {
     fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.xl,
+    fontSize: theme.typography.sizes.lg,
     color: theme.colors.text,
   },
   titleIcon: {
@@ -172,30 +179,31 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: "center",
     fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     color: theme.colors.text,
   },
   buttonWrapper: {
     borderRadius: theme.radii.lg,
     overflow: "hidden",
+    alignSelf: "center",
     ...theme.shadow.soft,
   },
   buttonBg: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
   },
   buttonLabel: {
     fontFamily: theme.typography.families.bold,
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     color: "#fff",
   },
   buttonIconBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.6)",
     alignItems: "center",
@@ -215,16 +223,17 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.xs,
     color: theme.colors.text,
   },
   sectionLabel: {
     fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
     textAlign: "center",
   },
   list: {
     gap: theme.spacing.sm,
+    alignItems: "center",
   },
 });
