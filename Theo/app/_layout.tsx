@@ -73,6 +73,12 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
+            name="goal"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name="chat"
             options={{
               headerShown: false,
