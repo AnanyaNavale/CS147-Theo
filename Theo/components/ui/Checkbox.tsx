@@ -17,6 +17,7 @@ export type CheckboxProps = {
   containerStyle?: ViewStyle;
   boxStyle?: ViewStyle;
   labelStyle?: TextStyle;
+  checkStyle?: TextStyle;
 };
 
 export function Checkbox({
@@ -27,6 +28,7 @@ export function Checkbox({
   containerStyle,
   boxStyle,
   labelStyle,
+  checkStyle,
 }: CheckboxProps) {
   return (
     <TouchableOpacity
@@ -36,7 +38,6 @@ export function Checkbox({
       activeOpacity={0.8}
       style={[styles.container, containerStyle]}
     >
-      {/* Outer square */}
       <View
         style={[
           styles.box,
@@ -58,6 +59,7 @@ export function Checkbox({
                 color: theme.checkbox.checkColor,
                 fontFamily: theme.typography.families.handwritten,
               },
+              checkStyle,
             ]}
           >
             ✓
@@ -90,19 +92,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: theme.spacing.xs,
   },
-
   box: {
     borderWidth: theme.input.borderWidth,
     alignItems: "center",
     justifyContent: "center",
   },
-
   check: {
     fontSize: theme.typography.sizes.lg,
     lineHeight: theme.typography.sizes.lg + 2,
     marginTop: -2,
   },
-
   label: {
     marginLeft: theme.spacing.sm,
   },
