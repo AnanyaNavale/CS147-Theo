@@ -61,6 +61,36 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
           <Stack.Screen
+            name="start-session"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="new-session"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="goal"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="session-complete"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="session-summary"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name="chat"
             options={{
               headerShown: false,
