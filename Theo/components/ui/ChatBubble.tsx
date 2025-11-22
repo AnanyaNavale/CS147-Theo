@@ -7,6 +7,7 @@ import { theme } from "../../design/theme";
 type ChatBubbleProps = {
   text: string;
   from?: "user" | "assistant";
+  /** Extra style for the bubble box itself */
   style?: ViewStyle | ViewStyle[];
   textStyle?: TextStyle | TextStyle[];
 };
@@ -22,45 +23,79 @@ export function ChatBubble({
   return (
     <View
       style={[
-        styles.base,
-        isUser ? styles.userBubble : styles.assistantBubble,
-        style,
+        styles.wrapper,
+        isUser ? styles.userWrapper : styles.assistantWrapper,
       ]}
     >
-      <Text
+      {/* Main bubble */}
+      <View
         style={[
-          styles.text,
-          isUser ? styles.userText : styles.assistantText,
-          textStyle,
+          styles.base,
+          isUser ? styles.userBubble : styles.assistantBubble,
+          style,
         ]}
       >
-        {text}
-      </Text>
+        <Text
+          style={[
+            styles.text,
+            isUser ? styles.userText : styles.assistantText,
+            textStyle,
+          ]}
+        >
+          {text}
+        </Text>
+      </View>
+
+      {/* Tail circles */}
+      <View
+        style={[
+          styles.tailBig,
+          isUser ? styles.tailRightBig : styles.tailLeftBig,
+          isUser ? styles.userTailCircle : styles.assistantTailCircle,
+        ]}
+      />
+      <View
+        style={[
+          styles.tailSmall,
+          isUser ? styles.tailRightSmall : styles.tailLeftSmall,
+          isUser ? styles.userTailCircle : styles.assistantTailCircle,
+        ]}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
+  /* Outer container that handles alignment + tail positioning */
+  wrapper: {
     maxWidth: "90%",
+    marginBottom: theme.spacing.md,
+    position: "relative",
+  },
+  userWrapper: {
+    alignSelf: "flex-end",
+  },
+  assistantWrapper: {
+    alignSelf: "flex-start",
+  },
+
+  /* Bubble box */
+  base: {
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
     borderRadius: theme.radii.lg,
-    marginBottom: theme.spacing.md,
   },
 
   // USER BUBBLE: white background, brown border
   userBubble: {
-    backgroundColor: theme.colors.background,
-    borderWidth: 3,
+    backgroundColor: theme.solidColors.white,
+    borderWidth: 2,
     borderColor: theme.colors.accentDark,
-    alignSelf: "flex-end",
   },
 
   // ASSISTANT BUBBLE: solid brown block
   assistantBubble: {
     backgroundColor: theme.colors.accentDark,
-    alignSelf: "flex-start",
   },
 
   // GENERAL TEXT STYLE
@@ -77,6 +112,52 @@ const styles = StyleSheet.create({
 
   // ASSISTANT TEXT inside brown box
   assistantText: {
-    color: "#FFFFFF",
+    color: theme.solidColors.white,
+  },
+
+  /* Tail circles: common geometry */
+  tailBig: {
+    position: "absolute",
+    width: 24,
+    height: 24,
+    borderRadius: 999,
+  },
+  tailSmall: {
+    position: "absolute",
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+
+  // Assistant tail (solid brown)
+  assistantTailCircle: {
+    backgroundColor: theme.colors.accentDark,
+  },
+
+  // User tail (white with brown border)
+  userTailCircle: {
+    backgroundColor: theme.solidColors.white,
+    borderWidth: 2,
+    borderColor: theme.colors.accentDark,
+  },
+
+  // Positioning for assistant (left side)
+  tailLeftBig: {
+    bottom: -10,
+    left: -2,
+  },
+  tailLeftSmall: {
+    bottom: -20,
+    left: -6,
+  },
+
+  // Positioning for user (right side)
+  tailRightBig: {
+    bottom: -10,
+    right: -2,
+  },
+  tailRightSmall: {
+    bottom: -20,
+    right: -6,
   },
 });
