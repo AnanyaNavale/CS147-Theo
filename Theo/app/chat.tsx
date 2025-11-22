@@ -7,16 +7,17 @@ import {
   Platform,
   Pressable,
   Keyboard,
+  Image,
+  Animated,
 } from "react-native";
 
-import { Button } from "@/components/ui/Button";
-import { Spacer } from "@/components/ui/Spacer";
 import { theme } from "@/design/theme";
 import { InputField } from "@/components";
 import { ChatBubble } from "@/components/ui/ChatBubble";
+import { Text } from "@/components/ui/Text";
 
 /* ------------------------------------------------------
-   MESSAGE TYPE — Strict typing for safety
+   MESSAGE TYPE
 ------------------------------------------------------- */
 export type Message = {
   id: string;
@@ -25,17 +26,56 @@ export type Message = {
 };
 
 /* ------------------------------------------------------
-   FAKE ASSISTANT RESPONSE LOGIC (replace with LLM later)
+   FELIX TODO: TEMP AI (replace with real API)
 ------------------------------------------------------- */
-async function fakeAssistantReply(userText: string): Promise<Message> {
-  // Simulate network delay
-  await new Promise((res) => setTimeout(res, 800));
-
+async function fakeAssistantReply(_: string) {
+  await new Promise((res) => setTimeout(res, 1200));
   return {
-    id: `${Date.now()}_assistant`,
+    id: `assistant_${Date.now()}`,
     text: "Thanks for sharing. What else is on your mind?",
-    from: "assistant",
+    from: "assistant" as const,
   };
+}
+
+/* ------------------------------------------------------
+   TYPING INDICATOR BUBBLE
+------------------------------------------------------- */
+function TypingBubble() {
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
+
+  const animateDot = (dot: Animated.Value, delay: number) => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(dot, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+          delay,
+        }),
+        Animated.timing(dot, {
+          toValue: 0.3,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  useEffect(() => {
+    animateDot(dot1, 0);
+    animateDot(dot2, 150);
+    animateDot(dot3, 300);
+  }, []);
+
+  return (
+    <View style={styles.typingBubble}>
+      <Animated.View style={[styles.dot, { opacity: dot1 }]} />
+      <Animated.View style={[styles.dot, { opacity: dot2 }]} />
+      <Animated.View style={[styles.dot, { opacity: dot3 }]} />
+    </View>
+  );
 }
 
 /* ------------------------------------------------------
@@ -51,31 +91,28 @@ export default function ChatScreen() {
   ]);
 
   const [input, setInput] = useState("");
-  const listRef = useRef<FlatList>(null);
-  const isSendingRef = useRef(false); // Prevent double sends
+  const [assistantTyping, setAssistantTyping] = useState(false);
 
-  /* ----------------------------------------------
-     Scroll to bottom whenever a new message arrives
-  ---------------------------------------------- */
+  const listRef = useRef<FlatList>(null);
+  const sendingRef = useRef(false);
+
   const scrollToBottom = () => {
     setTimeout(() => {
       listRef.current?.scrollToEnd({ animated: true });
-    }, 50);
+    }, 40);
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages.length]);
+  useEffect(scrollToBottom, [messages.length]);
 
-  /* ----------------------------------------------
+  /* ------------------------------------------------------
      SEND MESSAGE
-  ---------------------------------------------- */
+  ------------------------------------------------------- */
   const handleSend = useCallback(async () => {
-    if (!input.trim() || isSendingRef.current) return;
-    isSendingRef.current = true;
+    if (!input.trim() || sendingRef.current) return;
+    sendingRef.current = true;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}_u`,
       text: input.trim(),
       from: "user",
     };
@@ -84,40 +121,43 @@ export default function ChatScreen() {
     setInput("");
     Keyboard.dismiss();
 
+    setAssistantTyping(true);
+
     try {
-      const assistantMessage = await fakeAssistantReply(userMessage.text);
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      // fallback error assistant message
+      const reply = await fakeAssistantReply(userMessage.text);
+      setAssistantTyping(false);
+      setMessages((prev) => [...prev, reply]);
+    } catch {
+      setAssistantTyping(false);
       setMessages((prev) => [
         ...prev,
         {
           id: `${Date.now()}_error`,
-          text: "Hmm... something went wrong on my end. Could you try saying that again?",
+          text: "Hmm… something went wrong. Can you try again?",
           from: "assistant",
         },
       ]);
     } finally {
-      isSendingRef.current = false;
+      sendingRef.current = false;
     }
   }, [input]);
 
-  /* ----------------------------------------------
-     RENDER INDIVIDUAL MESSAGES
-  ---------------------------------------------- */
-  const renderMessage = ({ item }: { item: Message }) => {
-    return <ChatBubble text={item.text} from={item.from} />;
-  };
+  const renderMessage = ({ item }: { item: Message }) => (
+    <ChatBubble text={item.text} from={item.from} />
+  );
 
   /* ------------------------------------------------------
-     MAIN RENDER
+     UI
   ------------------------------------------------------- */
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={90}
+      keyboardVerticalOffset={60}
     >
+      <Text style={styles.header} variant="h2">
+        Converse with Theo
+      </Text>
       <Pressable
         style={{ flex: 1 }}
         onPress={Keyboard.dismiss}
@@ -130,32 +170,47 @@ export default function ChatScreen() {
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          ListFooterComponent={
+            assistantTyping ? (
+              <View style={{ paddingTop: theme.spacing.sm }}>
+                <TypingBubble />
+              </View>
+            ) : null
+          }
         />
       </Pressable>
 
-      {/* INPUT AREA */}
-      <View style={styles.inputRow}>
-        <View style={{ flex: 1 }}>
+      {/* ---------------------------------------- */}
+      {/*     INPUT BAR                            */}
+      {/* ---------------------------------------- */}
+      <View style={styles.inputBar}>
+        {/* Textbox with send icon INSIDE */}
+        <View style={styles.textboxWrapper}>
           <InputField
+            placeholder="Your text here..."
             value={input}
             onChangeText={setInput}
-            placeholder="Type your reflection..."
-            returnKeyType="send"
-            onSubmitEditing={handleSend}
             noBorder
             style={styles.textInput}
+            returnKeyType="send"
+            onSubmitEditing={handleSend}
           />
+
+          <Pressable onPress={handleSend} style={styles.sendButton}>
+            <Image
+              source={require("../assets/icons/send.png")}
+              style={styles.sendIcon}
+            />
+          </Pressable>
         </View>
 
-        <Spacer size="sm" />
-
-        <Button
-          label="Send"
-          size="sm"
-          variant="gold"
-          onPress={handleSend}
-          style={{ height: theme.input.height }}
-        />
+        {/* Microphone button */}
+        <Pressable onPress={() => {}} style={styles.micWrapper}>
+          <Image
+            source={require("../assets/icons/mic.png")}
+            style={styles.micIcon}
+          />
+        </Pressable>
       </View>
     </KeyboardAvoidingView>
   );
@@ -167,7 +222,11 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.solidColors.white,
+  },
+  header: {
+    textAlign: "center",
+    paddingTop: theme.spacing.lg,
   },
 
   listContent: {
@@ -175,22 +234,73 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.xl * 3,
   },
 
-  inputRow: {
+  inputBar: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
-    borderTopWidth: 1,
-    borderColor: theme.input.borderColor,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.solidColors.white,
+  },
+
+  textboxWrapper: {
+    flex: 1,
+    position: "relative",
   },
 
   textInput: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.solidColors.white,
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
     borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
+    paddingLeft: theme.spacing.md,
+    paddingRight: 35,
     height: theme.input.height,
+    paddingVertical: 0,
+    textAlignVertical: "center",
+  },
+
+  sendButton: {
+    position: "absolute",
+    right: 10,
+    top: 10,
+    padding: 4,
+  },
+
+  sendIcon: {
+    width: 22,
+    height: 22,
+    tintColor: theme.colors.accentDark,
+  },
+
+  micWrapper: {
+    marginLeft: theme.spacing.md,
+    height: theme.input.height,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 12,
+  },
+
+  micIcon: {
+    tintColor: theme.colors.accentDark,
+    height: 36,
+    width: 36,
+  },
+
+  typingBubble: {
+    flexDirection: "row",
+    backgroundColor: theme.colors.accentDark,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: theme.radii.lg,
+    alignSelf: "flex-start",
+    marginBottom: theme.spacing.md,
+  },
+
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "white",
+    marginHorizontal: 3,
   },
 });
