@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     height: 130, // increase header height
     backgroundColor: "#fff",
     // shadowColor: "transparent", // iOS shadow
-    shadowOpacity: 0,
+    // shadowOpacity: 0,
     elevation: 0, // Android shadow
   },
   tabBar: {
