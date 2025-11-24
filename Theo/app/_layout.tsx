@@ -9,16 +9,14 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 import { useColorScheme } from "@/components/useColorScheme";
 import { SupabaseProvider } from "@/providers/SupabaseProvider";
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: "(tabs)",
 };
 
@@ -31,20 +29,15 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
+    if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
   return <RootLayoutNav />;
 }
@@ -53,52 +46,32 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <SupabaseProvider>
-      <ThemeProvider
-        value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}
-      >
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          <Stack.Screen
-            name="start-session"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="new-session"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="goal"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="session-complete"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="session-summary"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="chat"
-            options={{
-              headerShown: false,
-              presentation: "modal",
-            }}
-          />
-        </Stack>
-      </ThemeProvider>
-    </SupabaseProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SupabaseProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}
+        >
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+
+            <Stack.Screen name="start-session" />
+            <Stack.Screen name="new-session" />
+            <Stack.Screen name="goal" />
+            <Stack.Screen name="session-complete" />
+            <Stack.Screen name="session-summary" />
+
+            <Stack.Screen
+              name="chat"
+              options={{
+                presentation: "modal",
+              }}
+            />
+
+            <Stack.Screen name="breakdown" />
+          </Stack>
+        </ThemeProvider>
+      </SupabaseProvider>
+    </GestureHandlerRootView>
   );
 }
