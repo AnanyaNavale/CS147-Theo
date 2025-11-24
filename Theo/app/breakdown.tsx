@@ -124,7 +124,7 @@ export default function SessionBreakdownScreen() {
     setShowContinueConfirm(false);
     router.push({
       pathname: "../(tabs)/session",
-      params: { tasks: JSON.stringify(tasks) },
+      params: { tasks: JSON.stringify(tasks), goal: goalText },
     });
   }
 
