@@ -1,6 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   Image,
@@ -21,6 +21,10 @@ import { setSessionGoal } from "@/state/sessionGoal";
 const teddy = require("../assets/theo/working.png");
 
 export default function GoalScreen() {
+  const { breakdown } = useLocalSearchParams<{ breakdown?: string }>();
+
+  const wantsBreakdown = breakdown === "1";
+
   const [goal, setGoal] = useState("");
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
@@ -40,8 +44,20 @@ export default function GoalScreen() {
 
   const handleContinue = () => {
     if (disabled) return;
-    setSessionGoal(goal.trim());
-    router.push("/(tabs)/session");
+
+    const trimmedGoal = goal.trim();
+    setSessionGoal(trimmedGoal);
+
+    if (wantsBreakdown) {
+      // go to breakdown screen and pass goal
+      router.push({
+        pathname: "../breakdown",
+        params: { goal: trimmedGoal },
+      });
+    } else {
+      // skip breakdown and go straight into session
+      router.push("../(tabs)/session");
+    }
   };
 
   return (
@@ -55,7 +71,6 @@ export default function GoalScreen() {
             onPress={() => router.back()}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
           >
             <FontAwesome
               name="arrow-left"
@@ -63,13 +78,14 @@ export default function GoalScreen() {
               color={theme.colors.accentDark}
             />
           </TouchableOpacity>
-
           <View style={{ width: 22 }} />
         </View>
 
         <Spacer size="lg" />
 
-        <Text style={styles.prompt}>Let's set a goal for{"\n"}your work...</Text>
+        <Text style={styles.prompt}>
+          Let's set a goal for{"\n"}your work...
+        </Text>
 
         <Spacer size="lg" />
 
@@ -104,8 +120,6 @@ export default function GoalScreen() {
             disabled && styles.nextButtonDisabled,
             { opacity: disabled ? 0.3 : 1 },
           ]}
-          accessibilityRole="button"
-          accessibilityLabel="Continue to start session"
         >
           <FontAwesome
             name="arrow-right"
@@ -118,8 +132,6 @@ export default function GoalScreen() {
           onPress={() => {}}
           activeOpacity={0.9}
           style={[styles.micWrapper, { width: micSize, height: micSize }]}
-          accessibilityRole="button"
-          accessibilityLabel="Use voice input"
         >
           <LinearGradient
             colors={theme.colors.gradients.brown}
@@ -164,7 +176,6 @@ const styles = StyleSheet.create({
   inputShell: {
     minHeight: 140,
     borderRadius: theme.radii.md,
-    backgroundColor: "transparent",
   },
   input: {
     flex: 1,
