@@ -2,7 +2,7 @@
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DraggableFlatList, {
@@ -29,7 +29,6 @@ type Task = {
   text: string;
 };
 
-// ---------------- TEMP MOCK ----------------
 const MOCK_TASKS: Task[] = [
   { id: "1", minutes: 60, text: "Complete Week 1 readings" },
   { id: "2", minutes: 60, text: "Complete Week 2 readings" },
@@ -44,7 +43,8 @@ export default function SessionBreakdownScreen() {
 
   const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
 
-  // ---------------- MODALS ----------------
+  const swipeableRef = useRef<Swipeable | null>(null);
+
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -52,9 +52,10 @@ export default function SessionBreakdownScreen() {
   const [newMinutes, setNewMinutes] = useState("");
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
   const [showContinueConfirm, setShowContinueConfirm] = useState(false);
 
-  // ---------------- EDIT ----------------
   const [editText, setEditText] = useState("");
   const [editMinutes, setEditMinutes] = useState("");
 
@@ -64,24 +65,35 @@ export default function SessionBreakdownScreen() {
     setEditMinutes(String(task.minutes));
   }
 
+  function requestDeleteTask(id: string) {
+    setDeleteTargetId(id);
+    setShowDeleteConfirm(true);
+  }
+
+  function confirmDeleteTask() {
+    if (deleteTargetId) {
+      setTasks((prev) => prev.filter((t) => t.id !== deleteTargetId));
+    }
+    setDeleteTargetId(null);
+    setShowDeleteConfirm(false);
+  }
+
   function saveEdit() {
     if (!editingTask) return;
     setTasks((prev) =>
       prev.map((t) =>
         t.id === editingTask.id
-          ? { ...t, text: editText.trim(), minutes: Number(editMinutes) || 0 }
+          ? {
+              ...t,
+              text: editText.trim(),
+              minutes: Number(editMinutes) || 0,
+            }
           : t
       )
     );
     setEditingTask(null);
   }
 
-  // ---------------- SINGLE-TASK DELETE ----------------
-  function handleDeleteTask(id: string) {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-  }
-
-  // ---------------- ADD NEW ----------------
   function addTask() {
     if (!newText.trim() || !newMinutes.trim()) return;
 
@@ -98,34 +110,42 @@ export default function SessionBreakdownScreen() {
     setShowAddModal(false);
   }
 
-  // ---------------- DELETE ALL ----------------
   function handleDeleteAll() {
     setTasks([]);
     setShowDeleteConfirm(false);
   }
 
-  // ---------------- CONTINUE ----------------
   function confirmContinue() {
     setShowContinueConfirm(false);
-    router.push("../(tabs)/session");
+    router.push({
+      pathname: "../(tabs)/session",
+      params: { tasks: JSON.stringify(tasks) },
+    });
   }
 
-  // ---------------- RENDER ITEM (DRAG + SWIPE) ----------------
   const renderItem = ({ item, drag, isActive }: RenderItemParams<Task>) => {
     return (
       <Swipeable
+        ref={swipeableRef}
+        overshootRight={false}
         renderRightActions={() => (
           <View style={styles.swipeActions}>
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeEdit]}
-              onPress={() => openEditModal(item)}
+              onPress={() => {
+                swipeableRef.current?.close();
+                openEditModal(item);
+              }}
             >
               <FontAwesome name="pencil" size={22} color="#fff" />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeDelete]}
-              onPress={() => handleDeleteTask(item.id)}
+              onPress={() => {
+                swipeableRef.current?.close();
+                requestDeleteTask(item.id);
+              }}
             >
               <FontAwesome name="trash" size={22} color="#fff" />
             </TouchableOpacity>
@@ -145,7 +165,6 @@ export default function SessionBreakdownScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* HEADER */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => router.back()}>
           <FontAwesome
@@ -181,7 +200,6 @@ export default function SessionBreakdownScreen() {
 
       <Spacer size="sm" />
 
-      {/* LIST / EMPTY STATE */}
       <View style={styles.listContainer}>
         {tasks.length === 0 ? (
           <Text
@@ -202,7 +220,6 @@ export default function SessionBreakdownScreen() {
         )}
       </View>
 
-      {/* ---------------- FIXED BOTTOM BAR ---------------- */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
           onPress={() => setShowAddModal(true)}
@@ -246,49 +263,45 @@ export default function SessionBreakdownScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ---------------- EDIT TASK SHEET ---------------- */}
+      {/* EDIT MODAL */}
       <AppModal
         visible={!!editingTask}
         onClose={() => setEditingTask(null)}
         variant="bottom-sheet"
         title="Edit Task"
-        height={360}
+        height={380}
       >
         <InputField
           label="Task description"
           value={editText}
           onChangeText={setEditText}
-          placeholder="Describe the task..."
         />
+
         <InputField
           label="Minutes"
-          keyboardType="numeric"
           value={editMinutes}
           onChangeText={setEditMinutes}
-          placeholder="e.g. 45"
         />
 
         <Spacer size="md" />
+
         <View style={styles.editButtonRow}>
-          <View style={{ flex: 1 }}>
-            <Button label="Save Task" onPress={saveEdit} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Button
-              label="Delete Task"
-              variant="danger"
-              onPress={() => {
-                if (editingTask) {
-                  handleDeleteTask(editingTask.id);
-                  setEditingTask(null);
-                }
-              }}
-            />
-          </View>
+          <Button label="Save Task" onPress={saveEdit} />
+
+          <Button
+            label="Delete Task"
+            variant="danger"
+            onPress={() => {
+              if (editingTask) {
+                requestDeleteTask(editingTask.id);
+                setEditingTask(null);
+              }
+            }}
+          />
         </View>
       </AppModal>
 
-      {/* ---------------- ADD TASK SHEET ---------------- */}
+      {/* ADD TASK */}
       <AppModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -300,7 +313,6 @@ export default function SessionBreakdownScreen() {
           label="Task description"
           value={newText}
           onChangeText={setNewText}
-          placeholder="Describe the task..."
         />
 
         <InputField
@@ -308,26 +320,28 @@ export default function SessionBreakdownScreen() {
           keyboardType="numeric"
           value={newMinutes}
           onChangeText={setNewMinutes}
-          placeholder="e.g. 45"
         />
 
         <Spacer size="md" />
         <Button label="Add Task" onPress={addTask} />
       </AppModal>
 
-      {/* ---------------- DELETE ALL CONFIRM ---------------- */}
+      {/* DELETE CONFIRM */}
       <AppModal
         visible={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setDeleteTargetId(null);
+        }}
         variant="alert"
-        title="Delete all tasks?"
+        title="Delete task?"
         message="This cannot be undone."
         confirmLabel="Delete"
         cancelLabel="Cancel"
-        onConfirm={handleDeleteAll}
+        onConfirm={confirmDeleteTask}
       />
 
-      {/* ---------------- CONTINUE CONFIRM ---------------- */}
+      {/* CONTINUE CONFIRM */}
       <AppModal
         visible={showContinueConfirm}
         onClose={() => setShowContinueConfirm(false)}
@@ -342,7 +356,7 @@ export default function SessionBreakdownScreen() {
   );
 }
 
-/* ---------------- STYLES ---------------- */
+/* STYLES */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -373,7 +387,6 @@ const styles = StyleSheet.create({
   bottomBar: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
     backgroundColor: theme.colors.background,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
@@ -406,8 +419,9 @@ const styles = StyleSheet.create({
 
   swipeActions: {
     flexDirection: "row",
-    alignItems: "stretch",
-    height: "100%",
+    height: "93%",
+    borderRadius: theme.radii.lg,
+    overflow: "hidden",
   },
 
   swipeAction: {
