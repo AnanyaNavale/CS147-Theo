@@ -49,6 +49,17 @@ export default function SessionScreen() {
     }
   } catch {}
 
+  // If there are no parsed tasks, add a default 20-minute task
+  if (parsedTasks.length === 0) {
+    parsedTasks = [
+      {
+        id: Date.now().toString(),
+        text: `Work on: ${sessionGoal || "Goal"}`,
+        minutes: 20,
+      },
+    ];
+  }
+
   const hasTasks = parsedTasks.length > 0;
 
   // Convert incoming tasks to SessionTask format
@@ -461,7 +472,7 @@ export default function SessionScreen() {
               {!isBreak && currentTaskIndex <= sessionTasks.length - 1 && (
                 <>
                   <Text variant="body" color="accentDark">
-                    {" . "}
+                    {" • "}
                   </Text>
 
                   {currentTaskIndex < sessionTasks.length - 1 && (
