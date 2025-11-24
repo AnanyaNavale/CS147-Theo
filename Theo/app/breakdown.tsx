@@ -1,8 +1,6 @@
-// app/breakdown.tsx
-
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DraggableFlatList, {
@@ -29,6 +27,8 @@ type Task = {
   text: string;
 };
 
+type DeleteMode = "single" | "all" | null;
+
 const MOCK_TASKS: Task[] = [
   { id: "1", minutes: 60, text: "Complete Week 1 readings" },
   { id: "2", minutes: 60, text: "Complete Week 2 readings" },
@@ -43,8 +43,6 @@ export default function SessionBreakdownScreen() {
 
   const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
 
-  const swipeableRef = useRef<Swipeable | null>(null);
-
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -53,6 +51,7 @@ export default function SessionBreakdownScreen() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteMode, setDeleteMode] = useState<DeleteMode>(null);
 
   const [showContinueConfirm, setShowContinueConfirm] = useState(false);
 
@@ -67,14 +66,25 @@ export default function SessionBreakdownScreen() {
 
   function requestDeleteTask(id: string) {
     setDeleteTargetId(id);
+    setDeleteMode("single");
     setShowDeleteConfirm(true);
   }
 
-  function confirmDeleteTask() {
-    if (deleteTargetId) {
-      setTasks((prev) => prev.filter((t) => t.id !== deleteTargetId));
-    }
+  function requestDeleteAll() {
     setDeleteTargetId(null);
+    setDeleteMode("all");
+    setShowDeleteConfirm(true);
+  }
+
+  function confirmDelete() {
+    if (deleteMode === "single" && deleteTargetId) {
+      setTasks((prev) => prev.filter((t) => t.id !== deleteTargetId));
+    } else if (deleteMode === "all") {
+      setTasks([]);
+    }
+
+    setDeleteTargetId(null);
+    setDeleteMode(null);
     setShowDeleteConfirm(false);
   }
 
@@ -110,11 +120,6 @@ export default function SessionBreakdownScreen() {
     setShowAddModal(false);
   }
 
-  function handleDeleteAll() {
-    setTasks([]);
-    setShowDeleteConfirm(false);
-  }
-
   function confirmContinue() {
     setShowContinueConfirm(false);
     router.push({
@@ -126,26 +131,19 @@ export default function SessionBreakdownScreen() {
   const renderItem = ({ item, drag, isActive }: RenderItemParams<Task>) => {
     return (
       <Swipeable
-        ref={swipeableRef}
         overshootRight={false}
         renderRightActions={() => (
           <View style={styles.swipeActions}>
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeEdit]}
-              onPress={() => {
-                swipeableRef.current?.close();
-                openEditModal(item);
-              }}
+              onPress={() => openEditModal(item)}
             >
               <FontAwesome name="pencil" size={22} color="#fff" />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeDelete]}
-              onPress={() => {
-                swipeableRef.current?.close();
-                requestDeleteTask(item.id);
-              }}
+              onPress={() => requestDeleteTask(item.id)}
             >
               <FontAwesome name="trash" size={22} color="#fff" />
             </TouchableOpacity>
@@ -165,6 +163,7 @@ export default function SessionBreakdownScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      {/* HEADER */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => router.back()}>
           <FontAwesome
@@ -200,6 +199,7 @@ export default function SessionBreakdownScreen() {
 
       <Spacer size="sm" />
 
+      {/* LIST / EMPTY STATE */}
       <View style={styles.listContainer}>
         {tasks.length === 0 ? (
           <Text
@@ -220,6 +220,7 @@ export default function SessionBreakdownScreen() {
         )}
       </View>
 
+      {/* FIXED BOTTOM BAR */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
           onPress={() => setShowAddModal(true)}
@@ -243,7 +244,7 @@ export default function SessionBreakdownScreen() {
               label="Delete all"
               icon="trash"
               variant="danger"
-              onPress={() => setShowDeleteConfirm(true)}
+              onPress={requestDeleteAll}
               style={{ flex: 1 }}
             />
           )}
@@ -275,29 +276,36 @@ export default function SessionBreakdownScreen() {
           label="Task description"
           value={editText}
           onChangeText={setEditText}
+          placeholder="Describe the task..."
         />
 
         <InputField
           label="Minutes"
+          keyboardType="numeric"
           value={editMinutes}
           onChangeText={setEditMinutes}
+          placeholder="e.g. 45"
         />
 
         <Spacer size="md" />
 
         <View style={styles.editButtonRow}>
-          <Button label="Save Task" onPress={saveEdit} />
+          <View style={styles.editButton}>
+            <Button label="Save Task" onPress={saveEdit} />
+          </View>
 
-          <Button
-            label="Delete Task"
-            variant="danger"
-            onPress={() => {
-              if (editingTask) {
-                requestDeleteTask(editingTask.id);
-                setEditingTask(null);
-              }
-            }}
-          />
+          <View style={styles.editButton}>
+            <Button
+              label="Delete Task"
+              variant="danger"
+              onPress={() => {
+                if (editingTask) {
+                  requestDeleteTask(editingTask.id);
+                  setEditingTask(null);
+                }
+              }}
+            />
+          </View>
         </View>
       </AppModal>
 
@@ -313,6 +321,7 @@ export default function SessionBreakdownScreen() {
           label="Task description"
           value={newText}
           onChangeText={setNewText}
+          placeholder="Describe the task..."
         />
 
         <InputField
@@ -320,25 +329,31 @@ export default function SessionBreakdownScreen() {
           keyboardType="numeric"
           value={newMinutes}
           onChangeText={setNewMinutes}
+          placeholder="e.g. 45"
         />
 
         <Spacer size="md" />
         <Button label="Add Task" onPress={addTask} />
       </AppModal>
 
-      {/* DELETE CONFIRM */}
+      {/* DELETE CONFIRM (single or all) */}
       <AppModal
         visible={showDeleteConfirm}
         onClose={() => {
           setShowDeleteConfirm(false);
           setDeleteTargetId(null);
+          setDeleteMode(null);
         }}
         variant="alert"
-        title="Delete task?"
-        message="This cannot be undone."
+        title={deleteMode === "all" ? "Delete all tasks?" : "Delete task?"}
+        message={
+          deleteMode === "all"
+            ? "This will remove every task in your list."
+            : "This cannot be undone."
+        }
         confirmLabel="Delete"
         cancelLabel="Cancel"
-        onConfirm={confirmDeleteTask}
+        onConfirm={confirmDelete}
       />
 
       {/* CONTINUE CONFIRM */}
@@ -441,5 +456,10 @@ const styles = StyleSheet.create({
   editButtonRow: {
     flexDirection: "row",
     gap: theme.spacing.md,
+    width: "100%",
+  },
+
+  editButton: {
+    flex: 1,
   },
 });
