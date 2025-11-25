@@ -3,67 +3,37 @@ import "react-native-get-random-values";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import type {
-  CompletedSession,
-  CompletedSessionTask,
-  ScheduledSession,
-  SessionSetting,
-  SessionTask,
-  UserProfile,
-  UserSettings,
-} from "@/types/database.types";
 
-const SUPABASE_URL = assertEnv(
-  process.env.EXPO_PUBLIC_SUPABASE_URL,
-  "EXPO_PUBLIC_SUPABASE_URL"
-);
-const SUPABASE_ANON_KEY = assertEnv(
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-  "EXPO_PUBLIC_SUPABASE_ANON_KEY"
-);
+import type { Json, WorkSession, Task, SessionSetting, UserProfile } from "@/types/database.types";
 
-export const supabase = createSupabaseClient();
+///////////////////////////////////////////////// SUPABASE SETUP
 
 /**
- * Ensures required Supabase environment variables are present.
+ * Load and validate required Supabase environment variables.
  */
-function assertEnv(value: string | undefined, key: string) {
-  if (!value) {
-    throw new Error(
-      `Missing Supabase environment variable: ${key}. Update your .env.`
-    );
-  }
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-  return value;
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error(
+    "Missing Supabase environment variables. Ensure EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set in your .env file."
+  );
 }
 
 /**
- * Casts raw session task rows into typed session task entries.
+ * Creates a Supabase client configured for Expo with AsyncStorage-backed
+ * auth session persistence.
  */
-function mapSessionTasks(items: unknown): SessionTask[] {
-  return (items as SessionTask[]) ?? [];
-}
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
 
-/**
- * Casts raw completed task rows into typed completed task entries.
- */
-function mapCompletedSessionTasks(items: unknown): CompletedSessionTask[] {
-  return (items as CompletedSessionTask[]) ?? [];
-}
-
-/**
- * Creates a Supabase client configured for Expo with AsyncStorage-backed auth session persistence.
- */
-function createSupabaseClient() {
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      storage: AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-  });
-}
+///////////////////////////////////////////////// USER ACCOUNT SETUP
 
 export interface EmailSignUpPayload {
   email: string;
@@ -214,422 +184,425 @@ export async function fetchUserProfile(
 /**
  * Inserts or updates user settings for the supplied user.
  */
-export async function upsertUserSettings(
-  payload: UpsertUserSettingsPayload
-): Promise<UserSettings> {
-  const {
-    userId,
-    defaultSessionMinutes,
-    defaultBreakMinutes,
-    weeklyFocusGoalMinutes,
-    notificationsEnabled,
-    timezone,
-  } = payload;
-  const { data, error } = await supabase
-    .from("user_settings")
-    .upsert({
-      user_id: userId,
-      default_session_minutes: defaultSessionMinutes ?? null,
-      default_break_minutes: defaultBreakMinutes ?? null,
-      weekly_focus_goal_minutes: weeklyFocusGoalMinutes ?? null,
-      notifications_enabled: notificationsEnabled ?? null,
-      timezone: timezone ?? null,
-    })
-    .select()
-    .single();
+// export async function upsertUserSettings(
+//   payload: UpsertUserSettingsPayload
+// ): Promise<UserSettings> {
+//   const {
+//     userId,
+//     defaultSessionMinutes,
+//     defaultBreakMinutes,
+//     weeklyFocusGoalMinutes,
+//     notificationsEnabled,
+//     timezone,
+//   } = payload;
+//   const { data, error } = await supabase
+//     .from("user_settings")
+//     .upsert({
+//       user_id: userId,
+//       default_session_minutes: defaultSessionMinutes ?? null,
+//       default_break_minutes: defaultBreakMinutes ?? null,
+//       weekly_focus_goal_minutes: weeklyFocusGoalMinutes ?? null,
+//       notifications_enabled: notificationsEnabled ?? null,
+//       timezone: timezone ?? null,
+//     })
+//     .select()
+//     .single();
 
-  if (error) {
-    throw new Error(`Failed to upsert user settings: ${error.message}`);
-  }
+//   if (error) {
+//     throw new Error(`Failed to upsert user settings: ${error.message}`);
+//   }
 
-  return data;
-}
+//   return data;
+// }
 
 /**
  * Retrieves user settings or null if none exist.
  */
-export async function fetchUserSettings(
-  userId: string
-): Promise<UserSettings | null> {
-  const { data, error } = await supabase
-    .from("user_settings")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
+// export async function fetchUserSettings(
+//   userId: string
+// ): Promise<UserSettings | null> {
+//   const { data, error } = await supabase
+//     .from("user_settings")
+//     .select("*")
+//     .eq("user_id", userId)
+//     .maybeSingle();
 
-  if (error) {
-    throw new Error(`Failed to fetch user settings: ${error.message}`);
-  }
+//   if (error) {
+//     throw new Error(`Failed to fetch user settings: ${error.message}`);
+//   }
 
-  return data;
-}
+//   return data;
+// }
 
-export interface SessionSettingPayload {
-  userId: string;
-  title: string;
-  focusMinutes?: number | null;
-  breakMinutes?: number | null;
-  autoStartBreaks?: boolean | null;
-  autoRotateTasks?: boolean | null;
-}
+///////////////////////////////////////////////// SESSIONS TABLE HANDLING
 
-export interface UpdateSessionSettingPayload {
-  sessionSettingId: string;
-  userId: string;
-  title?: string;
-  focusMinutes?: number | null;
-  breakMinutes?: number | null;
-  autoStartBreaks?: boolean | null;
-  autoRotateTasks?: boolean | null;
-}
+///////////////////////////////
+// SESSIONS
+///////////////////////////////
 
-export interface SessionTaskPayload {
-  title: string;
-  estimatedMinutes?: number | null;
-  orderIndex?: number | null;
-}
-
-export interface ScheduleSessionPayload {
-  userId: string;
-  sessionSettingId?: string | null;
-  scheduledFor: string;
-  durationTargetMinutes?: number | null;
-  status?: string | null;
-  agenda?: string | null;
-  tasks?: SessionTaskPayload[];
-}
-
-export interface LogCompletedSessionPayload {
-  userId: string;
-  scheduledSessionId?: string | null;
-  startedAt?: string | null;
-  endedAt?: string | null;
-  totalFocusMinutes?: number | null;
-  totalBreakMinutes?: number | null;
-  reflection?: string | null;
-  focusScore?: number | null;
-  energyLevel?: number | null;
-  tasks?: Array<
-    SessionTaskPayload & {
-      actualMinutes?: number | null;
-      completed?: boolean | null;
-      notes?: string | null;
-    }
-  >;
+export interface CreateSessionPayload {
+  user_id?: string | null;
+  status: string;
+  has_goal: boolean;
+  goal?: string | null;
+  has_tasks: boolean;
+  summary?: Json | null;
+  reflection_chat?: Json | null;
 }
 
 /**
- * Creates a reusable session setting preset for a user.
+ * Creates a new work session for a user.
  */
-export async function createSessionSetting(
-  payload: SessionSettingPayload
-): Promise<SessionSetting> {
-  const {
-    userId,
-    title,
-    focusMinutes,
-    breakMinutes,
-    autoStartBreaks,
-    autoRotateTasks,
-  } = payload;
+export async function createSession(
+  userId: string,
+  hasGoal: boolean,
+  goal?: string | null,
+  hasTasks: boolean = false
+): Promise<Session> {
   const { data, error } = await supabase
-    .from("session_settings")
+    .from("sessions")
     .insert({
       user_id: userId,
-      title,
-      focus_minutes: focusMinutes ?? null,
-      break_minutes: breakMinutes ?? null,
-      auto_start_breaks: autoStartBreaks ?? null,
-      auto_rotate_tasks: autoRotateTasks ?? null,
+      status: "active",
+      has_goal: hasGoal,
+      goal: goal ?? null,
+      has_tasks: hasTasks,
+      summary: null,
+      reflection_chat: null,
     })
     .select()
     .single();
 
-  if (error) {
-    throw new Error(`Failed to create session setting: ${error.message}`);
-  }
-
+  if (error) throw new Error(`Failed to create session: ${error.message}`);
   return data;
 }
 
 /**
- * Retrieves all session presets for a given user.
+ * Fetches all sessions for a user.
  */
-export async function listSessionSettings(
-  userId: string
-): Promise<SessionSetting[]> {
+export async function fetchSessions(userId: string): Promise<Session[]> {
   const { data, error } = await supabase
-    .from("session_settings")
+    .from("sessions")
     .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(`Failed to list session settings: ${error.message}`);
-  }
-
-  return data;
-}
-
-/**
- * Updates a session preset that belongs to the user.
- */
-export async function updateSessionSetting(
-  payload: UpdateSessionSettingPayload
-): Promise<SessionSetting> {
-  const {
-    sessionSettingId,
-    userId,
-    title,
-    focusMinutes,
-    breakMinutes,
-    autoStartBreaks,
-    autoRotateTasks,
-  } = payload;
-  const { data, error } = await supabase
-    .from("session_settings")
-    .update({
-      title,
-      focus_minutes: focusMinutes ?? null,
-      break_minutes: breakMinutes ?? null,
-      auto_start_breaks: autoStartBreaks ?? null,
-      auto_rotate_tasks: autoRotateTasks ?? null,
-    })
-    .eq("id", sessionSettingId)
-    .eq("user_id", userId)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to update session setting: ${error.message}`);
-  }
-
-  return data;
-}
-
-/**
- * Deletes a session preset owned by the user.
- */
-export async function deleteSessionSetting(
-  sessionSettingId: string,
-  userId: string
-) {
-  const { error } = await supabase
-    .from("session_settings")
-    .delete()
-    .eq("id", sessionSettingId)
     .eq("user_id", userId);
 
-  if (error) {
-    throw new Error(`Failed to delete session setting: ${error.message}`);
-  }
+  if (error) throw new Error(`Failed to fetch sessions: ${error.message}`);
+  return data ?? [];
 }
 
 /**
- * Schedules a future session with optional tasks.
+ * Fetches all distinct dates in a given month where the user has sessions.
+ * @param userId - the user's ID
+ * @param year - 4-digit year, e.g., 2025
+ * @param month - 1-12 for the month
+ * @returns array of date strings in 'YYYY-MM-DD' format
+ * 
+ * Used for ARCHIVE.
  */
-export async function scheduleSession(
-  payload: ScheduleSessionPayload
-): Promise<{ session: ScheduledSession; tasks: SessionTask[] }> {
-  const {
-    userId,
-    sessionSettingId,
-    scheduledFor,
-    durationTargetMinutes,
-    status,
-    agenda,
-    tasks = [],
-  } = payload;
+export async function fetchSessionDatesForMonth(
+  userId: string,
+  year: number,
+  month: number // 1-12
+): Promise<string[]> {
+  // Construct the start and end ISO dates for the month
+  const startDate = new Date(year, month - 1, 1).toISOString();
+  const endDate = new Date(year, month, 0, 23, 59, 59, 999).toISOString();
 
-  const { data: session, error: sessionError } = await supabase
-    .from("scheduled_sessions")
-    .insert({
-      user_id: userId,
-      session_setting_id: sessionSettingId ?? null,
-      scheduled_for: scheduledFor,
-      duration_target_minutes: durationTargetMinutes ?? null,
-      status: status ?? null,
-      agenda: agenda ?? null,
-    })
-    .select()
-    .single();
-
-  if (sessionError) {
-    throw new Error(`Failed to schedule session: ${sessionError.message}`);
-  }
-
-  let insertedTasks: SessionTask[] = [];
-
-  if (tasks.length > 0) {
-    const formattedTasks = tasks.map((task, index) => ({
-      scheduled_session_id: session.id,
-      title: task.title,
-      estimated_minutes: task.estimatedMinutes ?? null,
-      order_index: task.orderIndex ?? index,
-    }));
-
-    const { data: taskData, error: taskError } = await supabase
-      .from("session_tasks")
-      .insert(formattedTasks)
-      .select();
-
-    if (taskError) {
-      await supabase.from("scheduled_sessions").delete().eq("id", session.id);
-      throw new Error(`Failed to insert session tasks: ${taskError.message}`);
-    }
-
-    insertedTasks = taskData ?? [];
-  }
-
-  return { session, tasks: insertedTasks };
-}
-
-/**
- * Lists upcoming or past sessions for a user.
- */
-export async function fetchScheduledSessions(
-  userId: string
-): Promise<Array<{ session: ScheduledSession; tasks: SessionTask[] }>> {
   const { data, error } = await supabase
-    .from("scheduled_sessions")
+    .from("sessions")
+    .select("created_at", { count: "exact" })
+    .eq("user_id", userId)
+    .gte("created_at", startDate)
+    .lte("created_at", endDate)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch session dates: ${error.message}`);
+  }
+
+  if (!data) return [];
+
+  // Use a Set to ensure unique dates (YYYY-MM-DD)
+  const uniqueDates = Array.from(
+    new Set(data.map((row) => row.created_at.slice(0, 10)))
+  );
+
+  return uniqueDates;
+}
+
+export interface SessionWithSettings extends Session {
+  settings?: SessionSetting | null;
+}
+
+/**
+ * Fetches all sessions for a specific day with settings.
+ * @param userId - the user's ID
+ * @param date - YYYY-MM-DD
+ * 
+ * Used for ARCHIVE.
+ */
+export async function fetchSessionsForDayWithSettingsSorted(
+  userId: string,
+  date: string
+): Promise<SessionWithSettings[]> {
+  const startDate = new Date(`${date}T00:00:00.000Z`).toISOString();
+  const endDate = new Date(`${date}T23:59:59.999Z`).toISOString();
+
+  const { data, error } = await supabase
+    .from("sessions")
     .select(
-      `*,
-      session_tasks(*)`
+      `
+      *,
+      session_settings(*)
+    `
     )
     .eq("user_id", userId)
-    .order("scheduled_for", { ascending: true });
+    .gte("created_at", startDate)
+    .lte("created_at", endDate)
+    // order by "has settings" first
+    .order("session_settings.id", { ascending: false })
+    .order("created_at", { ascending: true });
 
   if (error) {
-    throw new Error(`Failed to fetch scheduled sessions: ${error.message}`);
-  }
-
-  return (data ?? []).map((item) => ({
-    session: {
-      agenda: item.agenda,
-      created_at: item.created_at,
-      duration_target_minutes: item.duration_target_minutes,
-      id: item.id,
-      scheduled_for: item.scheduled_for,
-      session_setting_id: item.session_setting_id,
-      status: item.status,
-      updated_at: item.updated_at,
-      user_id: item.user_id,
-    },
-    tasks: mapSessionTasks(item.session_tasks),
-  }));
-}
-
-/**
- * Logs a completed session and snapshots the associated tasks.
- */
-export async function logCompletedSession(
-  payload: LogCompletedSessionPayload
-): Promise<{ session: CompletedSession; tasks: CompletedSessionTask[] }> {
-  const {
-    userId,
-    scheduledSessionId,
-    startedAt,
-    endedAt,
-    totalFocusMinutes,
-    totalBreakMinutes,
-    reflection,
-    focusScore,
-    energyLevel,
-    tasks = [],
-  } = payload;
-
-  const { data: completedSession, error: completedError } = await supabase
-    .from("completed_sessions")
-    .insert({
-      user_id: userId,
-      scheduled_session_id: scheduledSessionId ?? null,
-      started_at: startedAt ?? null,
-      ended_at: endedAt ?? null,
-      total_focus_minutes: totalFocusMinutes ?? null,
-      total_break_minutes: totalBreakMinutes ?? null,
-      reflection: reflection ?? null,
-      focus_score: focusScore ?? null,
-      energy_level: energyLevel ?? null,
-    })
-    .select()
-    .single();
-
-  if (completedError) {
     throw new Error(
-      `Failed to log completed session: ${completedError.message}`
+      `Failed to fetch sessions with settings for ${date}: ${error.message}`
     );
   }
 
-  let insertedTasks: CompletedSessionTask[] = [];
+  // Map settings into a single field for easier access
+  const sessionsWithSettings: SessionWithSettings[] = data.map((row) => ({
+    ...row,
+    settings: row.session_settings ?? null,
+  }));
 
-  if (tasks.length > 0) {
-    const formattedTasks = tasks.map((task) => ({
-      completed_session_id: completedSession.id,
-      title: task.title,
-      estimated_minutes: task.estimatedMinutes ?? null,
-      actual_minutes:
-        (task as { actualMinutes?: number | null }).actualMinutes ?? null,
-      completed: (task as { completed?: boolean | null }).completed ?? null,
-      notes: (task as { notes?: string | null }).notes ?? null,
-    }));
+  return sessionsWithSettings;
+}
 
-    const { data: completedTaskData, error: completedTaskError } =
-      await supabase
-        .from("completed_session_tasks")
-        .insert(formattedTasks)
-        .select();
 
-    if (completedTaskError) {
-      await supabase
-        .from("completed_sessions")
-        .delete()
-        .eq("id", completedSession.id);
-      throw new Error(
-        `Failed to snapshot completed session tasks: ${completedTaskError.message}`
-      );
-    }
+/**
+ * Fetches a single session by ID.
+ */
+export async function fetchSessionById(sessionId: string): Promise<Session | null> {
+  const { data, error } = await supabase
+    .from("sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .maybeSingle();
 
-    insertedTasks = completedTaskData ?? [];
-  }
-
-  return { session: completedSession, tasks: insertedTasks };
+  if (error) throw new Error(`Failed to fetch session: ${error.message}`);
+  return data;
 }
 
 /**
- * Fetches completed sessions and their task snapshots for a user.
+ * Updates a session (goal, summary, reflection, etc.)
  */
-export async function fetchCompletedSessions(
-  userId: string
-): Promise<
-  Array<{ session: CompletedSession; tasks: CompletedSessionTask[] }>
-> {
+export async function updateSession(
+  sessionId: string,
+  updates: Partial<Omit<Session, "id" | "created_at" | "user_id">>
+): Promise<Session> {
   const { data, error } = await supabase
-    .from("completed_sessions")
-    .select(
-      `*,
-      completed_session_tasks(*)`
-    )
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+    .from("sessions")
+    .update(updates)
+    .eq("id", sessionId)
+    .select()
+    .single();
 
-  if (error) {
-    throw new Error(`Failed to fetch completed sessions: ${error.message}`);
-  }
-
-  return (data ?? []).map((item) => ({
-    session: {
-      created_at: item.created_at,
-      ended_at: item.ended_at,
-      energy_level: item.energy_level,
-      focus_score: item.focus_score,
-      id: item.id,
-      reflection: item.reflection,
-      scheduled_session_id: item.scheduled_session_id,
-      started_at: item.started_at,
-      total_break_minutes: item.total_break_minutes,
-      total_focus_minutes: item.total_focus_minutes,
-      user_id: item.user_id,
-    },
-    tasks: mapCompletedSessionTasks(item.completed_session_tasks),
-  }));
+  if (error) throw new Error(`Failed to update session: ${error.message}`);
+  return data;
 }
+
+/**
+ * Deletes a session and optionally related tasks and settings.
+ */
+export async function deleteSession(sessionId: string): Promise<void> {
+  const { error } = await supabase.from("sessions").delete().eq("id", sessionId);
+  if (error) throw new Error(`Failed to delete session: ${error.message}`);
+}
+
+///////////////////////////////
+// TASKS
+///////////////////////////////
+
+export interface CreateTaskPayload {
+  scheduled_session_id: string;
+  title: string;
+  estimated_minutes?: number | null;
+  order_index?: number | null;
+}
+
+export async function createTask(payload: CreateTaskPayload): Promise<Task> {
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create task: ${error.message}`);
+  return data;
+}
+
+export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("scheduled_session_id", sessionId);
+
+  if (error) throw new Error(`Failed to fetch tasks: ${error.message}`);
+  return data;
+}
+
+export async function updateTask(taskId: string, updates: Partial<CreateTaskPayload>): Promise<Task> {
+  const { data, error } = await supabase
+    .from("tasks")
+    .update(updates)
+    .eq("id", taskId)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update task: ${error.message}`);
+  return data;
+}
+
+export async function deleteTask(taskId: string): Promise<void> {
+  const { error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", taskId);
+
+  if (error) throw new Error(`Failed to delete task: ${error.message}`);
+}
+
+///////////////////////////////
+// SESSION SETTINGS
+///////////////////////////////
+
+export interface CreateSessionSettingPayload {
+  user_id?: string | null;
+  session_id: string;
+  reflection_reminders?: boolean;
+  collab_requests?: boolean;
+}
+
+export async function createSessionSetting(payload: CreateSessionSettingPayload): Promise<SessionSetting> {
+  const { data, error } = await supabase
+    .from("session_settings")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create session setting: ${error.message}`);
+  return data;
+}
+
+export async function fetchSessionSetting(sessionId: string): Promise<SessionSetting | null> {
+  const { data, error } = await supabase
+    .from("session_settings")
+    .select("*")
+    .eq("session_id", sessionId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to fetch session setting: ${error.message}`);
+  return data;
+}
+
+export async function updateSessionSetting(sessionId: string, updates: Partial<CreateSessionSettingPayload>): Promise<SessionSetting> {
+  const { data, error } = await supabase
+    .from("session_settings")
+    .update(updates)
+    .eq("session_id", sessionId)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update session setting: ${error.message}`);
+  return data;
+}
+
+export async function deleteSessionSetting(sessionId: string): Promise<void> {
+  const { error } = await supabase
+    .from("session_settings")
+    .delete()
+    .eq("session_id", sessionId);
+
+  if (error) throw new Error(`Failed to delete session setting: ${error.message}`);
+}
+
+
+
+
+
+
+
+
+
+
+// export interface SessionSettingPayload {
+//   userId: string;
+//   title: string;
+//   focusMinutes?: number | null;
+//   breakMinutes?: number | null;
+//   autoStartBreaks?: boolean | null;
+//   autoRotateTasks?: boolean | null;
+// }
+
+// export interface UpdateSessionSettingPayload {
+//   sessionSettingId: string;
+//   userId: string;
+//   title?: string;
+//   focusMinutes?: number | null;
+//   breakMinutes?: number | null;
+//   autoStartBreaks?: boolean | null;
+//   autoRotateTasks?: boolean | null;
+// }
+
+// export interface SessionTaskPayload {
+//   title: string;
+//   estimatedMinutes?: number | null;
+//   orderIndex?: number | null;
+// }
+
+// export interface ScheduleSessionPayload {
+//   userId: string;
+//   sessionSettingId?: string | null;
+//   scheduledFor: string;
+//   durationTargetMinutes?: number | null;
+//   status?: string | null;
+//   agenda?: string | null;
+//   tasks?: SessionTaskPayload[];
+// }
+
+// export interface LogCompletedSessionPayload {
+//   userId: string;
+//   scheduledSessionId?: string | null;
+//   startedAt?: string | null;
+//   endedAt?: string | null;
+//   totalFocusMinutes?: number | null;
+//   totalBreakMinutes?: number | null;
+//   reflection?: string | null;
+//   focusScore?: number | null;
+//   energyLevel?: number | null;
+//   tasks?: Array<
+//     SessionTaskPayload & {
+//       actualMinutes?: number | null;
+//       completed?: boolean | null;
+//       notes?: string | null;
+//     }
+//   >;
+// }
+
+// /**
+//  * Deletes a session preset owned by the user.
+//  */
+// export async function deleteSessionSetting(
+//   sessionSettingId: string,
+//   userId: string
+// ) {
+//   const { error } = await supabase
+//     .from("session_settings")
+//     .delete()
+//     .eq("id", sessionSettingId)
+//     .eq("user_id", userId);
+
+//   if (error) {
+//     throw new Error(`Failed to delete session setting: ${error.message}`);
+//   }
+// }
