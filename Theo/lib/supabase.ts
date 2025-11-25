@@ -258,7 +258,7 @@ export async function createSession(
   hasGoal: boolean,
   goal?: string | null,
   hasTasks: boolean = false
-): Promise<Session> {
+): Promise<WorkSession> {
   const { data, error } = await supabase
     .from("sessions")
     .insert({
@@ -280,7 +280,7 @@ export async function createSession(
 /**
  * Fetches all sessions for a user.
  */
-export async function fetchSessions(userId: string): Promise<Session[]> {
+export async function fetchSessions(userId: string): Promise<WorkSession[]> {
   const { data, error } = await supabase
     .from("sessions")
     .select("*")
@@ -300,18 +300,22 @@ export async function fetchSessions(userId: string): Promise<Session[]> {
  * Used for ARCHIVE.
  */
 export async function fetchSessionDatesForMonth(
-  userId: string,
+  month: number, // 1-12
   year: number,
-  month: number // 1-12
+  userId?: string
 ): Promise<string[]> {
   // Construct the start and end ISO dates for the month
-  const startDate = new Date(year, month - 1, 1).toISOString();
-  const endDate = new Date(year, month, 0, 23, 59, 59, 999).toISOString();
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(
+    new Date(year, month, 0).getDate()
+  ).padStart(2, "0")}`;
+
+  // console.log("DEBUG: startDate =", startDate, "endDate =", endDate);
 
   const { data, error } = await supabase
     .from("sessions")
     .select("created_at", { count: "exact" })
-    .eq("user_id", userId)
+    // .eq("user_id", userId)
     .gte("created_at", startDate)
     .lte("created_at", endDate)
     .order("created_at", { ascending: true });
@@ -330,7 +334,7 @@ export async function fetchSessionDatesForMonth(
   return uniqueDates;
 }
 
-export interface SessionWithSettings extends Session {
+export interface SessionWithSettings extends WorkSession {
   settings?: SessionSetting | null;
 }
 
@@ -382,7 +386,7 @@ export async function fetchSessionsForDayWithSettingsSorted(
 /**
  * Fetches a single session by ID.
  */
-export async function fetchSessionById(sessionId: string): Promise<Session | null> {
+export async function fetchSessionById(sessionId: string): Promise<WorkSession | null> {
   const { data, error } = await supabase
     .from("sessions")
     .select("*")
@@ -398,8 +402,8 @@ export async function fetchSessionById(sessionId: string): Promise<Session | nul
  */
 export async function updateSession(
   sessionId: string,
-  updates: Partial<Omit<Session, "id" | "created_at" | "user_id">>
-): Promise<Session> {
+  updates: Partial<Omit<WorkSession, "id" | "created_at" | "user_id">>
+): Promise<WorkSession> {
   const { data, error } = await supabase
     .from("sessions")
     .update(updates)
@@ -479,8 +483,9 @@ export async function deleteTask(taskId: string): Promise<void> {
 export interface CreateSessionSettingPayload {
   user_id?: string | null;
   session_id: string;
-  reflection_reminders?: boolean;
-  collab_requests?: boolean;
+  reflection_reminders: boolean;
+  collab_requests: boolean;
+  collab_friends: boolean;
 }
 
 export async function createSessionSetting(payload: CreateSessionSettingPayload): Promise<SessionSetting> {

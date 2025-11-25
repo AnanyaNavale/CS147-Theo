@@ -51,27 +51,30 @@ export interface Database {
       tasks: {
         Row: {
           id: string;
-          created_at: string;
-          scheduled_session_id: string;
-          title: string;
-          estimated_minutes: number | null;
-          order_index: number | null;
+          session_id: string;
+          task_name: string;
+          is_completed: boolean;
+          order_index: number;
+          time_allotted: number | null;
+          time_completed: number | null;
         };
         Insert: {
           id?: string;
-          created_at?: string;
-          scheduled_session_id: string;
-          title: string;
-          estimated_minutes?: number | null;
-          order_index?: number | null;
+          session_id: string;
+          task_name: string;
+          is_completed: boolean;
+          order_index: number;
+          time_allotted?: number | null;
+          time_completed?: number | null;
         };
         Update: {
           id?: string;
-          created_at?: string;
-          scheduled_session_id?: string;
-          title?: string;
-          estimated_minutes?: number | null;
-          order_index?: number | null;
+          session_id: string;
+          task_name: string;
+          is_completed: boolean;
+          order_index: number;
+          time_allotted?: number | null;
+          time_completed?: number | null;
         };
         Relationships: [
           {

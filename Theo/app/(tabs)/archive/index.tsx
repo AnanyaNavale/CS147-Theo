@@ -1,4 +1,8 @@
 import { Dimensions, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import type { WorkSession, SessionSetting } from "@/types/database.types";
+import { fetchSessionDatesForMonth } from "@/lib/supabase";
 
 import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
@@ -52,8 +56,88 @@ LocaleConfig.locales["custom"] = {
 LocaleConfig.defaultLocale = "custom";
 
 export default function ArchiveScreen() {
+  const [monthSessions, setMonthSessions] = useState<{ [date: string]: any }>(
+    {}
+  );
+  // Track which month/year we want to display
+  const [currentMonth, setCurrentMonth] = useState<number>(
+    new Date().getMonth() + 1
+  ); // 1-12
+  const [currentYear, setCurrentYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  // const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  // const [daySessions, setDaySessions] = useState<(WorkSession & { settings?: SessionSetting })[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const { supabase, session: authSession } = useSupabase();
+
+  useEffect(() => {
+    // console.log("authSession inside useEffect:", authSession);
+    // if (!authSession) return;r
+
+    const fetchMonthSessionsData = async () => {
+      setLoading(true);
+      try {
+        // console.log("Fetching month sessions for:", currentMonth, currentYear);
+        const data = await fetchSessionDatesForMonth(currentMonth, currentYear);
+        // console.log("currentMonth: ", currentMonth, "; currentYear: ", currentYear);
+        // console.log("Fetched month session dates:", data);
+
+        const marked: { [date: string]: any } = {};
+
+        // Mark month session dates
+        data.forEach((dateString) => {
+          const day = dateString.split("T")[0]; // strip time
+          marked[day] = {
+            customStyles: {
+              container: {
+                borderColor: "#CF9841",
+                borderWidth: 2,
+                borderRadius: 50,
+                justifyContent: "center",
+                alignItems: "center",
+              },
+              text: {
+                color: "black",
+              },
+            },
+          };
+        });
+
+        // console.log("Final markedDates object:", marked);
+        setMonthSessions(marked);
+      } catch (error) {
+        console.error("Error fetching month sessions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMonthSessionsData();
+  }, [authSession, currentMonth, currentYear]);
 
   const today = new Date().toISOString().split("T")[0];
+
+  const combinedMarkedDates = {
+    ...monthSessions, // your DB sessions
+    [today]: {
+      ...(monthSessions[today] || {}), // keep DB styling if today is also a session
+      customStyles: {
+        container: {
+          backgroundColor: "#8A5E3C",
+          // borderWidth: 2,
+          borderColor: "#8A5E3C",
+          borderRadius: 50,
+          // padding: 4,
+        },
+        text: {
+          color: "white",
+          fontWeight: "600",
+        },
+      },
+    },
+  };
 
   return (
     <View style={styles.container}>
@@ -99,24 +183,12 @@ export default function ArchiveScreen() {
             />
           )}
           onDayPress={(day) => console.log("Selected day", day)}
-          markingType="custom"
-          markedDates={{
-            [today]: {
-              customStyles: {
-                container: {
-                  backgroundColor: "#8A5E3C",
-                  // borderWidth: 2,
-                  borderColor: "#8A5E3C",
-                  borderRadius: 50,
-                  // padding: 4,
-                },
-                text: {
-                  color: "white",
-                  fontWeight: "600",
-                },
-              },
-            },
+          onMonthChange={(month) => {
+            setCurrentMonth(month.month); // 1-12
+            setCurrentYear(month.year);
           }}
+          markingType="custom"
+          markedDates={combinedMarkedDates}
           theme={{
             // calendarBackground: "#FDF6EE",
             // monthTextColor: "#B28F6D", // color for the month name
