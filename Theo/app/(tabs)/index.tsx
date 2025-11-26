@@ -93,9 +93,9 @@ export default function HomeScreen() {
   const logoDotsGap = (isCompact ? 3 : 4) * scale;
   const logoDotsMarginTop = (isCompact ? -4 : -6) * scale;
 
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
+  // useEffect(() => {
+  //   navigation.setOptions({ headerShown: false });
+  // }, [navigation]);
 
   const handleOpenProfile = () => router.push("../(tabs)/profile");
 

@@ -1,11 +1,15 @@
 import React from "react";
+import { Feather } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
-import { Pressable } from "react-native";
+import { Image, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
+
+
+type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 type FontAwesomeName = React.ComponentProps<typeof FontAwesome>["name"];
@@ -15,17 +19,24 @@ function TabBarIcon({
   color,
   size = 33,
 }: {
-  name: FontAwesomeName;
+  // name: FontAwesomeName;
+  name: FeatherName;
   color: string;
   size?: number;
 }) {
   return (
-    <FontAwesome
+    <Feather
       name={name}
       color={color}
       size={size}
       style={{ marginBottom: -2 }}
     />
+    // <FontAwesome
+    //   name={name}
+    //   color={color}
+    //   size={size}
+    //   style={{ marginBottom: -2 }}
+    // />
   );
 }
 
@@ -43,14 +54,28 @@ export default function TabLayout() {
         tabBarItemStyle: {
           paddingVertical: 2,
         },
-        tabBarStyle: {
-          backgroundColor: "#8A5E3C",
-          borderTopColor: "#8A5E3C",
-          height: 88,
-          paddingBottom: 10,
-          paddingTop: 8,
-        },
-        headerShown: false,
+        tabBarStyle: styles.tabBar,
+        headerStyle: styles.header,
+        headerLeftContainerStyle: { paddingLeft: 30 },
+        headerRightContainerStyle: { paddingRight: 30 },
+        headerTitle: () => (
+          <Image
+            source={require("../../assets/images/logo.png")}
+            style={{ width: 90, height: 40 }}
+          />
+        ),
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => console.log("menu")}>
+            <TabBarIcon name="menu" color="#8A5E3C" size={36} />
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity onPress={() => console.log("profile")}>
+            <View style={styles.userIcon}>
+              <TabBarIcon name="user" color="white" size={36} />
+            </View>
+          </TouchableOpacity>
+        ),
       }}
     >
       <Tabs.Screen
@@ -66,7 +91,7 @@ export default function TabLayout() {
         options={{
           title: "Session",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="calendar" color={color} size={28} />
+            <TabBarIcon name="book" color={color} size={28} />
           ),
           tabBarStyle: { display: "none" },
         }}
@@ -89,6 +114,43 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="archive/index"
+        options={{
+          title: "Archive",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="calendar" color={color} size={28} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    height: 130, // increase header height
+    backgroundColor: "#fff",
+    // shadowColor: "transparent", // iOS shadow
+    // shadowOpacity: 0,
+    elevation: 0, // Android shadow
+  },
+  tabBar: {
+    backgroundColor: "#8A5E3C",
+    borderTopColor: "#8A5E3C",
+    height: 88,
+    paddingBottom: 10,
+    paddingTop: 8,
+  },
+  userIcon: {
+    borderRadius: 22, // half of width/height
+    borderWidth: 4,
+    borderColor: "#8A5E3C",
+    backgroundColor: "#8A5E3C",
+    width: 45,
+    height: 45,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
