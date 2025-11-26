@@ -97,7 +97,7 @@ export default function HomeScreen() {
   //   navigation.setOptions({ headerShown: false });
   // }, [navigation]);
 
-  const handleOpenProfile = () => router.push("/(tabs)/profile");
+  const handleOpenProfile = () => router.push("../(tabs)/profile");
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -203,7 +203,7 @@ export default function HomeScreen() {
             variant="primary"
             compact={isCompact}
             width={ctaWidth}
-            onPress={() => router.push("/start-session")}
+            onPress={() => router.push("../start-session")}
           />
 
           <Spacer size={isCompact ? "sm" : "md"} />

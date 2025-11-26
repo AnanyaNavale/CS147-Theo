@@ -23,7 +23,7 @@ export default function EndSessionScreen() {
 
   const handleSelectTask = (task: Task) => {
     router.replace({
-      pathname: "/(tabs)/session",
+      pathname: "../(tabs)/session",
       params: { task: task.name },
     });
   };
@@ -48,7 +48,7 @@ export default function EndSessionScreen() {
     setShowNewTaskModal(false);
 
     router.replace({
-      pathname: "/(tabs)/session",
+      pathname: "../(tabs)/session",
       params: {
         task: newTaskName.trim(),
         time: minutes * 60,
@@ -62,8 +62,8 @@ export default function EndSessionScreen() {
 
   const confirmExit = () => {
     setShowExitModal(false);
-    router.replace("/(tabs)/session");
-    router.replace("/");
+    router.replace("../(tabs)/session");
+    router.replace("../");
   };
 
   return (

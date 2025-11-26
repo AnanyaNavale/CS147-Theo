@@ -1,12 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -33,7 +28,10 @@ export default function NewSessionSettingsScreen() {
 
   const toggleOption = (id: string) => {
     setSelected((prev) => ({ ...prev, [id]: !prev[id] }));
+    console.log(selected);
   };
+
+  const wantsBreakdown = selected["breakdown"] === true;
 
   const headerGap = useMemo(
     () => ({
@@ -49,6 +47,7 @@ export default function NewSessionSettingsScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {/* HEADER */}
         <View style={styles.headerRow}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -70,6 +69,7 @@ export default function NewSessionSettingsScreen() {
 
         <View style={styles.divider} />
 
+        {/* WORK SESSION OPTIONS */}
         <View style={headerGap} />
         <Text style={styles.sectionTitle}>Work Session</Text>
         <Spacer size="md" />
@@ -88,6 +88,7 @@ export default function NewSessionSettingsScreen() {
           ))}
         </View>
 
+        {/* COLLAB OPTIONS */}
         <View style={headerGap} />
         <Text style={styles.sectionTitle}>Collaboration</Text>
         <Spacer size="md" />
@@ -108,8 +109,16 @@ export default function NewSessionSettingsScreen() {
 
         <Spacer size="xxl" />
 
+        {/* CONTINUE BUTTON */}
         <TouchableOpacity
-          onPress={() => router.push("/goal")}
+          onPress={() =>
+            router.push({
+              pathname: "../goal",
+              params: {
+                breakdown: selected["breakdown"] === true ? "1" : "0",
+              },
+            })
+          }
           style={styles.ctaRow}
           accessibilityRole="button"
           accessibilityLabel="Continue"
