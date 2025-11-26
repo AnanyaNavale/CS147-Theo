@@ -1,14 +1,19 @@
-import { Dimensions, StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
+import {
+  Animated, Dimensions,
+  StyleSheet,
+} from "react-native";
+import { useEffect, useRef, useState } from "react";
 import { useSupabase } from "@/providers/SupabaseProvider";
-import type { WorkSession, SessionSetting } from "@/types/database.types";
+// import type { WorkSession, SessionSetting } from "@/types/database.types";
 import { fetchSessionDatesForMonth } from "@/lib/supabase";
 
-import EditScreenInfo from '@/components/EditScreenInfo';
+// import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Feather } from "@expo/vector-icons";
+// import StrokeText from "react-native-stroke-text";
+import SvgStrokeText from "@/components/SvgStrokeText";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -24,7 +29,7 @@ LocaleConfig.locales["custom"] = {
     "August",
     "September",
     "October",
-    "November",
+    "NOVEMBER",
     "December",
   ],
   monthNamesShort: [
@@ -56,33 +61,25 @@ LocaleConfig.locales["custom"] = {
 LocaleConfig.defaultLocale = "custom";
 
 export default function ArchiveScreen() {
-  const [monthSessions, setMonthSessions] = useState<{ [date: string]: any }>(
-    {}
-  );
-  // Track which month/year we want to display
-  const [currentMonth, setCurrentMonth] = useState<number>(
-    new Date().getMonth() + 1
-  ); // 1-12
-  const [currentYear, setCurrentYear] = useState<number>(
-    new Date().getFullYear()
-  );
-  // const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  // const [daySessions, setDaySessions] = useState<(WorkSession & { settings?: SessionSetting })[]>([]);
+  // STATES
+  const [monthSessions, setMonthSessions] = useState<{ [date: string]: any }>({});
+  const [currentMonth, setCurrentMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
 
   const { supabase, session: authSession } = useSupabase();
+  const opacity = useRef(new Animated.Value(1)).current;
+  const prevMonth = useRef(currentMonth);
 
+  // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
   useEffect(() => {
     // console.log("authSession inside useEffect:", authSession);
-    // if (!authSession) return;r
-
+    // if (!authSession) return;
     const fetchMonthSessionsData = async () => {
       setLoading(true);
       try {
-        // console.log("Fetching month sessions for:", currentMonth, currentYear);
+
         const data = await fetchSessionDatesForMonth(currentMonth, currentYear);
-        // console.log("currentMonth: ", currentMonth, "; currentYear: ", currentYear);
-        // console.log("Fetched month session dates:", data);
 
         const marked: { [date: string]: any } = {};
 
@@ -95,29 +92,50 @@ export default function ArchiveScreen() {
                 borderColor: "#CF9841",
                 borderWidth: 2,
                 borderRadius: 50,
+                // paddingBottom: 5,
                 justifyContent: "center",
                 alignItems: "center",
               },
               text: {
                 color: "black",
+                marginBottom: 3,
               },
             },
           };
         });
 
-        // console.log("Final markedDates object:", marked);
         setMonthSessions(marked);
+
       } catch (error) {
         console.error("Error fetching month sessions:", error);
       } finally {
         setLoading(false);
       }
+
     };
 
     fetchMonthSessionsData();
+
   }, [authSession, currentMonth, currentYear]);
 
-  const today = new Date().toISOString().split("T")[0];
+  useEffect(() => {
+    if (prevMonth.current !== currentMonth) {
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => {
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      });
+      prevMonth.current = currentMonth;
+    }
+  }, [currentMonth]);
+
+  const today = new Date().toLocaleDateString("en-CA"); // outputs YYYY-MM-DD
 
   const combinedMarkedDates = {
     ...monthSessions, // your DB sessions
@@ -129,11 +147,11 @@ export default function ArchiveScreen() {
           // borderWidth: 2,
           borderColor: "#8A5E3C",
           borderRadius: 50,
-          // padding: 4,
+          // paddingBottom: 8,
         },
         text: {
           color: "white",
-          fontWeight: "600",
+          // fontWeight: ,
         },
       },
     },
@@ -141,8 +159,17 @@ export default function ArchiveScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Session & Plan Archive</Text>
-      <View>
+      <SvgStrokeText
+        text="Session & Plan Archive"
+        // fontSize={18}
+        // fontFamily="AnticDidone-Regular"
+        stroke="black"
+        strokeWidth={0.3}
+        // fill="black"
+        style={styles.title}
+      />
+      {/* <Text style={styles.title}>Session & Plan Archive</Text> */}
+      <View style={styles.calendarContainer}>
         <Calendar
           renderHeader={(date) => {
             const month = date.toString("MMMM yyyy"); // or use moment/Date API
@@ -151,24 +178,40 @@ export default function ArchiveScreen() {
               <View
                 style={{
                   backgroundColor: "#8A5E3C",
-                  paddingVertical: 8,
+                  paddingVertical: 4,
+                  paddingTop: 7,
                   paddingHorizontal: 16,
+                  paddingRight: 20,
                   borderRadius: 12,
+                  justifyContent: "center",
+                  alignItems: "center",
                   // borderWidth: 2,
                   // borderColor: "#B28F6D",
                   alignSelf: "center",
                   // marginBottom: 10,
                 }}
               >
-                <Text
+                <SvgStrokeText
+                  text={month}
+                  fontSize={18}
+                  fontFamily="AnticDidone-Regular"
+                  stroke="white"
+                  strokeWidth={0.5}
+                  fill="white"
+                />
+                {/* <Text
                   style={{
                     fontSize: 18,
-                    // fontWeight: "bold",
+                    fontFamily: "AnticDidone-Regular",
+                    fontWeight: "bold",
                     color: "white",
+                    // textShadowColor: "white",
+                    // textShadowRadius: 1,
+                    // textShadowOffset: { width: 0.5, height: 0.5 },
                   }}
                 >
                   {month}
-                </Text>
+                </Text> */}
               </View>
             );
           }}
@@ -192,12 +235,22 @@ export default function ArchiveScreen() {
           theme={{
             // calendarBackground: "#FDF6EE",
             // monthTextColor: "#B28F6D", // color for the month name
-            textMonthFontSize: 18,
+            ...({
+              "stylesheet.calendar.header": {
+                monthText: {
+                  fontFamily: "AnticDidone-Regular",
+                  fontSize: 22,
+                  color: "black",
+                },
+              },
+            } as any),
+            // textMonthFontFamily: "AnticDidone-Regular",
+            // textMonthFontSize: 18,
             textSectionTitleColor: "black",
-            textDayHeaderFontWeight: "bold",
+            textDayHeaderFontFamily: "AnticDidone-Regular",
             textDayHeaderFontSize: 18,
+            textDayFontFamily: "Raleway-Regular",
             textDisabledColor: "#dadadaff",
-
             // selectedDayBackgroundColor: "#8A5E3C",
             // todayTextColor: "white",
             // dayTextColor: "#000",
@@ -221,21 +274,30 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   title: {
-    // alignSelf: 'center',
-    // width: "70%",
-    fontSize: 20,
-    // fontWeight: "bold",
-    fontStyle: 'italic',
-    backgroundColor: "white",
+    fontSize: 22,
+    fontFamily: "AnticDidone-Regular",
     color: "black",
-    // marginTop: SCREEN_WIDTH * 0.2,
-    // borderColor: 'red',
   },
-  // calendarContainer: {
-  //   flex: 1, // fills the whole screen
-  //   justifyContent: "center", // vertical centering
-  //   alignItems: "center", // horizontal centering
+  // loadingOverlay: {
+  //   position: "absolute",
+  //   top: 60,
+  //   left: 0,
+  //   bottom: 0,
+  //   right: 0,
+  //   // top: "50%",
+  //   // left: "50%",
+  //   // transform: [{ translateX: -20 }, { translateY: -20 }],
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   backgroundColor: "rgba(255, 255, 255, 0.6)", // optional dimming
+  //   zIndex: 10,
   // },
+  calendarContainer: {
+    position: "relative",
+    //   flex: 1, // fills the whole screen
+    justifyContent: "center", // vertical centering
+    alignItems: "center", // horizontal centering
+  },
   calendar: {
     marginTop: SCREEN_WIDTH * 0.1,
     width: SCREEN_WIDTH * 0.8,
