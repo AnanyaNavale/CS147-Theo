@@ -122,7 +122,19 @@ export interface Database {
       // ------------------ USERS TABLE ------------------
       user_profiles: {
         // USERS TABLE
-        Row: {};
+        Row: {
+          id: string;
+          user_id: string;
+          avatar_url: string | null;
+          created_at: string;
+          display_name: string | null;
+          // default_break_minutes: number | null;
+          // default_session_minutes: number | null;
+          notifications_enabled: boolean | null;
+          timezone: string | null;
+          // updated_at: string;
+          // weekly_focus_goal_minutes: number | null;
+        };
         Insert: {};
         Update: {};
         Relationships: [];
