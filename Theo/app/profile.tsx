@@ -1,59 +1,90 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import SvgStrokeText from "@/components/SvgStrokeText";
 
-import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+// import { Text } from "@/components/ui/Text";
+// import { theme } from "@/design/theme";
 
 export default function ProfileScreen() {
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.back()}
-        style={styles.backButton}
-      >
-        <FontAwesome
-          name="chevron-left"
-          size={18}
-          color={theme.colors.background}
-        />
-        <Text style={styles.backLabel}>Back</Text>
-      </Pressable>
+  const name = "Anna";
 
-      <View style={styles.content}>
-        <Text variant="h2">Profile coming soon</Text>
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Feather name={"arrow-left"} size={36} color="#8A5E3C" />
+          {/* <Text style={styles.backLabel}>Back</Text> */}
+        </TouchableOpacity>
+        <View
+          style={styles.titleContainer}
+        >
+          <SvgStrokeText
+            text={name + "'s Profile"}
+            stroke="black"
+            strokeWidth={0.3}
+            style={styles.header}
+          />
+        </View>
       </View>
+
+      {/* <View style={styles.content}>
+        <Text variant="h2">Profile coming soon</Text>
+      </View> */}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: "#FDF6EE",
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
+    backgroundColor: "white",
+    padding: 16,
+    // paddingHorizontal: theme.spacing.lg,
+    // paddingTop: theme.spacing.lg,
+    borderColor: 'red',
+    // borderWidth: 2,
+  },
+  headerContainer: {
+    width: "100%",
+    borderColor: 'red',
+    // borderWidth: 1,
+    flexDirection: 'row',
+  },
+  titleContainer: {
+    alignItems: "center",
+    borderColor: "blue",
+    // borderWidth: 2,
+    position: "absolute",
+    paddingTop: 2,
+    // top: 83,
+    left: 0,
+    right: 0,
+  },
+  header: {
+    fontFamily: 'AnticDidone-Regular',
+    fontSize: 24,
+    color: 'black',
   },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radii.md,
-    backgroundColor: theme.colors.accentDark,
+    // gap: theme.spacing.xs,
+    // paddingHorizontal: theme.spacing.md,
+    // paddingVertical: theme.spacing.sm,
+    // borderRadius: theme.radii.md,
+    // backgroundColor: theme.colors.accentDark,
   },
-  backLabel: {
-    color: theme.colors.background,
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  // content: {
+  //   flex: 1,
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
 });

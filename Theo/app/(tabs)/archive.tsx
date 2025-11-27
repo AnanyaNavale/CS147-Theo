@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: "AnticDidone-Regular",
     color: "black",
   },

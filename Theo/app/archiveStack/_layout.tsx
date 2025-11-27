@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   date: {
     color: "black",
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: "AnticDidone-Regular",
   },
 });
