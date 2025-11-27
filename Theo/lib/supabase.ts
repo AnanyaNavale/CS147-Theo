@@ -338,16 +338,9 @@ export interface SessionWithSettings extends WorkSession {
   settings?: SessionSetting | null;
 }
 
-/**
- * Fetches all sessions for a specific day with settings.
- * @param userId - the user's ID
- * @param date - YYYY-MM-DD
- * 
- * Used for ARCHIVE.
- */
 export async function fetchSessionsForDayWithSettingsSorted(
-  userId: string,
-  date: string
+  date: string,
+  userId: string | null
 ): Promise<SessionWithSettings[]> {
   const startDate = new Date(`${date}T00:00:00.000Z`).toISOString();
   const endDate = new Date(`${date}T23:59:59.999Z`).toISOString();
@@ -360,11 +353,11 @@ export async function fetchSessionsForDayWithSettingsSorted(
       session_settings(*)
     `
     )
-    .eq("user_id", userId)
+    // .eq("user_id", userId)
     .gte("created_at", startDate)
     .lte("created_at", endDate)
-    // order by "has settings" first
-    .order("session_settings.id", { ascending: false })
+    // sort: has_settings = true first, then by timestamp
+    .order("has_settings", { ascending: false })
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -373,7 +366,7 @@ export async function fetchSessionsForDayWithSettingsSorted(
     );
   }
 
-  // Map settings into a single field for easier access
+  // Map settings into `settings` for convenience
   const sessionsWithSettings: SessionWithSettings[] = data.map((row) => ({
     ...row,
     settings: row.session_settings ?? null,
@@ -382,6 +375,49 @@ export async function fetchSessionsForDayWithSettingsSorted(
   return sessionsWithSettings;
 }
 
+// /**
+//  * Fetches all sessions for a specific day with settings.
+//  * @param userId - the user's ID
+//  * @param date - YYYY-MM-DD
+//  * 
+//  * Used for ARCHIVE.
+//  */
+// export async function fetchSessionsForDayWithSettingsSorted(
+//   date: string,
+//   userId: string | null
+// ): Promise<SessionWithSettings[]> {
+//   const startDate = new Date(`${date}T00:00:00.000Z`).toISOString();
+//   const endDate = new Date(`${date}T23:59:59.999Z`).toISOString();
+
+//   const { data, error } = await supabase
+//     .from("sessions")
+//     .select(
+//       `
+//       *,
+//       session_settings(*)
+//     `
+//     )
+//     .eq("user_id", userId)
+//     .gte("created_at", startDate)
+//     .lte("created_at", endDate)
+//     // order by "has settings" first
+//     .order("session_settings(id)", { ascending: false })
+//     .order("created_at", { ascending: true });
+
+//   if (error) {
+//     throw new Error(
+//       `Failed to fetch sessions with settings for ${date}: ${error.message}`
+//     );
+//   }
+
+//   // Map settings into a single field for easier access
+//   const sessionsWithSettings: SessionWithSettings[] = data.map((row) => ({
+//     ...row,
+//     settings: row.session_settings ?? null,
+//   }));
+
+//   return sessionsWithSettings;
+// }
 
 /**
  * Fetches a single session by ID.

@@ -4,6 +4,8 @@ import {
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
+
+// SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
 import { fetchSessionDatesForMonth } from "@/lib/supabase";
