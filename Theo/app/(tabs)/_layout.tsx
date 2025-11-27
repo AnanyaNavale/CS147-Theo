@@ -1,7 +1,7 @@
 import React from "react";
 import { Feather } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link, Tabs } from "expo-router";
+import { useRouter, Link, Tabs } from "expo-router";
 import { Image, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import Colors from "@/constants/Colors";
@@ -42,6 +42,7 @@ function TabBarIcon({
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
 
   return (
     <Tabs
@@ -70,7 +71,7 @@ export default function TabLayout() {
           </TouchableOpacity>
         ),
         headerRight: () => (
-          <TouchableOpacity onPress={() => console.log("profile")}>
+          <TouchableOpacity onPress={() => router.push("../profile")}>
             <View style={styles.userIcon}>
               <TabBarIcon name="user" color="white" size={36} />
             </View>
@@ -87,31 +88,23 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="session"
-        options={{
-          title: "Session",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="book" color={color} size={28} />
-          ),
-          tabBarStyle: { display: "none" },
-        }}
-      />
-
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
-        }}
-      />
-
-      <Tabs.Screen
         name="example"
         options={{
           title: "Styles",
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="code" color={color} size={28} />
           ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="session"
+        options={{
+          title: "Session",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="book-open" color={color} size={28} />
+          ),
+          tabBarStyle: { display: "none" },
         }}
       />
 
