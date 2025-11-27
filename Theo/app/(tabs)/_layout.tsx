@@ -116,7 +116,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="archive/index"
+        name="archive"
         options={{
           title: "Archive",
           tabBarIcon: ({ color }) => (

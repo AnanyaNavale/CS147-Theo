@@ -14,7 +14,11 @@ export interface Database {
         Row: {
           id: string;
           created_at: string;
+          completed_at: string;
           user_id: string | null;
+          title: string;
+          has_settings: boolean;
+          total_time: number;
           status: string;
           has_goal: boolean;
           goal: string | null;
@@ -25,7 +29,11 @@ export interface Database {
         Insert: {
           id?: string;
           created_at?: string;
+          completed_at?: string;
           user_id?: string | null;
+          title: string;
+          has_settings: boolean;
+          total_time: number;
           status: string;
           has_goal: boolean;
           goal?: string | null;
@@ -36,7 +44,11 @@ export interface Database {
         Update: {
           id?: string;
           created_at?: string;
+          completed_at?: string;
           user_id?: string | null;
+          title: string;
+          has_settings: boolean;
+          total_time: number;
           status?: string;
           has_goal?: boolean;
           goal?: string | null;
@@ -111,7 +123,7 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "session-settings_session_id_fkey";
+            foreignKeyName: "session_settings_session_id_fkey";
             columns: ["session_id"];
             referencedRelation: "sessions";
             referencedColumns: ["id"];

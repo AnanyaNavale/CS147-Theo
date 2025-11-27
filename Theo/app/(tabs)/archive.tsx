@@ -3,6 +3,9 @@ import {
   StyleSheet,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+
+// SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
 import { fetchSessionDatesForMonth } from "@/lib/supabase";
@@ -12,7 +15,6 @@ import { Text, View } from '@/components/Themed';
 
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Feather } from "@expo/vector-icons";
-// import StrokeText from "react-native-stroke-text";
 import SvgStrokeText from "@/components/SvgStrokeText";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -68,8 +70,9 @@ export default function ArchiveScreen() {
   const [loading, setLoading] = useState(false);
 
   const { supabase, session: authSession } = useSupabase();
-  const opacity = useRef(new Animated.Value(1)).current;
-  const prevMonth = useRef(currentMonth);
+  // const opacity = useRef(new Animated.Value(1)).current;
+  // const prevMonth = useRef(currentMonth);
+  const router = useRouter();
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
   useEffect(() => {
@@ -118,23 +121,6 @@ export default function ArchiveScreen() {
 
   }, [authSession, currentMonth, currentYear]);
 
-  useEffect(() => {
-    if (prevMonth.current !== currentMonth) {
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start(() => {
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-      });
-      prevMonth.current = currentMonth;
-    }
-  }, [currentMonth]);
-
   const today = new Date().toLocaleDateString("en-CA"); // outputs YYYY-MM-DD
 
   const combinedMarkedDates = {
@@ -144,14 +130,11 @@ export default function ArchiveScreen() {
       customStyles: {
         container: {
           backgroundColor: "#8A5E3C",
-          // borderWidth: 2,
           borderColor: "#8A5E3C",
           borderRadius: 50,
-          // paddingBottom: 8,
         },
         text: {
           color: "white",
-          // fontWeight: ,
         },
       },
     },
@@ -161,14 +144,10 @@ export default function ArchiveScreen() {
     <View style={styles.container}>
       <SvgStrokeText
         text="Session & Plan Archive"
-        // fontSize={18}
-        // fontFamily="AnticDidone-Regular"
         stroke="black"
         strokeWidth={0.3}
-        // fill="black"
         style={styles.title}
       />
-      {/* <Text style={styles.title}>Session & Plan Archive</Text> */}
       <View style={styles.calendarContainer}>
         <Calendar
           renderHeader={(date) => {
@@ -199,24 +178,10 @@ export default function ArchiveScreen() {
                   strokeWidth={0.5}
                   fill="white"
                 />
-                {/* <Text
-                  style={{
-                    fontSize: 18,
-                    fontFamily: "AnticDidone-Regular",
-                    fontWeight: "bold",
-                    color: "white",
-                    // textShadowColor: "white",
-                    // textShadowRadius: 1,
-                    // textShadowOffset: { width: 0.5, height: 0.5 },
-                  }}
-                >
-                  {month}
-                </Text> */}
               </View>
             );
           }}
           style={styles.calendar}
-          // dayNamesShort={["S", "M", "T", "W", "Th", "F", "Sa"]}
           current={today} // show current month
           renderArrow={(direction) => (
             <Feather
@@ -225,7 +190,12 @@ export default function ArchiveScreen() {
               color="#8A5E3C"
             />
           )}
-          onDayPress={(day) => console.log("Selected day", day)}
+          onDayPress={(day) => {
+            router.push({
+              pathname: "../archiveStack/[date]",
+              params: { date: day.dateString },
+            });
+          }}
           onMonthChange={(month) => {
             setCurrentMonth(month.month); // 1-12
             setCurrentYear(month.year);
@@ -233,8 +203,6 @@ export default function ArchiveScreen() {
           markingType="custom"
           markedDates={combinedMarkedDates}
           theme={{
-            // calendarBackground: "#FDF6EE",
-            // monthTextColor: "#B28F6D", // color for the month name
             ...({
               "stylesheet.calendar.header": {
                 monthText: {
@@ -244,13 +212,12 @@ export default function ArchiveScreen() {
                 },
               },
             } as any),
-            // textMonthFontFamily: "AnticDidone-Regular",
-            // textMonthFontSize: 18,
             textSectionTitleColor: "black",
             textDayHeaderFontFamily: "AnticDidone-Regular",
             textDayHeaderFontSize: 18,
             textDayFontFamily: "Raleway-Regular",
             textDisabledColor: "#dadadaff",
+            // backgroundColor: "white",
             // selectedDayBackgroundColor: "#8A5E3C",
             // todayTextColor: "white",
             // dayTextColor: "#000",
@@ -270,7 +237,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingTop: SCREEN_WIDTH * 0.2,
-    // justifyContent: 'center',
     backgroundColor: "white",
   },
   title: {
@@ -278,29 +244,17 @@ const styles = StyleSheet.create({
     fontFamily: "AnticDidone-Regular",
     color: "black",
   },
-  // loadingOverlay: {
-  //   position: "absolute",
-  //   top: 60,
-  //   left: 0,
-  //   bottom: 0,
-  //   right: 0,
-  //   // top: "50%",
-  //   // left: "50%",
-  //   // transform: [{ translateX: -20 }, { translateY: -20 }],
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   backgroundColor: "rgba(255, 255, 255, 0.6)", // optional dimming
-  //   zIndex: 10,
-  // },
   calendarContainer: {
     position: "relative",
-    //   flex: 1, // fills the whole screen
     justifyContent: "center", // vertical centering
     alignItems: "center", // horizontal centering
+    backgroundColor: 'white',
+    borderColor: 'red',
+    // borderWidth: 1,
   },
   calendar: {
     marginTop: SCREEN_WIDTH * 0.1,
-    width: SCREEN_WIDTH * 0.8,
+    width: SCREEN_WIDTH * 0.9,
   },
 
   // separator: {

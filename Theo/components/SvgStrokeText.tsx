@@ -10,6 +10,9 @@ interface Props {
   strokeWidth?: number;
   fill?: string;
   style?: StyleProp<TextStyle>;
+  width?: number | string; // allow full width
+  height?: number;
+  textAnchor?: "start" | "middle" | "end";
 }
 
 export default function SvgStrokeText({
@@ -20,21 +23,28 @@ export default function SvgStrokeText({
   strokeWidth = 1.2,
   fill = "white",
   style,
+  width,
+  height,
+  textAnchor = "middle",
 }: Props) {
   // rough width estimation — enough for headers/month names
-  const estimatedWidth = text.length * (fontSize * 0.6);
+
   const flattenedStyle = style
     ? Array.isArray(style)
       ? Object.assign({}, ...style)
       : style
     : {};
 
+  const estimatedWidth =
+    width || text.length * (flattenedStyle.fontSize || fontSize * 0.6);
+  const estimatedHeight = height || (flattenedStyle.fontSize || fontSize) * 1.6;
+
   return (
-    <Svg height={fontSize * 1.6} width={estimatedWidth}>
+    <Svg height={estimatedHeight} width={estimatedWidth}>
       <SvgText
-        x="50%"
+        x={textAnchor === "start" ? 0 : "50%"}
         y="50%"
-        textAnchor="middle"
+        textAnchor={textAnchor}
         alignmentBaseline="middle"
         fontSize={flattenedStyle.fontSize || fontSize}
         fontFamily={flattenedStyle.fontFamily || fontFamily}
