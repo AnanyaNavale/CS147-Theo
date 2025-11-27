@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 5,
     padding: 10,
+    backgroundColor: "white",
   },
   timeContainerSession: {
     backgroundColor: "#B28F6D",
@@ -103,10 +104,12 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     padding: 10,
+    backgroundColor: "white",
   },
   title: {
     fontSize: 16,
     fontFamily: "Raleway-Regular",
+    color: 'black',
     // fontWeight: "bold",
   },
   time: {

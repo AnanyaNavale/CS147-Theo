@@ -1,7 +1,13 @@
-import { Dimensions, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  SectionList, StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { View, Text } from "@/components/Themed";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import SvgStrokeText from "@/components/SvgStrokeText";
 
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
@@ -22,11 +28,6 @@ export default function SingleDayScreen() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // const sessions = [
-  //   { id: "1", title: "Math Homework", time: "90 min" },
-  //   { id: "2", title: "Project Work", time: "45 min" },
-  // ];
-
   useEffect(() => {
     if (!date) return;
 
@@ -34,7 +35,7 @@ export default function SingleDayScreen() {
       setLoading(true);
       try {
         const data = await fetchSessionsForDayWithSettingsSorted(date, null);
-        console.log(data);
+        // console.log(data);
         setSessions(data ?? []);
       } catch (err) {
         console.error("Error fetching sessions:", err);
@@ -46,16 +47,47 @@ export default function SingleDayScreen() {
     loadData();
   }, [date]);
 
+  const sections = [
+    {
+      title: "Sessions:",
+      data: sessions.filter((s) => s.has_settings === true),
+    },
+    {
+      title: "Plans:",
+      data: sessions.filter((s) => s.has_settings === false),
+    },
+  ];
+
   return (
     <View style={styles.container}>
-      <FlatList
-        data={sessions}
+      <SectionList
+        sections={sections}
         keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-        // contentContainerStyle={{ paddingVertical: 30 }}
         renderItem={({ item }) => (
-          <SessionBox title={item.title} time={item.total_time} has_settings={item.has_settings} status={item.status}/>
+          <SessionBox
+            title={item.title}
+            time={item.total_time}
+            has_settings={item.has_settings}
+            status={item.status}
+          />
         )}
+        renderSectionHeader={({ section: { title } }) => (
+          <View style={styles.headerContainer}>
+            <SvgStrokeText
+              text={title}
+              stroke="black"
+              strokeWidth={0.3}
+              style={styles.sectionHeader}
+              width="100%" // fill the container
+              height={30} // optional fixed height
+              textAnchor="start"
+            />
+          </View>
+        )}
+        ItemSeparatorComponent={() => (
+          <View style={{ height: 10, backgroundColor: "white" }} />
+        )}
+        contentContainerStyle={{ paddingBottom: 50 }}
       />
     </View>
   );
@@ -63,9 +95,27 @@ export default function SingleDayScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
-    paddingTop: 30,
+    flex: 1,
+    // height: "100%",
+    // paddingTop: 16,
     paddingHorizontal: 16,
+    backgroundColor: "white",
+    // borderColor: 'red',
+  },
+  headerContainer: {
+    padding: 16,
+    paddingLeft: 20,
+    backgroundColor: "white",
+    width: "100%",
+    alignItems: 'flex-start',
     borderColor: 'red',
+    // borderWidth: 2,
+  },
+  sectionHeader: {
+    fontSize: 20,
+    fontFamily: "AnticDidone-Regular",
+    color: "black",
+    // margin: 16,
+    // marginHorizontal: 16,
   },
 });

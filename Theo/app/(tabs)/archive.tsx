@@ -217,6 +217,7 @@ export default function ArchiveScreen() {
             textDayHeaderFontSize: 18,
             textDayFontFamily: "Raleway-Regular",
             textDisabledColor: "#dadadaff",
+            // backgroundColor: "white",
             // selectedDayBackgroundColor: "#8A5E3C",
             // todayTextColor: "white",
             // dayTextColor: "#000",
@@ -247,10 +248,13 @@ const styles = StyleSheet.create({
     position: "relative",
     justifyContent: "center", // vertical centering
     alignItems: "center", // horizontal centering
+    backgroundColor: 'white',
+    borderColor: 'red',
+    // borderWidth: 1,
   },
   calendar: {
     marginTop: SCREEN_WIDTH * 0.1,
-    width: SCREEN_WIDTH * 0.8,
+    width: SCREEN_WIDTH * 0.9,
   },
 
   // separator: {
