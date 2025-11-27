@@ -12,15 +12,19 @@ interface SessionBoxProps {
   title: string;
   time: string;
   has_settings: boolean;
+  status: string;
   onPress?: () => void;
 }
 
-export default function SessionBox({ title, time, has_settings, onPress }: SessionBoxProps) {
+export default function SessionBox({ title, time, has_settings, status, onPress }: SessionBoxProps) {
   const timeDisplay = formatMinutes(Number(time));
 
   return (
-    <TouchableOpacity style={has_settings ? styles.containerSession : styles.containerPlan} onPress={onPress}>
-      <View style={has_settings ? styles.timeContainerSession : styles.timeContainerPlan}>
+    <TouchableOpacity
+      style={[styles.container, getBoxStyle(has_settings, status)]}
+      onPress={onPress}
+    >
+      <View style={[styles.timeContainer, getTimeStyle(has_settings, status)]}>
         <Text style={styles.time}>{timeDisplay}</Text>
       </View>
       <View style={styles.titleContainer}>
@@ -43,54 +47,59 @@ function formatMinutes(totalMinutes: number) {
   return `${minutes} min.`;
 }
 
+function getBoxStyle(has_settings: boolean, status: string) {
+  if (has_settings && status === "completed")
+    return styles.containerCompleted;
+  if (has_settings) return styles.containerSession;
+  return styles.containerPlan;
+}
+
+function getTimeStyle(has_settings: boolean, status: string) {
+  if (has_settings && status === "completed") return styles.timeContainerCompleted;
+  if (has_settings) return styles.timeContainerSession;
+  return styles.timeContainerPlan;
+}
+
 const styles = StyleSheet.create({
-  containerSession: {
+  container: {
     height: 100,
-    // width: "100%",
     marginHorizontal: 20,
-    // padding: 16,
     borderRadius: 10,
-    borderColor: "#8A5E3C",
     backgroundColor: "white",
     borderWidth: 2,
-    // backgroundColor: "#F5F5F5",
     marginBottom: 12,
     flexDirection: "row",
-    shadowColor: "#8A5E3C80",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
+  },
+  containerSession: {
+    borderColor: "#B28F6D",
+    borderStyle: "dashed",
+    shadowColor: "#B28F6D80",
+  },
+  containerCompleted: {
+    borderColor: "#8A5E3C",
+    shadowColor: "#8A5E3C80",
   },
   containerPlan: {
-    height: 100,
-    // width: "100%",
-    marginHorizontal: 20,
-    // padding: 16,
-    borderRadius: 10,
     borderColor: "#CF9841",
-    backgroundColor: "white",
-    borderWidth: 2,
-    // backgroundColor: "#F5F5F5",
-    marginBottom: 12,
-    flexDirection: "row",
     shadowColor: "#CF984180",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+  },
+  timeContainer: {
+    width: "25%",
+    height: "100%",
+    borderRadius: 5,
+    padding: 10,
   },
   timeContainerSession: {
-    width: "25%",
-    height: "100%",
+    backgroundColor: "#B28F6D",
+  },
+  timeContainerCompleted: {
     backgroundColor: "#8A5E3C",
-    borderRadius: 5,
-    padding: 10,
   },
   timeContainerPlan: {
-    width: "25%",
-    height: "100%",
     backgroundColor: "#CF9841",
-    borderRadius: 5,
-    padding: 10,
   },
   titleContainer: {
     padding: 10,

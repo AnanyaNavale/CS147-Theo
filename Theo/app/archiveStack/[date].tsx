@@ -54,7 +54,7 @@ export default function SingleDayScreen() {
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         // contentContainerStyle={{ paddingVertical: 30 }}
         renderItem={({ item }) => (
-          <SessionBox title={item.title} time={item.total_time} has_settings={item.has_settings}/>
+          <SessionBox title={item.title} time={item.total_time} has_settings={item.has_settings} status={item.status}/>
         )}
       />
     </View>
