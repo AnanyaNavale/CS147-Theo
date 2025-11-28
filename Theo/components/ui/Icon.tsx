@@ -16,6 +16,7 @@ const ICONS = {
   plus: require("../../assets/icons/plus.png"),
   refresh: require("../../assets/icons/refresh.png"),
   trash: require("../../assets/icons/trash.png"),
+  mic: require("../../assets/icons/mic.png"),
 } as const;
 
 // 2. Infer valid icon names
