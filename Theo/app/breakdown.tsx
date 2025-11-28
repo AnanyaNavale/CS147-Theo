@@ -109,7 +109,6 @@ export default function SessionBreakdownScreen() {
   }
 
   function confirmContinue() {
-    setShowContinueConfirm(false);
     router.push({
       pathname: "../finalize-session",
       params: { tasks: JSON.stringify(tasks), goal: goalText },
@@ -298,7 +297,7 @@ export default function SessionBreakdownScreen() {
 
           {/* CONTINUE ROW */}
           <TouchableOpacity
-            onPress={() => setShowContinueConfirm(true)}
+            onPress={confirmContinue}
             style={styles.continueRow}
           >
             <Text variant="h2" style={styles.continueText}>
@@ -404,18 +403,6 @@ export default function SessionBreakdownScreen() {
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={confirmDelete}
-      />
-
-      {/* CONTINUE CONFIRM */}
-      <AppModal
-        visible={showContinueConfirm}
-        onClose={() => setShowContinueConfirm(false)}
-        variant="alert"
-        title="Start session?"
-        message="Are you sure you want to begin?"
-        confirmLabel="Start"
-        cancelLabel="Cancel"
-        onConfirm={confirmContinue}
       />
     </SafeAreaView>
   );
