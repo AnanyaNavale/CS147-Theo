@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Spacer } from "@/components";
-import { Button } from "@/components/ui/Button";
+import { BasicButton } from "@/components/BasicButton";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
@@ -17,7 +17,6 @@ import { theme } from "@/design/theme";
 export default function StartSessionScreen() {
   const handleCreateNew = () => router.push("../(tabs)/session/goal");
   const { width } = useWindowDimensions();
-  const buttonWidth = Math.min(width * 0.7, 340);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -43,12 +42,7 @@ export default function StartSessionScreen() {
         <Spacer size="xxl" />
 
         <View style={styles.actionBlock}>
-          <Button
-            label="Create a new session"
-            onPress={handleCreateNew}
-            variant="brown"
-            style={[styles.actionButton, { width: buttonWidth }]}
-          />
+          <BasicButton text="Create a new session" onPress={handleCreateNew} />
           <Spacer size="md" />
           <Text style={styles.actionDescription}>
             Set up a fresh goal or set of tasks.
@@ -60,13 +54,12 @@ export default function StartSessionScreen() {
         <Spacer size="xl" />
 
         <View style={styles.actionBlock}>
-          <Button
-            label="Copy a recent session"
+          <BasicButton
+            text="Copy a recent session"
             onPress={() => {
               // TODO: implement copy flow
             }}
-            variant="gold"
-            style={[styles.actionButton, { width: buttonWidth }]}
+            variant="secondary"
           />
           <Spacer size="md" />
           <Text style={styles.actionDescription}>
@@ -79,13 +72,13 @@ export default function StartSessionScreen() {
         <Spacer size="xl" />
 
         <View style={styles.actionBlock}>
-          <Button
-            label="Complete a session"
+          <BasicButton
+            text="Complete a session"
             onPress={() => {
               // TODO: implement complete flow
             }}
-            variant="danger"
-            style={[styles.actionButton, { width: buttonWidth }]}
+            variant="tertiary"
+            //style={[styles.actionButton, { width: buttonWidth }]}
           />
           <Spacer size="md" />
           <Text style={styles.actionDescription}>

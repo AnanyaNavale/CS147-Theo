@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/Button";
+import { BasicButton } from "@/components/BasicButton";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
@@ -85,44 +85,49 @@ export default function FinalizeSessionScreen() {
 
         <Spacer size="xl" />
 
-        <Text style={styles.prompt}>{promptText}</Text>
+        <Text variant="h1" style={styles.prompt}>
+          {promptText}
+        </Text>
 
         <Spacer size="lg" />
 
-        <View style={styles.goalRow}>
-          <Text variant="h2" style={styles.goalLabel}>
-            GOAL:
-          </Text>
-          <Text style={styles.goalValue}>{goalText}</Text>
-        </View>
+        {goalText && (
+          <View style={styles.goalRow}>
+            <Text variant="h2" style={styles.goalLabel}>
+              GOAL:
+            </Text>
+            <Text style={styles.goalValue}>{goalText}</Text>
+          </View>
+        )}
 
         <Spacer size="md" />
 
         {!showSettings ? (
           <>
             <Spacer size="xl" />
-            <Button
-              label="Select session settings"
+            <BasicButton
+              text="Select session settings"
               onPress={handleSelectSettings}
-              variant="brown"
-              style={[styles.button, { width: controlWidth }]}
+              style={styles.button}
             />
 
             <Spacer size="md" />
 
-            <Button
-              label="Save plan to calendar"
+            <BasicButton
+              text="Save plan to calendar"
               onPress={handleSavePlan}
-              variant="gold"
-              style={[styles.button, { width: controlWidth }]}
+              variant="secondary"
+              style={styles.button}
             />
           </>
         ) : (
           <>
             <View style={styles.divider} />
             <Spacer size="md" />
-            <Text style={styles.settingsHeading}>Select Your Settings</Text>
-            <Spacer size="sm" />
+            <Text variant="h1" style={styles.prompt}>
+              Select Your Settings
+            </Text>
+            <Spacer size="lg" />
 
             <View style={styles.checkboxList}>
               <Checkbox
@@ -149,11 +154,10 @@ export default function FinalizeSessionScreen() {
 
             <Spacer size="lg" />
 
-            <Button
-              label="Start your session"
+            <BasicButton
+              text="Start your session"
               onPress={handleStartSession}
-              variant="brown"
-              style={[styles.button, { width: controlWidth }]}
+              style={styles.button}
             />
           </>
         )}
@@ -182,7 +186,7 @@ const styles = StyleSheet.create({
   prompt: {
     textAlign: "center",
     fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.xl,
   },
   goalRow: {
     flexDirection: "row",
@@ -208,9 +212,9 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
   },
   settingsHeading: {
-    textAlign: "left",
+    textAlign: "center",
     fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.lg,
     color: theme.colors.text,
   },
   checkboxList: {

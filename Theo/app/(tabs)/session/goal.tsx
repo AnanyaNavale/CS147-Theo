@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/Button";
+import { BasicButton } from "@/components/BasicButton";
 import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
@@ -126,12 +126,7 @@ export default function GoalScreen() {
             <Spacer size="xxl" />
 
             <View style={styles.primaryButtonWrapper}>
-              <Button
-                label={primaryLabel}
-                onPress={handleContinue}
-                variant="brown"
-                style={[styles.button, { width: controlWidth }]}
-              />
+              <BasicButton text={primaryLabel} onPress={handleContinue} />
             </View>
           </>
         ) : (
@@ -152,22 +147,16 @@ export default function GoalScreen() {
             <Spacer size="xxl" />
 
             <View style={styles.primaryButtonWrapper}>
-              <Button
-                label="Yes, please!"
-                onPress={handleYesTasks}
-                variant="brown"
-                style={[styles.button, { width: controlWidth }]}
-              />
+              <BasicButton text="Yes, please!" onPress={handleYesTasks} />
             </View>
 
             <Spacer size="lg" />
 
             <View style={styles.primaryButtonWrapper}>
-              <Button
-                label="Skip this step"
+              <BasicButton
+                text="Skip this step"
                 onPress={handleSkipTasks}
-                variant="gold"
-                style={[styles.button, { width: controlWidth }]}
+                variant="secondary"
               />
             </View>
           </>

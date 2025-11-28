@@ -7,6 +7,7 @@ import DraggableFlatList, {
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BasicButton } from "@/components/BasicButton";
 import { AppModal } from "@/components/ui/AppModal";
 import { BreakdownItem } from "@/components/ui/BreakdownItem";
 import { Button } from "@/components/ui/Button";
@@ -134,7 +135,7 @@ export default function SessionBreakdownScreen() {
               style={[styles.swipeAction, styles.swipeEdit]}
               onPress={() => openEditModal(item)}
             >
-              <Icon name="more" size={22} tint={theme.solidColors.white} />
+              <Icon name="pencil" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -207,23 +208,36 @@ export default function SessionBreakdownScreen() {
         {tasks.length === 0 ? (
           <>
             <Spacer size="md" />
-            <Button
-              label="Create tasks yourself"
+            <BasicButton
+              text="Create tasks yourself"
               onPress={() => setShowAddModal(true)}
-              variant="brown"
               style={styles.primaryActionButton}
             />
 
             <Spacer size="lg" />
 
-            <Button
-              label="Create tasks with AI"
+            <BasicButton
+              text="Create tasks with AI"
               onPress={() => {
                 // TODO: implement AI task generation
               }}
-              variant="gold"
-              style={styles.primaryActionButton}
+              variant="secondary"
+              style={styles.bottomButton}
             />
+            <TouchableOpacity
+              onPress={confirmContinue}
+              style={styles.continueRow}
+            >
+              <Text variant="h2" style={styles.continueText}>
+                Skip
+              </Text>
+              <Icon
+                style={styles.continueArrow}
+                name="arrow-right"
+                size={100}
+                tint={theme.colors.accentDark}
+              />
+            </TouchableOpacity>
           </>
         ) : (
           <DraggableFlatList
@@ -494,6 +508,7 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    paddingBottom: theme.spacing.xxl,
   },
 
   actionItem: {
@@ -529,6 +544,9 @@ const styles = StyleSheet.create({
   },
 
   continueRow: {
+    position: "absolute",
+    bottom: theme.spacing.sm,
+    right: theme.spacing.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
@@ -545,9 +563,13 @@ const styles = StyleSheet.create({
 
   primaryActionButton: {
     alignSelf: "center",
-    minWidth: 220,
-    paddingVertical: theme.spacing.md,
   },
+  bottomButton: {
+    alignSelf: "center",
+    position: "absolute",
+    bottom: theme.spacing.xxl,
+  },
+
   swipeActions: {
     flexDirection: "row",
     height: "85%",

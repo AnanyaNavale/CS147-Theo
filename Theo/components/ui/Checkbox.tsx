@@ -1,11 +1,11 @@
 import React from "react";
 import {
+  StyleSheet,
+  Text,
+  TextStyle,
   TouchableOpacity,
   View,
-  Text,
-  StyleSheet,
   ViewStyle,
-  TextStyle,
 } from "react-native";
 import { theme } from "../../design/theme";
 
@@ -57,7 +57,7 @@ export function Checkbox({
               styles.check,
               {
                 color: theme.checkbox.checkColor,
-                fontFamily: theme.typography.families.handwritten,
+                fontFamily: theme.typography.families.regular,
               },
               checkStyle,
             ]}
@@ -74,7 +74,7 @@ export function Checkbox({
             {
               color: theme.colors.text,
               fontSize: theme.typography.sizes.md,
-              fontFamily: theme.typography.families.handwritten,
+              fontFamily: theme.typography.families.regular,
             },
             labelStyle,
           ]}
