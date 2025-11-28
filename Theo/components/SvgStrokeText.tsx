@@ -1,59 +1,56 @@
 import React from "react";
-import { StyleProp, TextStyle } from 'react-native';
+import { View, StyleProp, TextStyle, ViewStyle } from "react-native";
 import Svg, { Text as SvgText } from "react-native-svg";
 
-interface Props {
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
+
+export type SvgStrokeTextProps = {
   text: string;
-  fontSize?: number;
-  fontFamily?: string;
   stroke?: string;
   strokeWidth?: number;
-  fill?: string;
-  style?: StyleProp<TextStyle>;
-  width?: number | string; // allow full width
-  height?: number;
-  textAnchor?: "start" | "middle" | "end";
-}
+
+  textStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+};
 
 export default function SvgStrokeText({
   text,
-  fontSize = 18,
-  fontFamily,
-  stroke = "black",
-  strokeWidth = 1.2,
-  fill = "white",
-  style,
-  width,
-  height,
-  textAnchor = "middle",
-}: Props) {
-  // rough width estimation — enough for headers/month names
+  stroke = colors.light.header1,
+  strokeWidth = 0.3,
+  textStyle,
+  containerStyle,
+}: SvgStrokeTextProps) {
+  // Flatten textStyle so we can extract font props
+  const flattened = Array.isArray(textStyle)
+    ? Object.assign({}, ...textStyle)
+    : textStyle || {};
 
-  const flattenedStyle = style
-    ? Array.isArray(style)
-      ? Object.assign({}, ...style)
-      : style
-    : {};
+  const fontSize = flattened.fontSize || fonts.sizes.header;
+  const fontFamily = flattened.fontFamily || fonts.typeface.header;
+  const fill = flattened.color || colors.light.header1;
 
-  const estimatedWidth =
-    width || text.length * (flattenedStyle.fontSize || fontSize * 0.6);
-  const estimatedHeight = height || (flattenedStyle.fontSize || fontSize) * 1.6;
+  // Size SVG based on some simple estimate
+  const width = text.length * (fontSize * 0.6);
+  const height = fontSize * 1.2;
 
   return (
-    <Svg height={estimatedHeight} width={estimatedWidth}>
-      <SvgText
-        x={textAnchor === "start" ? 0 : "50%"}
-        y="50%"
-        textAnchor={textAnchor}
-        alignmentBaseline="middle"
-        fontSize={flattenedStyle.fontSize || fontSize}
-        fontFamily={flattenedStyle.fontFamily || fontFamily}
-        fill={flattenedStyle.color || fill}
-        stroke={stroke}
-        strokeWidth={strokeWidth}
-      >
-        {text}
-      </SvgText>
-    </Svg>
+    <View style={containerStyle}>
+      <Svg width={width} height={height}>
+        <SvgText
+          x="50%"
+          y="50%"
+          alignmentBaseline="middle"
+          textAnchor="middle"
+          fontSize={fontSize}
+          fontFamily={fontFamily}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        >
+          {text}
+        </SvgText>
+      </Svg>
+    </View>
   );
 }

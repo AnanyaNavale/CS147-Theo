@@ -16,6 +16,8 @@ import { Text, View } from '@/components/Themed';
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Feather } from "@expo/vector-icons";
 import SvgStrokeText from "@/components/SvgStrokeText";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -92,7 +94,7 @@ export default function ArchiveScreen() {
           marked[day] = {
             customStyles: {
               container: {
-                borderColor: "#CF9841",
+                borderColor: colors.light.markedDates,
                 borderWidth: 2,
                 borderRadius: 50,
                 // paddingBottom: 5,
@@ -100,7 +102,7 @@ export default function ArchiveScreen() {
                 alignItems: "center",
               },
               text: {
-                color: "black",
+                color: colors.light.body,
                 marginBottom: 3,
               },
             },
@@ -129,12 +131,12 @@ export default function ArchiveScreen() {
       ...(monthSessions[today] || {}), // keep DB styling if today is also a session
       customStyles: {
         container: {
-          backgroundColor: "#8A5E3C",
-          borderColor: "#8A5E3C",
+          backgroundColor: colors.light.primary,
+          // borderColor: colors.light.border,
           borderRadius: 50,
         },
         text: {
-          color: "white",
+          color: colors.light.month,
         },
       },
     },
@@ -144,9 +146,6 @@ export default function ArchiveScreen() {
     <View style={styles.container}>
       <SvgStrokeText
         text="Session & Plan Archive"
-        stroke="black"
-        strokeWidth={0.3}
-        style={styles.title}
       />
       <View style={styles.calendarContainer}>
         <Calendar
@@ -156,11 +155,11 @@ export default function ArchiveScreen() {
             return (
               <View
                 style={{
-                  backgroundColor: "#8A5E3C",
+                  backgroundColor: colors.light.primary,
                   paddingVertical: 4,
                   paddingTop: 7,
                   paddingHorizontal: 16,
-                  paddingRight: 20,
+                  // paddingRight: 20,
                   borderRadius: 12,
                   justifyContent: "center",
                   alignItems: "center",
@@ -172,11 +171,9 @@ export default function ArchiveScreen() {
               >
                 <SvgStrokeText
                   text={month}
-                  fontSize={18}
-                  fontFamily="AnticDidone-Regular"
-                  stroke="white"
+                  stroke={colors.light.month}
                   strokeWidth={0.5}
-                  fill="white"
+                  textStyle={{ fontSize: 20, color: colors.light.month }}
                 />
               </View>
             );
@@ -187,7 +184,7 @@ export default function ArchiveScreen() {
             <Feather
               name={direction === "left" ? "arrow-left" : "arrow-right"}
               size={30}
-              color="#8A5E3C"
+              color={colors.light.iconsStandalone}
             />
           )}
           onDayPress={(day) => {
@@ -212,22 +209,15 @@ export default function ArchiveScreen() {
                 },
               },
             } as any),
-            textSectionTitleColor: "black",
-            textDayHeaderFontFamily: "AnticDidone-Regular",
+            textSectionTitleColor: colors.light.header1,
+            textDayHeaderFontFamily: fonts.typeface.header,
             textDayHeaderFontSize: 18,
-            textDayFontFamily: "Raleway-Regular",
-            textDisabledColor: "#dadadaff",
-            // backgroundColor: "white",
-            // selectedDayBackgroundColor: "#8A5E3C",
-            // todayTextColor: "white",
-            // dayTextColor: "#000",
-            // arrowColor: "#8A5E3C",
-            // monthTextColor: "#8A5E3C",
+            textDayFontFamily: fonts.typeface.body,
+            textDisabledColor: colors.light.inactive,
+            backgroundColor: colors.light.background,
           }}
         />
       </View>
-      {/* <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" /> */}
-      {/* <EditScreenInfo path="app/(tabs)/two.tsx" /> */}
     </View>
   );
 }
@@ -237,29 +227,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingTop: SCREEN_WIDTH * 0.2,
-    backgroundColor: "white",
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: "AnticDidone-Regular",
-    color: "black",
+    backgroundColor: colors.light.background,
   },
   calendarContainer: {
     position: "relative",
     justifyContent: "center", // vertical centering
     alignItems: "center", // horizontal centering
-    backgroundColor: 'white',
-    borderColor: 'red',
-    // borderWidth: 1,
+    backgroundColor: colors.light.background,
   },
   calendar: {
     marginTop: SCREEN_WIDTH * 0.1,
     width: SCREEN_WIDTH * 0.9,
   },
-
-  // separator: {
-  //   marginVertical: 30,
-  //   height: 1,
-  //   width: '80%',
-  // },
 });

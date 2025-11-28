@@ -26,10 +26,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     "AnticDidone-Regular": require("../assets/fonts/AnticDidone-Regular.ttf"),
-    "CormorantGaramond-Regular": require("../assets/fonts/CormorantGaramond-Regular.ttf"),
     "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf"),
-    "Raleway-Medium": require("../assets/fonts/Raleway-Medium.ttf"),
+    "Raleway-SemiBold": require("../assets/fonts/Raleway-SemiBold.ttf"),
     "Raleway-MediumItalic": require("../assets/fonts/Raleway-MediumItalic.ttf"),
+    "Raleway-Medium": require("../assets/fonts/Raleway-Medium.ttf"),
     ...FontAwesome.font,
   });
 

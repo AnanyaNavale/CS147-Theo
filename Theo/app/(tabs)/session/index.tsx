@@ -12,6 +12,8 @@ import { Icon } from "@/components/ui/Icon";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { InputField } from "@/components/ui/InputField";
 
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import { theme } from "@/design/theme";
 import { PawLoader } from "@/components/ui/PawLoader";
 
@@ -710,7 +712,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.lg,
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.light.background,
   },
   row: {
     flexDirection: "row",

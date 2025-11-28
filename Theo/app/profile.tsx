@@ -15,6 +15,8 @@ import SvgStrokeText from "@/components/SvgStrokeText";
 
 // import { BottomSheetModal } from "@/components/ui/BottomSheetModal";
 import { theme } from "@/design/theme";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 
 // import { Text } from "@/components/ui/Text";
 // import { theme } from "@/design/theme";
@@ -37,9 +39,6 @@ export default function ProfileScreen() {
         <View style={styles.titleContainer}>
           <SvgStrokeText
             text={name + "'s Profile"}
-            stroke="black"
-            strokeWidth={0.3}
-            style={styles.header}
           />
         </View>
       </View>
@@ -72,7 +71,6 @@ export default function ProfileScreen() {
         {/* <InputField label="Password" /> */}
       </View>
 
-      {/* <BottomSheetModal variant="add-task" title="Add Task"/> */}
     </SafeAreaView>
   );
 }
@@ -143,7 +141,7 @@ const styles = StyleSheet.create({
     padding: 16,
     // backgroundColor: "#8A5E3C80",
     width: "95%",
-    height: SCREEN_HEIGHT * 0.5,
+    height: SCREEN_HEIGHT * 0.4, // 0.5
   },
   firstName: {
     fontFamily: "Raleway-Regular",
