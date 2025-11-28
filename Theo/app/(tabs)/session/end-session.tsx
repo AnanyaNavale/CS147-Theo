@@ -2,11 +2,13 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 
-import { Spacer, Text } from "../../../components";
-import { AppModal } from "../../../components/ui/AppModal";
-import { Button } from "../../../components/ui/Button";
-import { InputField } from "../../../components/ui/InputField";
-import { theme } from "../../../design/theme";
+import { Spacer, Text } from "@/components";
+import { AppModal } from "@/components/ui/AppModal";
+import { Button } from "@/components/ui/Button";
+import { InputField } from "@/components/ui/InputField";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
+import { theme } from "@/design/theme";
 import { TASKS, Task } from "./tasks";
 
 export default function EndSessionScreen() {

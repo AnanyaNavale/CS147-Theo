@@ -12,6 +12,8 @@ import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { Timer } from "@/components/ui/Timer";
 
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
 
@@ -710,7 +712,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.lg,
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.light.background,
   },
   row: {
     flexDirection: "row",

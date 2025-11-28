@@ -77,10 +77,7 @@ export default function SingleDayScreen() {
               text={title}
               stroke="black"
               strokeWidth={0.3}
-              style={styles.sectionHeader}
-              width="100%" // fill the container
-              height={30} // optional fixed height
-              textAnchor="start"
+              textStyle={styles.sectionHeader}
             />
           </View>
         )}

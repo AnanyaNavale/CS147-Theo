@@ -5,6 +5,8 @@ import { Text, View } from "@/components/Themed";
 import SvgStrokeText from "@/components/SvgStrokeText";
 
 import { Feather } from "@expo/vector-icons";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 
 export default function ArchiveStackLayout() {
   const router = useRouter();
@@ -33,16 +35,13 @@ export default function ArchiveStackLayout() {
               <Feather
                 name={"arrow-left"}
                 size={36}
-                color="#8A5E3C"
+                color={colors.light.iconsStandalone}
                 // marginTop={90}
               />
             </TouchableOpacity>
             <View style={styles.dateContainer}>
               <SvgStrokeText
                 text={displayDate}
-                stroke="black"
-                strokeWidth={0.3}
-                style={styles.date}
               />
             </View>
           </View>
@@ -63,7 +62,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
     justifyContent: "flex-end",
-    backgroundColor: 'white',
+    backgroundColor: colors.light.background,
     // paddingTop: 80,
     // flexDirection: 'row',
     // borderWidth: 2,
@@ -73,7 +72,7 @@ const styles = StyleSheet.create({
     left: 16,
     top: 80,
     zIndex: 2,
-    backgroundColor: 'white',
+    backgroundColor: colors.light.background,
   },
   dateContainer: {
     position: "absolute",
@@ -84,11 +83,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
     // textAlign: "center",
     width: "100%",
-    backgroundColor: 'white',
-  },
-  date: {
-    color: "black",
-    fontSize: 22,
-    fontFamily: "AnticDidone-Regular",
+    backgroundColor: colors.light.background,
   },
 });
