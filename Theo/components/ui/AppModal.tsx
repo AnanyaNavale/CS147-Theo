@@ -1,17 +1,16 @@
+import { BlurView } from "expo-blur";
 import React from "react";
 import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TouchableOpacity,
   KeyboardAvoidingView,
+  Modal,
   Platform,
-  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { theme } from "../../design/theme";
+import { Button } from "./Button";
+import { Text } from "./Text";
 
 export type ModalVariant = "alert" | "custom" | "bottom-sheet";
 
@@ -53,26 +52,33 @@ export function AppModal({
       {variant === "alert" && (
         <View style={styles.centerLayout}>
           <View style={styles.alertCard}>
-            {title && <Text style={styles.title}>{title}</Text>}
+            {title && (
+              <Text variant={"h1"} style={styles.title}>
+                {title}
+              </Text>
+            )}
             {message && <Text style={styles.message}>{message}</Text>}
 
             <View style={styles.row}>
-              <Pressable
-                style={[styles.btn, styles.btnCancel]}
-                onPress={onClose}
-              >
-                <Text style={styles.btnCancelText}>{cancelLabel}</Text>
-              </Pressable>
+              <View style={[styles.flexButton, styles.buttonLeft]}>
+                <Button
+                  label={cancelLabel}
+                  variant="ghost"
+                  onPress={onClose}
+                  style={styles.fullWidthButton}
+                />
+              </View>
 
-              <Pressable
-                style={[styles.btn, styles.btnConfirm]}
-                onPress={() => {
-                  onConfirm?.();
-                  onClose();
-                }}
-              >
-                <Text style={styles.btnConfirmText}>{confirmLabel}</Text>
-              </Pressable>
+              <View style={[styles.flexButton, styles.buttonRight]}>
+                <Button
+                  label={confirmLabel}
+                  onPress={() => {
+                    onConfirm?.();
+                    onClose();
+                  }}
+                  style={styles.fullWidthButton}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -143,7 +149,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontFamily: theme.typography.families.handwritten,
+    //fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.xl,
     textAlign: "center",
     color: theme.colors.text,
@@ -161,34 +167,10 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.lg,
   },
 
-  btn: {
-    flex: 1,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radii.md,
-    alignItems: "center",
-  },
-
-  btnCancel: {
-    backgroundColor: "#EFE8DF",
-    marginRight: theme.spacing.sm,
-  },
-
-  btnCancelText: {
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-  },
-
-  btnConfirm: {
-    backgroundColor: theme.colors.accent,
-    marginLeft: theme.spacing.sm,
-  },
-
-  btnConfirmText: {
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
-    color: "#fff",
-  },
+  flexButton: { flex: 1 },
+  buttonLeft: { marginRight: theme.spacing.sm },
+  buttonRight: { marginLeft: theme.spacing.sm },
+  fullWidthButton: { width: "100%" },
 
   /* ---------------------- CUSTOM ---------------------- */
 
@@ -208,7 +190,7 @@ const styles = StyleSheet.create({
   },
 
   closeIcon: {
-    fontFamily: theme.typography.families.handwritten,
+    //fontFamily: theme.typography.families.handwritten,
     fontSize: 32,
     color: theme.colors.accentDark,
   },
@@ -249,7 +231,7 @@ const styles = StyleSheet.create({
 
   sheetTitle: {
     textAlign: "center",
-    fontFamily: theme.typography.families.handwritten,
+    //fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.xl,
     marginBottom: theme.spacing.md,
     color: theme.colors.text,

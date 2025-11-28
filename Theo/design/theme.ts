@@ -2,16 +2,17 @@
 export const theme = {
   colors: {
     background: "#FDF6EE",
+    ghost: "#f2f2f2ff",
     text: "#4A3728", // warm brown
     mutedText: "#8B7C6A",
     border: "#C8B39A",
 
-    accent: "#C89B52", // gold-brown
+    accent: "#CF9841", // gold-brown
     accentDark: "#8A5E3C",
     accentLight: "#E7C894",
 
-    danger: "#BB4B45",
-    dangerDark: "#9E3832",
+    danger: "#7C3030",
+    dangerDark: "#541c1cff",
 
     success: "#6BA269",
 
@@ -20,7 +21,7 @@ export const theme = {
       gold: ["#D7B47A", "#B88A4A"] as const,
       goldLight: ["#F3DDB4", "#E4B971"] as const,
       brown: ["#B8875C", "#8A5E3C"] as const,
-      danger: ["#C45B52", "#8A2D28"] as const,
+      danger: ["#7C3030", "#8A2D28"] as const,
     },
 
     overlay: "rgba(0,0,0,0.35)", // for blur + dim backgrounds
@@ -33,7 +34,7 @@ export const theme = {
     accentDark: "#8A5E3C",
     accent: "#D7B47A",
     accentLight: "#F3DDB4",
-    danger: "#C45B52",
+    danger: "#7C3030",
     white: "#fff",
   },
 
@@ -73,9 +74,11 @@ export const theme = {
 
   typography: {
     families: {
-      handwritten: "System", // TODO: modify once we decide on a font
-      regular: "System",
-      bold: "System",
+      handwritten: "AnticDidone-Regular",
+      regular: "Raleway-Regular",
+      medium: "Raleway-Medium",
+      bold: "Raleway-Bold",
+      serif: "PlayfairDisplay-Regular",
     },
 
     sizes: {

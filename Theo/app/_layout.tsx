@@ -1,17 +1,14 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
+import { fontMap } from "@/design/fonts";
 import { SupabaseProvider } from "@/providers/SupabaseProvider";
 
 export { ErrorBoundary } from "expo-router";
@@ -24,14 +21,7 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    "AnticDidone-Regular": require("../assets/fonts/AnticDidone-Regular.ttf"),
-    "CormorantGaramond-Regular": require("../assets/fonts/CormorantGaramond-Regular.ttf"),
-    "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf"),
-    "Raleway-Medium": require("../assets/fonts/Raleway-Medium.ttf"),
-    "Raleway-MediumItalic": require("../assets/fonts/Raleway-MediumItalic.ttf"),
-    ...FontAwesome.font,
-  });
+  const [loaded, error] = useFonts({ ...fontMap, ...FontAwesome.font });
 
   useEffect(() => {
     if (error) throw error;
@@ -62,6 +52,7 @@ function RootLayoutNav() {
             <Stack.Screen name="start-session" />
             <Stack.Screen name="new-session" />
             <Stack.Screen name="goal" />
+            <Stack.Screen name="finalize-session" />
             <Stack.Screen name="session-complete" />
             <Stack.Screen name="session-summary" />
 

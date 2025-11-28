@@ -1,19 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Image, StyleSheet, Pressable, Animated } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Image, Pressable, StyleSheet, View } from "react-native";
 
-import { Text } from "@/components/ui/Text";
-import { Button } from "@/components/ui/Button";
-import { Spacer } from "@/components/ui/Spacer";
 import { AppModal } from "@/components/ui/AppModal";
-import { Timer } from "@/components/ui/Timer";
-import { Menu } from "@/components/ui/Menu";
-import { Icon } from "@/components/ui/Icon";
+import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { Icon } from "@/components/ui/Icon";
 import { InputField } from "@/components/ui/InputField";
+import { Menu } from "@/components/ui/Menu";
+import { Spacer } from "@/components/ui/Spacer";
+import { Text } from "@/components/ui/Text";
+import { Timer } from "@/components/ui/Timer";
 
-import { theme } from "@/design/theme";
 import { PawLoader } from "@/components/ui/PawLoader";
+import { theme } from "@/design/theme";
 
 type Task = {
   id: string;

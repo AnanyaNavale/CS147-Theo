@@ -1,5 +1,3 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
@@ -13,12 +11,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
+import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { setSessionGoal } from "@/state/sessionGoal";
 
-const teddy = require("../assets/theo/working.png");
+const teddy = require("../assets/theo/waving.png");
 
 export default function GoalScreen() {
   const { breakdown } = useLocalSearchParams<{ breakdown?: string }>();
@@ -26,10 +27,13 @@ export default function GoalScreen() {
   const wantsBreakdown = breakdown === "1";
 
   const [goal, setGoal] = useState("");
+  const [showTaskPrompt, setShowTaskPrompt] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
+  const controlWidth = Math.min(width * 0.8, 320);
 
-  const disabled = goal.trim().length === 0;
+  const hasGoal = goal.trim().length > 0;
+  const primaryLabel = hasGoal ? "Continue" : "Skip to Task Manager";
 
   const teddySize = isCompact ? 180 : 220;
   const micSize = isCompact ? 62 : 70;
@@ -43,21 +47,29 @@ export default function GoalScreen() {
   );
 
   const handleContinue = () => {
-    if (disabled) return;
-
     const trimmedGoal = goal.trim();
     setSessionGoal(trimmedGoal);
 
-    if (wantsBreakdown) {
-      // go to breakdown screen and pass goal
-      router.push({
-        pathname: "../breakdown",
-        params: { goal: trimmedGoal },
-      });
-    } else {
-      // skip breakdown and go straight into session
-      router.push("../(tabs)/session");
+    if (!hasGoal) {
+      // Skip straight to task manager when no goal is provided
+      router.push("../breakdown");
+      return;
     }
+
+    // Ask whether to set up tasks for this goal
+    setShowTaskPrompt(true);
+  };
+
+  const handleYesTasks = () => {
+    router.push({
+      pathname: "../breakdown",
+      params: { goal: goal.trim() },
+    });
+  };
+
+  const handleSkipTasks = () => {
+    // Placeholder navigation for future flow
+    console.log("Skip tasks flow not implemented yet");
   };
 
   return (
@@ -67,43 +79,99 @@ export default function GoalScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-          >
-            <FontAwesome
-              name="arrow-left"
-              size={22}
-              color={theme.colors.accentDark}
-            />
-          </TouchableOpacity>
-          <View style={{ width: 22 }} />
-        </View>
-
-        <Spacer size="lg" />
-
-        <Text style={styles.prompt}>
-          Let's set a goal for{"\n"}your work...
-        </Text>
-
-        <Spacer size="lg" />
-
-        <Text style={styles.label}>GOAL:</Text>
-
-        <Spacer size="sm" />
-
-        <View style={[styles.inputShell, goalInputPadding]}>
-          <TextInput
-            value={goal}
-            onChangeText={setGoal}
-            placeholder="Tap here to input your goal"
-            placeholderTextColor="#B7B1AD"
-            multiline
-            style={styles.input}
-            textAlignVertical="top"
+          <StepProgressIndicator
+            steps={["Setup", "Customize", "Finalize"]}
+            activeCount={2}
+            onPressBack={() => router.back()}
+            onPressMenu={() => {}}
           />
         </View>
+
+        <Spacer size="xxl" />
+
+        {!showTaskPrompt ? (
+          <>
+            <Text style={styles.prompt}>
+              Would you like to set a goal for your work?
+            </Text>
+
+            <Spacer size="lg" />
+
+            <Text variant="h2" style={styles.label}>
+              GOAL:
+            </Text>
+
+            <Spacer size="md" />
+
+            <View
+              style={[
+                styles.inputShell,
+                goalInputPadding,
+                { width: controlWidth, alignSelf: "center" },
+              ]}
+            >
+              <TextInput
+                value={goal}
+                onChangeText={setGoal}
+                placeholder="Tap to input your goal"
+                placeholderTextColor="#B7B1AD"
+                multiline
+                style={styles.input}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <Spacer size="xxl" />
+            <Spacer size="xxl" />
+            <Spacer size="xxl" />
+
+            <View style={styles.primaryButtonWrapper}>
+              <Button
+                label={primaryLabel}
+                onPress={handleContinue}
+                variant="brown"
+                style={[styles.button, { width: controlWidth }]}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.prompt}>
+              Would you like to set up some tasks for your goal?
+            </Text>
+
+            <Spacer size="xxl" />
+
+            <View style={styles.goalDisplayRow}>
+              <Text variant="h2" style={styles.labelInline}>
+                GOAL:
+              </Text>
+              <Text style={styles.goalValue}>{goal.trim()}</Text>
+            </View>
+
+            <Spacer size="xxl" />
+
+            <View style={styles.primaryButtonWrapper}>
+              <Button
+                label="Yes, please!"
+                onPress={handleYesTasks}
+                variant="brown"
+                style={[styles.button, { width: controlWidth }]}
+              />
+            </View>
+
+            <Spacer size="lg" />
+
+            <View style={styles.primaryButtonWrapper}>
+              <Button
+                label="Skip this step"
+                onPress={handleSkipTasks}
+                variant="gold"
+                style={[styles.button, { width: controlWidth }]}
+              />
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <Image
@@ -111,36 +179,18 @@ export default function GoalScreen() {
         style={[styles.teddy, { width: teddySize, height: teddySize }]}
       />
 
-      <View style={styles.bottomRow}>
-        <TouchableOpacity
-          onPress={handleContinue}
-          disabled={disabled}
-          style={[
-            styles.nextButton,
-            disabled && styles.nextButtonDisabled,
-            { opacity: disabled ? 0.3 : 1 },
-          ]}
-        >
-          <FontAwesome
-            name="arrow-right"
-            size={22}
-            color={theme.colors.accentDark}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {}}
-          activeOpacity={0.9}
-          style={[styles.micWrapper, { width: micSize, height: micSize }]}
-        >
-          <LinearGradient
-            colors={theme.colors.gradients.brown}
-            style={styles.micBg}
-          >
-            <FontAwesome name="microphone" size={24} color="#fff" />
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        onPress={() => {}}
+        activeOpacity={0.9}
+        style={[
+          styles.micWrapper,
+          { width: micSize, height: micSize, right: theme.spacing.md },
+        ]}
+      >
+        <View style={styles.micBg}>
+          <Icon name="mic" size={40} tint="#fff" />
+        </View>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -153,69 +203,74 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
   },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   prompt: {
     textAlign: "center",
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-    lineHeight: 26,
+    fontFamily: theme.typography.families.serif,
+    fontSize: theme.typography.sizes.xl,
   },
   label: {
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
     color: theme.colors.accentDark,
     textAlign: "center",
   },
   inputShell: {
-    minHeight: 140,
     borderRadius: theme.radii.md,
+    borderWidth: 1,
+    borderColor: theme.colors.accentDark,
+    backgroundColor: "#FFF9F2",
   },
   input: {
     flex: 1,
-    fontFamily: theme.typography.families.handwritten,
+    fontFamily: theme.typography.families.regular,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text,
+  },
+  goalDisplayRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.spacing.sm,
+  },
+  labelInline: {
+    color: theme.colors.accentDark,
+  },
+  goalValue: {
+    fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
   },
   teddy: {
     position: "absolute",
-    left: theme.spacing.md,
-    bottom: theme.spacing.md,
+    left: theme.spacing.sm,
+    bottom: theme.spacing.xl,
     resizeMode: "contain",
   },
-  bottomRow: {
+  micWrapper: {
     position: "absolute",
-    right: theme.spacing.md,
-    bottom: theme.spacing.md,
-    alignItems: "flex-end",
-    gap: theme.spacing.md,
-  },
-  nextButton: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
+    bottom: theme.spacing.xl,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(138,94,60,0.08)",
-  },
-  nextButtonDisabled: {
-    borderColor: "#B8A895",
-  },
-  micWrapper: {
-    borderRadius: theme.radii.pill,
-    overflow: "hidden",
   },
   micBg: {
-    flex: 1,
+    //flex: 1,
+    width: 70,
+    height: 70,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: theme.radii.pill,
+    backgroundColor: theme.colors.accentDark,
+    ...theme.shadow.soft,
+  },
+  primaryButtonWrapper: {
+    alignItems: "center",
+  },
+  button: {
+    paddingVertical: theme.spacing.md,
   },
 });
