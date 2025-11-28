@@ -120,7 +120,6 @@ export function Button({
               {
                 fontSize: sizeTokens.fontSize,
                 color: getLabelColor(variant),
-                fontFamily: getFontFamily(variant),
               },
             ]}
           >
@@ -149,7 +148,7 @@ function getBackground(v: ButtonVariant) {
   if (v === "brown") return theme.colors.accentDark;
   if (v === "danger") return theme.colors.danger;
   if (v === "subtle") return "rgba(0,0,0,0.05)";
-  return "transparent";
+  return theme.colors.ghost;
 }
 
 function getLabelColor(v: ButtonVariant) {
@@ -158,13 +157,6 @@ function getLabelColor(v: ButtonVariant) {
   if (v === "ghost") return theme.colors.text;
   if (v === "subtle") return theme.colors.mutedText;
   return "#fff";
-}
-
-function getFontFamily(v: ButtonVariant) {
-  if (v === "ghost" || v === "outlineGold") {
-    return theme.typography.families.handwritten;
-  }
-  return theme.typography.families.regular;
 }
 
 const styles = StyleSheet.create({

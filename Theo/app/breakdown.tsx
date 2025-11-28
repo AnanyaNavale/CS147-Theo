@@ -17,10 +17,6 @@ import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 
-export const unstable_settings = {
-  headerShown: false,
-};
-
 type Task = {
   id: string;
   minutes: number;

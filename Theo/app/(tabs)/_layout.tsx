@@ -1,13 +1,10 @@
-import React from "react";
 import { Feather } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useRouter, Link, Tabs } from "expo-router";
-import { Image, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Tabs, useRouter } from "expo-router";
+import React from "react";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
-import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
-import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -88,19 +85,10 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="example"
-        options={{
-          title: "Styles",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="code" color={color} size={28} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
         name="session"
         options={{
           title: "Session",
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="book-open" color={color} size={28} />
           ),
