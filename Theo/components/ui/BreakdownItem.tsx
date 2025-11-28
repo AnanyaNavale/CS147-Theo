@@ -1,6 +1,7 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { theme } from "@/design/theme";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Text } from "./Text";
 
 export type BreakdownItemProps = {
   minutes: number;
@@ -42,7 +43,6 @@ const styles = StyleSheet.create({
 
   timeText: {
     color: theme.solidColors.white,
-    fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.md,
   },
 
@@ -60,8 +60,7 @@ const styles = StyleSheet.create({
 
   taskText: {
     color: theme.colors.text,
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     //lineHeight: 22,
   },
 });

@@ -1,20 +1,20 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
 import { Swipeable } from "react-native-gesture-handler";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Text } from "@/components/ui/Text";
-import { Spacer } from "@/components/ui/Spacer";
-import { BreakdownItem } from "@/components/ui/BreakdownItem";
-import { IconButton } from "@/components/ui/IconButton";
 import { AppModal } from "@/components/ui/AppModal";
-import { InputField } from "@/components/ui/InputField";
+import { BreakdownItem } from "@/components/ui/BreakdownItem";
 import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { InputField } from "@/components/ui/InputField";
+import { Spacer } from "@/components/ui/Spacer";
+import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
+import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 
 export const unstable_settings = {
@@ -128,7 +128,16 @@ export default function SessionBreakdownScreen() {
     });
   }
 
-  const renderItem = ({ item, drag, isActive }: RenderItemParams<Task>) => {
+  const renderItem = ({
+    item,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<Task>) => {
+    // Use the current list position so numbering stays sequential after reordering
+    const position = getIndex?.() ?? 0;
+    const taskNumber = position + 1;
+
     return (
       <Swipeable
         overshootRight={false}
@@ -138,14 +147,14 @@ export default function SessionBreakdownScreen() {
               style={[styles.swipeAction, styles.swipeEdit]}
               onPress={() => openEditModal(item)}
             >
-              <FontAwesome name="pencil" size={22} color="#fff" />
+              <Icon name="more" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeDelete]}
               onPress={() => requestDeleteTask(item.id)}
             >
-              <FontAwesome name="trash" size={22} color="#fff" />
+              <Icon name="trash" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
           </View>
         )}
@@ -155,7 +164,15 @@ export default function SessionBreakdownScreen() {
           onPress={() => openEditModal(item)}
           disabled={isActive}
         >
-          <BreakdownItem minutes={item.minutes} text={item.text} />
+          <View style={styles.taskRow}>
+            <View style={styles.taskIndexCircle}>
+              <Text style={styles.taskIndexText}>{taskNumber}</Text>
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <BreakdownItem minutes={item.minutes} text={item.text} />
+            </View>
+          </View>
         </TouchableOpacity>
       </Swipeable>
     );
@@ -163,37 +180,39 @@ export default function SessionBreakdownScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* HEADER */}
+      {/* TOP BAR WITH BACK + STEP PROGRESS + MENU */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => router.back()}>
-          <FontAwesome
-            name="arrow-left"
-            size={26}
-            color={theme.colors.accentDark}
-          />
+          <Icon name="arrow-left" size={34} tint={theme.colors.accentDark} />
         </TouchableOpacity>
 
-        <Text variant="h2" weight="bold" color="accentDark">
+        <StepProgressIndicator
+          steps={["Setup", "Customize", "Finalize"]}
+          activeCount={2}
+          style={styles.headerProgress}
+        />
+
+        <TouchableOpacity>
+          <Icon name="more-vertical" size={30} tint={theme.colors.accentDark} />
+        </TouchableOpacity>
+      </View>
+
+      <Spacer size="lg" />
+
+      {/* GOAL ROW */}
+      <View style={styles.goalRow}>
+        <Text variant="h1" color="accentDark" style={styles.goalLabel}>
           GOAL:
         </Text>
 
-        <View style={{ width: 26 }} />
+        <Text style={styles.goalValue} variant="h3">
+          {goalText}
+        </Text>
       </View>
 
       <Spacer size="sm" />
 
-      <Text style={styles.goalText} variant="h3" weight="bold">
-        {goalText}
-      </Text>
-
-      <Spacer size="lg" />
-
-      <Text
-        variant="h3"
-        weight="bold"
-        color="accentDark"
-        style={styles.taskHeader}
-      >
+      <Text variant="h2" color="accentDark" style={styles.taskHeader}>
         Tasks:
       </Text>
 
@@ -214,52 +233,81 @@ export default function SessionBreakdownScreen() {
             keyExtractor={(item) => item.id}
             onDragEnd={({ data }) => setTasks(data)}
             scrollEnabled
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingBottom: 24 }}
             renderItem={renderItem}
           />
         )}
       </View>
 
-      {/* FIXED BOTTOM BAR */}
+      {/* BOTTOM ACTIONS + CONTINUE */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity
-          onPress={() => setShowAddModal(true)}
-          style={styles.addButton}
-        >
-          <Text style={styles.plus}>+</Text>
-        </TouchableOpacity>
+        {/* ACTION ROW WITH THREE CIRCLES */}
+        <View style={styles.actionsRow}>
+          {/* Add task */}
+          <View style={styles.actionItem}>
+            <TouchableOpacity
+              onPress={() => setShowAddModal(true)}
+              style={[styles.actionCircle, styles.actionCircleNeutral]}
+            >
+              <Icon name="plus" size={40} tint={theme.solidColors.white} />
+            </TouchableOpacity>
+            <Text variant="small" weight="bold" style={styles.actionLabel}>
+              Add task
+            </Text>
+          </View>
 
-        <Spacer size="lg" />
+          {/* Regenerate */}
+          <View style={styles.actionItem}>
+            <TouchableOpacity
+              onPress={() => {}}
+              style={[styles.actionCircle, styles.actionCircleGold]}
+            >
+              <Icon name="refresh" size={35} tint={theme.solidColors.white} />
+            </TouchableOpacity>
+            <Text
+              variant="small"
+              weight="bold"
+              style={[styles.actionLabel, styles.goldText]}
+            >
+              Regenerate tasks
+            </Text>
+          </View>
 
-        <View style={styles.actionRow}>
-          <IconButton
-            label="Regenerate tasks"
-            icon="refresh"
-            onPress={() => {}}
-            style={{ flex: 1 }}
-          />
-
+          {/* Delete all */}
           {tasks.length > 0 && (
-            <IconButton
-              label="Delete all"
-              icon="trash"
-              variant="danger"
-              onPress={requestDeleteAll}
-              style={{ flex: 1 }}
-            />
+            <View style={styles.actionItem}>
+              <TouchableOpacity
+                onPress={requestDeleteAll}
+                style={[styles.actionCircle, styles.actionCircleDanger]}
+              >
+                <Icon name="trash" size={35} tint={theme.solidColors.white} />
+              </TouchableOpacity>
+              <Text
+                variant="small"
+                weight="bold"
+                style={[styles.actionLabel, { color: theme.colors.danger }]}
+              >
+                Delete all
+              </Text>
+            </View>
           )}
         </View>
 
-        <Spacer size="md" />
+        <Spacer size="lg" />
 
+        {/* CONTINUE ROW */}
         <TouchableOpacity
           onPress={() => setShowContinueConfirm(true)}
-          style={styles.continueArrow}
+          style={styles.continueRow}
         >
-          <FontAwesome
-            name="long-arrow-right"
-            size={34}
-            color={theme.colors.accentDark}
+          <Text variant="h2" style={styles.continueText}>
+            Continue
+          </Text>
+          <Icon
+            style={styles.continueArrow}
+            name="arrow-right"
+            size={100}
+            tint={theme.colors.accentDark}
           />
         </TouchableOpacity>
       </View>
@@ -380,13 +428,38 @@ const styles = StyleSheet.create({
 
   headerRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
   },
 
-  taskHeader: { paddingLeft: theme.spacing.lg },
+  headerProgress: {
+    flex: 1,
+    marginHorizontal: theme.spacing.lg,
+    paddingHorizontal: 0,
+    marginTop: 9,
+  },
+
+  goalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: theme.spacing.lg,
+    flexWrap: "wrap",
+  },
+
+  goalLabel: {
+    marginRight: theme.spacing.xs,
+  },
+
+  goalValue: {
+    flexShrink: 1,
+  },
+
+  taskHeader: {
+    paddingLeft: theme.spacing.lg,
+  },
 
   goalText: {
     textAlign: "center",
@@ -397,6 +470,31 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.sm,
+  },
+
+  taskRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: theme.spacing.sm,
+  },
+
+  taskIndexCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: theme.colors.accentDark,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: theme.spacing.md,
+  },
+
+  goldText: {
+    color: theme.colors.accent,
+  },
+  taskIndexText: {
+    color: theme.colors.accentDark,
   },
 
   bottomBar: {
@@ -407,34 +505,60 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.border,
   },
 
-  addButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  actionItem: {
+    flex: 1,
     alignItems: "center",
-    alignSelf: "center",
-    backgroundColor: theme.colors.accentDark,
+  },
+
+  actionCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
     ...theme.shadow.medium,
   },
 
-  plus: {
-    fontSize: 46,
-    color: theme.solidColors.white,
+  actionCircleNeutral: {
+    backgroundColor: theme.colors.accentDark,
   },
 
-  actionRow: {
+  actionCircleGold: {
+    backgroundColor: theme.colors.accent,
+  },
+
+  actionCircleDanger: {
+    backgroundColor: theme.colors.danger,
+  },
+
+  actionLabel: {
+    marginTop: theme.spacing.sm,
+    color: theme.colors.accentDark,
+    textAlign: "center",
+  },
+
+  continueRow: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
     gap: theme.spacing.md,
   },
 
-  continueArrow: {
-    alignSelf: "flex-end",
+  continueText: {
+    color: theme.colors.text,
   },
 
+  continueArrow: {
+    marginVertical: -35,
+  },
   swipeActions: {
     flexDirection: "row",
-    height: "93%",
+    height: "85%",
     borderRadius: theme.radii.lg,
     overflow: "hidden",
   },

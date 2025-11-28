@@ -10,6 +10,12 @@ const ICONS = {
   break: require("../../assets/icons/break.png"),
   "fast-forward": require("../../assets/icons/fast-forward.png"),
   more: require("../../assets/icons/more.png"),
+  "more-vertical": require("../../assets/icons/more-vertical.png"),
+  "arrow-left": require("../../assets/icons/arrow-left.png"),
+  "arrow-right": require("../../assets/icons/arrow-right.png"),
+  plus: require("../../assets/icons/plus.png"),
+  refresh: require("../../assets/icons/refresh.png"),
+  trash: require("../../assets/icons/trash.png"),
 } as const;
 
 // 2. Infer valid icon names
