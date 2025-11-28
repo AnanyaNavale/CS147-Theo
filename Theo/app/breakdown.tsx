@@ -231,6 +231,7 @@ export default function SessionBreakdownScreen() {
             scrollEnabled
             contentContainerStyle={{ paddingBottom: 24 }}
             renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
           />
         )}
       </View>
