@@ -1,6 +1,7 @@
 import React from "react";
-import { StyleSheet, View, ViewStyle } from "react-native";
+import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
+import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 
@@ -9,48 +10,87 @@ type StepProgressIndicatorProps = {
   /** Number of steps that should appear active (filled dots). */
   activeCount?: number;
   style?: ViewStyle;
+  showBackIcon?: boolean;
+  showMenuIcon?: boolean;
+  onPressBack?: () => void;
+  onPressMenu?: () => void;
+  tint?: string;
+  iconSize?: number;
 };
 
 export function StepProgressIndicator({
   steps,
   activeCount = 0,
   style,
+  showBackIcon = true,
+  showMenuIcon = true,
+  onPressBack,
+  onPressMenu,
+  tint = theme.colors.accentDark,
+  iconSize = 26,
 }: StepProgressIndicatorProps) {
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.trackRow}>
-        {steps.map((label, index) => {
-          const isActive = index < activeCount;
-          const isLast = index === steps.length - 1;
-
-          return (
-            <React.Fragment key={`${label}-track`}>
-              <View
-                style={[styles.stepDot, isActive ? styles.stepDotActive : null]}
-              />
-
-              {!isLast && <View style={styles.stepLine} />}
-            </React.Fragment>
-          );
-        })}
+      <View style={styles.iconSlot}>
+        {showBackIcon ? (
+          <TouchableOpacity
+            onPress={onPressBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Icon name="arrow-left" size={iconSize} tint={tint} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: iconSize, height: iconSize }} />
+        )}
       </View>
 
-      <View style={styles.labelRow}>
-        {steps.map((label, index) => {
-          const isActive = index < activeCount;
-          return (
-            <View key={`${label}-label`}>
-              <Text
-                style={[
-                  styles.stepLabel,
-                  !isActive ? styles.stepLabelInactive : null,
-                ]}
-              >
-                {label}
-              </Text>
-            </View>
-          );
-        })}
+      <View style={styles.progressArea}>
+        <View style={styles.trackRow}>
+          {steps.map((label, index) => {
+            const isActive = index < activeCount;
+            const isLast = index === steps.length - 1;
+            const isFirst = index === 0;
+
+            return (
+              <View key={`${label}-track`} style={styles.stepWrapper}>
+                {!isFirst && <View style={[styles.halfLine, styles.lineLeft]} />}
+                {!isLast && <View style={[styles.halfLine, styles.lineRight]} />}
+
+                <View
+                  style={[
+                    styles.stepDot,
+                    isActive ? styles.stepDotActive : null,
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.stepLabel,
+                    !isActive ? styles.stepLabelInactive : null,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.iconSlot}>
+        {showMenuIcon ? (
+          <TouchableOpacity
+            onPress={onPressMenu}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Menu"
+          >
+            <Icon name="more-vertical" size={iconSize - 4} tint={tint} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: iconSize, height: iconSize }} />
+        )}
       </View>
     </View>
   );
@@ -58,7 +98,14 @@ export function StepProgressIndicator({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: theme.spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: theme.spacing.md,
+    width: "100%",
+  },
+
+  progressArea: {
+    flex: 1,
   },
 
   trackRow: {
@@ -66,13 +113,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  labelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "stretch",
-    marginTop: theme.spacing.xs,
-    width: "112%",
-    marginLeft: -10,
+  stepWrapper: {
+    flex: 1,
+    alignItems: "center",
+    position: "relative",
+    paddingHorizontal: theme.spacing.xs,
+  },
+
+  halfLine: {
+    position: "absolute",
+    top: 7,
+    height: 2,
+    backgroundColor: theme.colors.border,
+    width: "50%",
+  },
+
+  lineLeft: {
+    left: 0,
+  },
+
+  lineRight: {
+    right: 0,
   },
 
   stepDot: {
@@ -88,15 +149,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.accentDark,
   },
 
-  stepLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: theme.spacing.sm,
-  },
-
   stepLabel: {
-    marginTop: 4,
+    marginTop: theme.spacing.xs,
     fontSize: theme.typography.sizes.sm,
     fontFamily: theme.typography.families.regular,
     color: theme.colors.accentDark,
@@ -104,5 +158,11 @@ const styles = StyleSheet.create({
 
   stepLabelInactive: {
     color: theme.colors.mutedText,
+  },
+
+  iconSlot: {
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

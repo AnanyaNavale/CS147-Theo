@@ -178,19 +178,13 @@ export default function SessionBreakdownScreen() {
     <SafeAreaView style={styles.safe}>
       {/* TOP BAR WITH BACK + STEP PROGRESS + MENU */}
       <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Icon name="arrow-left" size={34} tint={theme.colors.accentDark} />
-        </TouchableOpacity>
-
         <StepProgressIndicator
           steps={["Setup", "Customize", "Finalize"]}
           activeCount={2}
           style={styles.headerProgress}
+          onPressBack={() => router.back()}
+          onPressMenu={() => {}}
         />
-
-        <TouchableOpacity>
-          <Icon name="more-vertical" size={30} tint={theme.colors.accentDark} />
-        </TouchableOpacity>
       </View>
 
       <Spacer size="lg" />
@@ -425,17 +419,14 @@ const styles = StyleSheet.create({
 
   headerRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
   },
 
   headerProgress: {
     flex: 1,
     marginHorizontal: theme.spacing.lg,
     paddingHorizontal: 0,
-    marginTop: 9,
   },
 
   goalRow: {

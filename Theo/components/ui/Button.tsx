@@ -1,13 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 import { theme } from "../../design/theme";
+import { Text } from "./Text";
 
 type ButtonSize = "sm" | "md" | "lg";
 type ButtonVariant =
@@ -92,7 +87,7 @@ export function Button({
               {
                 color: "#fff",
                 fontSize: sizeTokens.fontSize,
-                fontFamily: theme.typography.families.bold,
+                fontFamily: theme.typography.families.regular,
               },
             ]}
           >
