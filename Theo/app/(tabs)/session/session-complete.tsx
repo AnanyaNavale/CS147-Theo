@@ -9,17 +9,17 @@ import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { getSessionGoal } from "@/state/sessionGoal";
 
-const teddy = require("../assets/theo/working.png");
+const teddy = require("../../../assets/theo/working.png");
 
 export default function SessionCompleteScreen() {
   const goal = getSessionGoal() || "Prep for CS 147 Midterm";
 
   const handleAllDone = () => {
-    router.replace("/(tabs)");
+    router.replace("../(tabs)");
   };
 
   const handleViewSummary = () => {
-    router.push("/session-summary");
+    router.push("../session-summary");
   };
 
   return (

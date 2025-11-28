@@ -49,21 +49,12 @@ function RootLayoutNav() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="modal" options={{ presentation: "modal" }} />
 
-            <Stack.Screen name="start-session" />
-            <Stack.Screen name="new-session" />
-            <Stack.Screen name="goal" />
-            <Stack.Screen name="finalize-session" />
-            <Stack.Screen name="session-complete" />
-            <Stack.Screen name="session-summary" />
-
             <Stack.Screen
               name="chat"
               options={{
                 presentation: "modal",
               }}
             />
-
-            <Stack.Screen name="breakdown" />
           </Stack>
         </ThemeProvider>
       </SupabaseProvider>

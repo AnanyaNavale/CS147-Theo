@@ -19,7 +19,7 @@ import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { setSessionGoal } from "@/state/sessionGoal";
 
-const teddy = require("../assets/theo/waving.png");
+const teddy = require("../../../assets/theo/waving.png");
 
 export default function GoalScreen() {
   const { breakdown } = useLocalSearchParams<{ breakdown?: string }>();
@@ -52,7 +52,7 @@ export default function GoalScreen() {
 
     if (!hasGoal) {
       // Skip straight to task manager when no goal is provided
-      router.push("../breakdown");
+      router.push("./breakdown");
       return;
     }
 
@@ -62,7 +62,7 @@ export default function GoalScreen() {
 
   const handleYesTasks = () => {
     router.push({
-      pathname: "../breakdown",
+      pathname: "./breakdown",
       params: { goal: goal.trim() },
     });
   };

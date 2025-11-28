@@ -110,7 +110,7 @@ export default function SessionBreakdownScreen() {
 
   function confirmContinue() {
     router.push({
-      pathname: "../finalize-session",
+      pathname: "./finalize-session",
       params: { tasks: JSON.stringify(tasks), goal: goalText },
     });
   }

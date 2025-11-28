@@ -1,14 +1,11 @@
 import React from "react";
-import {
-  Image,
-  StyleSheet,
-  View
-} from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 // import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "@/assets/themes/colors";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
-import { colors } from "@/assets/themes/colors";
+import { router } from "expo-router";
 
 const teddyBear = require("@/assets/theo/working.png");
 
@@ -28,14 +25,12 @@ export default function HomeScreen() {
         text={"Hi, " + userName}
         containerStyle={{ marginTop: 10, marginLeft: 7 }}
       />
-      <Image
-        source={teddyBear}
-        style={styles.heroImage}
-      />
+      <Image source={teddyBear} style={styles.heroImage} />
 
       <BasicButton
         text="Start a work session"
-        style={{ alignSelf: "center", marginTop: 50}}
+        style={{ alignSelf: "center", marginTop: 50 }}
+        onPress={() => router.push("../(tabs)/session")}
       />
       <BasicButton
         text="Get help with a goal"
@@ -58,12 +53,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.light.background,
-    borderColor: 'red',
+    borderColor: "red",
     // borderWidth: 1,
     padding: 16,
   },
   heroImage: {
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 30,
   },
 });

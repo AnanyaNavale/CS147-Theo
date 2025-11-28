@@ -16,7 +16,7 @@ import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 
-const teddy = require("../assets/theo/waving.png");
+const teddy = require("../../../assets/theo/waving.png");
 
 type Task = {
   id: string;
@@ -25,7 +25,10 @@ type Task = {
 };
 
 export default function FinalizeSessionScreen() {
-  const { goal, tasks } = useLocalSearchParams<{ goal?: string; tasks?: string }>();
+  const { goal, tasks } = useLocalSearchParams<{
+    goal?: string;
+    tasks?: string;
+  }>();
   const goalText = goal ?? "";
 
   const parsedTasks: Task[] = useMemo(() => {
@@ -56,7 +59,7 @@ export default function FinalizeSessionScreen() {
 
   const handleStartSession = () => {
     router.push({
-      pathname: "../(tabs)/session",
+      pathname: "./in-session",
       params: { goal: goalText, tasks: JSON.stringify(parsedTasks) },
     });
   };
