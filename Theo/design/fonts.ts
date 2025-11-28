@@ -1,6 +1,5 @@
 export const fontMap = {
   "AnticDidone-Regular": require("../assets/fonts/AnticDidone-Regular.ttf"),
-  "CormorantGaramond-Regular": require("../assets/fonts/CormorantGaramond-Regular.ttf"),
   "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf"),
   "Raleway-Medium": require("../assets/fonts/Raleway-Medium.ttf"),
   "Raleway-Bold": require("../assets/fonts/Raleway-Bold.ttf"),
