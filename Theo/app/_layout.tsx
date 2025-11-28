@@ -1,19 +1,15 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
-import { SupabaseProvider } from "@/providers/SupabaseProvider";
 import { fontMap } from "@/design/fonts";
+import { SupabaseProvider } from "@/providers/SupabaseProvider";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -56,6 +52,7 @@ function RootLayoutNav() {
             <Stack.Screen name="start-session" />
             <Stack.Screen name="new-session" />
             <Stack.Screen name="goal" />
+            <Stack.Screen name="finalize-session" />
             <Stack.Screen name="session-complete" />
             <Stack.Screen name="session-summary" />
 

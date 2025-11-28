@@ -25,19 +25,11 @@ type Task = {
 
 type DeleteMode = "single" | "all" | null;
 
-const MOCK_TASKS: Task[] = [
-  { id: "1", minutes: 60, text: "Complete Week 1 readings" },
-  { id: "2", minutes: 60, text: "Complete Week 2 readings" },
-  { id: "3", minutes: 60, text: "Complete Week 3 readings" },
-  { id: "4", minutes: 45, text: "Review weekly slides & lectures" },
-  { id: "5", minutes: 90, text: "Take practice midterm" },
-];
-
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
   const goalText = goal ?? "";
 
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -119,7 +111,7 @@ export default function SessionBreakdownScreen() {
   function confirmContinue() {
     setShowContinueConfirm(false);
     router.push({
-      pathname: "../(tabs)/session",
+      pathname: "../finalize-session",
       params: { tasks: JSON.stringify(tasks), goal: goalText },
     });
   }
@@ -187,18 +179,21 @@ export default function SessionBreakdownScreen() {
         />
       </View>
 
-      <Spacer size="lg" />
+      <Spacer size="md" />
 
       {/* GOAL ROW */}
-      <View style={styles.goalRow}>
-        <Text variant="h1" color="accentDark" style={styles.goalLabel}>
-          GOAL:
-        </Text>
 
-        <Text style={styles.goalValue} variant="h3">
-          {goalText}
-        </Text>
-      </View>
+      {goalText && (
+        <View style={styles.goalRow}>
+          <Text variant="h1" color="accentDark" style={styles.goalLabel}>
+            GOAL:
+          </Text>
+
+          <Text style={styles.goalValue} variant="h3">
+            {goalText}
+          </Text>
+        </View>
+      )}
 
       <Spacer size="sm" />
 
@@ -211,12 +206,26 @@ export default function SessionBreakdownScreen() {
       {/* LIST / EMPTY STATE */}
       <View style={styles.listContainer}>
         {tasks.length === 0 ? (
-          <Text
-            variant="body"
-            style={{ textAlign: "center", marginTop: theme.spacing.xl }}
-          >
-            No tasks added
-          </Text>
+          <>
+            <Spacer size="md" />
+            <Button
+              label="Create tasks yourself"
+              onPress={() => setShowAddModal(true)}
+              variant="brown"
+              style={styles.primaryActionButton}
+            />
+
+            <Spacer size="lg" />
+
+            <Button
+              label="Create tasks with AI"
+              onPress={() => {
+                // TODO: implement AI task generation
+              }}
+              variant="gold"
+              style={styles.primaryActionButton}
+            />
+          </>
         ) : (
           <DraggableFlatList
             data={tasks}
@@ -231,41 +240,43 @@ export default function SessionBreakdownScreen() {
       </View>
 
       {/* BOTTOM ACTIONS + CONTINUE */}
-      <View style={styles.bottomBar}>
-        {/* ACTION ROW WITH THREE CIRCLES */}
-        <View style={styles.actionsRow}>
-          {/* Add task */}
-          <View style={styles.actionItem}>
-            <TouchableOpacity
-              onPress={() => setShowAddModal(true)}
-              style={[styles.actionCircle, styles.actionCircleNeutral]}
-            >
-              <Icon name="plus" size={40} tint={theme.solidColors.white} />
-            </TouchableOpacity>
-            <Text variant="small" weight="bold" style={styles.actionLabel}>
-              Add task
-            </Text>
-          </View>
+      {tasks.length > 0 && (
+        <View style={styles.bottomBar}>
+          {/* ACTION ROW WITH THREE CIRCLES */}
+          <View style={styles.actionsRow}>
+            {/* Add task */}
+            <View style={styles.actionItem}>
+              <TouchableOpacity
+                onPress={() => setShowAddModal(true)}
+                style={[styles.actionCircle, styles.actionCircleNeutral]}
+              >
+                <Icon name="plus" size={40} tint={theme.solidColors.white} />
+              </TouchableOpacity>
+              <Text variant="small" weight="bold" style={styles.actionLabel}>
+                Add task
+              </Text>
+            </View>
 
-          {/* Regenerate */}
-          <View style={styles.actionItem}>
-            <TouchableOpacity
-              onPress={() => {}}
-              style={[styles.actionCircle, styles.actionCircleGold]}
-            >
-              <Icon name="refresh" size={35} tint={theme.solidColors.white} />
-            </TouchableOpacity>
-            <Text
-              variant="small"
-              weight="bold"
-              style={[styles.actionLabel, styles.goldText]}
-            >
-              Regenerate tasks
-            </Text>
-          </View>
+            {/* Regenerate */}
+            <View style={styles.actionItem}>
+              <TouchableOpacity
+                onPress={() => {
+                  // TODO: implement regenerate tasks
+                }}
+                style={[styles.actionCircle, styles.actionCircleGold]}
+              >
+                <Icon name="refresh" size={35} tint={theme.solidColors.white} />
+              </TouchableOpacity>
+              <Text
+                variant="small"
+                weight="bold"
+                style={[styles.actionLabel, styles.goldText]}
+              >
+                Regenerate tasks
+              </Text>
+            </View>
 
-          {/* Delete all */}
-          {tasks.length > 0 && (
+            {/* Delete all */}
             <View style={styles.actionItem}>
               <TouchableOpacity
                 onPress={requestDeleteAll}
@@ -281,27 +292,27 @@ export default function SessionBreakdownScreen() {
                 Delete all
               </Text>
             </View>
-          )}
+          </View>
+
+          <Spacer size="lg" />
+
+          {/* CONTINUE ROW */}
+          <TouchableOpacity
+            onPress={() => setShowContinueConfirm(true)}
+            style={styles.continueRow}
+          >
+            <Text variant="h2" style={styles.continueText}>
+              Continue
+            </Text>
+            <Icon
+              style={styles.continueArrow}
+              name="arrow-right"
+              size={100}
+              tint={theme.colors.accentDark}
+            />
+          </TouchableOpacity>
         </View>
-
-        <Spacer size="lg" />
-
-        {/* CONTINUE ROW */}
-        <TouchableOpacity
-          onPress={() => setShowContinueConfirm(true)}
-          style={styles.continueRow}
-        >
-          <Text variant="h2" style={styles.continueText}>
-            Continue
-          </Text>
-          <Icon
-            style={styles.continueArrow}
-            name="arrow-right"
-            size={100}
-            tint={theme.colors.accentDark}
-          />
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* EDIT MODAL */}
       <AppModal
@@ -458,7 +469,7 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.sm,
+    paddingTop: theme.spacing.md,
   },
 
   taskRow: {
@@ -543,6 +554,12 @@ const styles = StyleSheet.create({
 
   continueArrow: {
     marginVertical: -35,
+  },
+
+  primaryActionButton: {
+    alignSelf: "center",
+    minWidth: 220,
+    paddingVertical: theme.spacing.md,
   },
   swipeActions: {
     flexDirection: "row",
