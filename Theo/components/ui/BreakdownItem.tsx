@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: theme.radii.lg,
     marginBottom: theme.spacing.sm,
+    ...theme.shadow.soft,
   },
 
   timeBox: {

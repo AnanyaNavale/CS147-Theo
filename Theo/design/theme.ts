@@ -57,15 +57,15 @@ export const theme = {
 
   shadow: {
     soft: {
-      shadowColor: "#000",
-      shadowOpacity: 0.12,
+      shadowColor: "#8A5E3C",
+      shadowOpacity: 0.2,
       shadowRadius: 6,
       shadowOffset: { width: 0, height: 4 },
       elevation: 3,
     },
     medium: {
-      shadowColor: "#000",
-      shadowOpacity: 0.18,
+      shadowColor: "#8A5E3C",
+      shadowOpacity: 0.4,
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 6 },
       elevation: 6,
