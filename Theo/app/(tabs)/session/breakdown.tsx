@@ -38,6 +38,8 @@ export default function SessionBreakdownScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newText, setNewText] = useState("");
   const [newMinutes, setNewMinutes] = useState("");
+  const [newOrder, setNewOrder] = useState("");
+  const [newOrderError, setNewOrderError] = useState("");
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -97,16 +99,37 @@ export default function SessionBreakdownScreen() {
   function addTask() {
     if (!newText.trim() || !newMinutes.trim()) return;
 
+    const orderNumber = newOrder.trim() ? Number(newOrder) : null;
+    const maxPosition = tasks.length + 1;
+
+    if (
+      orderNumber !== null &&
+      (!Number.isInteger(orderNumber) ||
+        orderNumber < 1 ||
+        orderNumber > maxPosition)
+    ) {
+      setNewOrderError(`Enter 1 to ${maxPosition}`);
+      return;
+    }
+
     const newItem: Task = {
       id: Date.now().toString(),
       minutes: Number(newMinutes) || 0,
       text: newText.trim(),
     };
 
-    setTasks((prev) => [...prev, newItem]);
+    setTasks((prev) => {
+      if (orderNumber == null) return [...prev, newItem];
+      const insertAt = Math.max(0, Math.min(orderNumber - 1, prev.length));
+      const updated = [...prev];
+      updated.splice(insertAt, 0, newItem);
+      return updated;
+    });
 
     setNewText("");
     setNewMinutes("");
+    setNewOrder("");
+    setNewOrderError("");
     setShowAddModal(false);
   }
 
@@ -320,7 +343,7 @@ export default function SessionBreakdownScreen() {
         onClose={() => setEditingTask(null)}
         variant="bottom-sheet"
         title="Edit Task"
-        height={380}
+        height={340}
       >
         <InputField
           label="Description*"
@@ -367,33 +390,71 @@ export default function SessionBreakdownScreen() {
         onClose={() => setShowAddModal(false)}
         variant="bottom-sheet"
         title="Add Task"
-        height={340}
+        height={420}
+        //contentStyle={styles.taskModalContent}
+        //hideCloseButton
       >
-        <Spacer size={"md"}></Spacer>
         <InputField
           label="Description*"
           value={newText}
           onChangeText={setNewText}
           placeholder="Tap to input task description"
-          noBorder={true}
+          multiline
+          noBorder
         />
+
+        <Spacer size="md" />
 
         <InputField
           label="Length*"
           keyboardType="numeric"
           value={newMinutes}
           onChangeText={setNewMinutes}
-          placeholder="00 : 00 : 00"
-          row={true}
+          placeholder="00 : 00"
+          row
         />
 
         <Spacer size="md" />
-        <BasicButton
-          text="Add Task"
-          variant="secondary"
-          style={{ alignSelf: "center" }}
-          onPress={addTask}
+
+        <InputField
+          keyboardType="numeric"
+          value={newOrder}
+          onChangeText={(text) => {
+            setNewOrder(text);
+            setNewOrderError("");
+          }}
+          placeholder="e.g. 2"
+          row
+          centered
+          small
+          error={newOrderError}
+          label="(Optional) Order number"
         />
+
+        <Spacer size="lg" />
+
+        {(() => {
+          const canAdd =
+            newText.trim().length > 0 &&
+            newMinutes.trim().length > 0 &&
+            !newOrderError;
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                if (canAdd) addTask();
+              }}
+              disabled={!canAdd}
+              style={[
+                styles.actionCircle,
+                styles.actionCircleNeutral,
+                styles.smallActionCircle,
+                !canAdd && { opacity: 0.4 },
+              ]}
+            >
+              <Icon name="plus" size={40} tint={theme.solidColors.white} />
+            </TouchableOpacity>
+          );
+        })()}
       </AppModal>
 
       {/* DELETE CONFIRM (single or all) */}
@@ -603,5 +664,44 @@ const styles = StyleSheet.create({
 
   editButton: {
     flex: 1,
+  },
+  smallActionCircle: {
+    alignSelf: "flex-end",
+    width: 50,
+    height: 50,
+  },
+
+  taskModalContent: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: theme.spacing.md,
+  },
+  modalTitle: {
+    fontFamily: theme.typography.families.serif,
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text,
+  },
+  closeGlyph: {
+    fontSize: 28,
+    color: theme.colors.accentDark,
+    fontFamily: theme.typography.families.serif,
+  },
+  modalField: {
+    gap: theme.spacing.xs,
+  },
+  rowField: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modalLabel: {
+    fontFamily: theme.typography.families.regular,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.accentDark,
   },
 });
