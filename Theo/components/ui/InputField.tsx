@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.input.borderRadius,
     color: theme.colors.text,
     fontFamily: theme.typography.families.regular,
+    ...theme.shadow.soft,
   },
 
   smallInput: {

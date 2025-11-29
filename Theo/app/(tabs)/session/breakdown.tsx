@@ -584,10 +584,13 @@ const styles = StyleSheet.create({
 
   bottomBar: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
     backgroundColor: theme.colors.background,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    shadowColor: theme.colors.accentDark,
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 8,
   },
 
   actionsRow: {
