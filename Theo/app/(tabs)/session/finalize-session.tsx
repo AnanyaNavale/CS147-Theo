@@ -66,7 +66,7 @@ export default function FinalizeSessionScreen() {
   };
 
   const promptText = showSettings
-    ? "Starting a Work Session"
+    ? "Select session settings"
     : "Ready to get started?";
 
   return (
@@ -79,7 +79,6 @@ export default function FinalizeSessionScreen() {
           <StepProgressIndicator
             steps={["Setup", "Customize", "Finalize"]}
             activeCount={3}
-            onPressBack={() => router.back()}
             onPressMenu={() => {}}
           />
         </View>
@@ -124,11 +123,6 @@ export default function FinalizeSessionScreen() {
           </>
         ) : (
           <>
-            <View style={styles.divider} />
-            <Spacer size="md" />
-            <Text variant="h1" style={styles.prompt}>
-              Select Your Settings
-            </Text>
             <Spacer size="lg" />
 
             <View style={styles.checkboxList}>
@@ -171,7 +165,7 @@ export default function FinalizeSessionScreen() {
         source={teddy}
         style={[styles.teddy, { width: teddySize, height: teddySize }]}
       />
-      <ArrowAction label={"Skip"} onPress={handleStartSession} />
+      <ArrowAction label={"Start"} onPress={handleStartSession} />
     </SafeAreaView>
   );
 }

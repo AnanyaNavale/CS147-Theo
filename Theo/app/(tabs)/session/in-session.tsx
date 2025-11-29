@@ -145,7 +145,13 @@ export default function SessionScreen() {
   };
 
   const goToEndSession = () => {
-    router.push("./end-session");
+    router.push({
+      pathname: "./end-session",
+      params: {
+        goal: sessionGoal,
+        tasks: JSON.stringify(sessionTasks),
+      },
+    });
   };
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
@@ -429,7 +435,7 @@ export default function SessionScreen() {
                     onPress: () => setShowSkipConfirm(true),
                   },
                   {
-                    label: "Edit task",
+                    label: "Rename task",
                     onPress: () => {
                       setEditedTaskName(currentTask.name);
                       setShowEditTaskModal(true);
@@ -438,6 +444,10 @@ export default function SessionScreen() {
                   {
                     label: "View progress",
                     onPress: () => setShowProgressModal(true),
+                  },
+                  {
+                    label: "End session",
+                    onPress: () => setShowStopModal(true),
                   },
                 ]
               : [
@@ -476,7 +486,7 @@ export default function SessionScreen() {
         {sessionGoal ? (
           <>
             <SvgStrokeText
-              text="Goal"
+              text="Goal:"
               stroke={theme.colors.accentDark}
               textStyle={{ color: theme.colors.accentDark }}
             ></SvgStrokeText>
@@ -641,11 +651,9 @@ export default function SessionScreen() {
         onClose={() => setShowCompleteModal(false)}
         variant="bottom-sheet"
         title="Time is up. How did this task go?"
-        height={360}
+        height={400}
       >
-        <Text variant="h3" weight="bold">
-          Task options
-        </Text>
+        <Text variant="h3">Task options</Text>
         <Spacer size="sm" />
 
         <Button
@@ -661,11 +669,9 @@ export default function SessionScreen() {
           onPress={handleMarkTaskDoneAndBreak}
         />
 
-        <Spacer size="md" />
+        <Spacer size="lg" />
 
-        <Text variant="h3" weight="bold">
-          Session options
-        </Text>
+        <Text variant="h3">Session options</Text>
         <Spacer size="sm" />
 
         <Button
@@ -693,17 +699,18 @@ export default function SessionScreen() {
         onClose={() => setShowAddTimeModal(false)}
         variant="bottom-sheet"
         title="Add time to task"
-        height={300}
+        height={250}
       >
         <InputField
-          label="Minutes to add"
+          label="Minutes to add:"
           value={newTime}
           onChangeText={setNewTime}
           placeholder="e.g. 10"
           keyboardType="numeric"
+          row
         />
-
-        <Button label="Add Time" variant="gold" onPress={handleApplyTime} />
+        <Spacer />
+        <Button label="Add time" variant="gold" onPress={handleApplyTime} />
       </AppModal>
 
       <AppModal
@@ -737,7 +744,7 @@ export default function SessionScreen() {
         visible={showEditTaskModal}
         onClose={() => setShowEditTaskModal(false)}
         variant="bottom-sheet"
-        title="Edit task"
+        title="Rename task"
         height={270}
       >
         <InputField

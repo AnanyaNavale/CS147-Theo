@@ -25,7 +25,6 @@ export default function StartSessionScreen() {
           steps={["Setup", "Customize", "Finalize"]}
           activeCount={1}
           style={styles.headerProgress}
-          onPressBack={() => router.back()}
           onPressMenu={() => {}}
         />
       </View>

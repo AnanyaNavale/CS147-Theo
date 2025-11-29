@@ -47,7 +47,7 @@ export function AppModal({
   return (
     <Modal transparent visible={visible} animationType="fade">
       {/* BLUR BACKGROUND */}
-      <BlurView intensity={50} tint="light" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
 
       {/* --------------------------- ALERT MODAL --------------------------- */}
       {variant === "alert" && (
@@ -218,11 +218,14 @@ const styles = StyleSheet.create({
     backgroundColor: theme.modal.cardBg,
     borderTopLeftRadius: theme.radii.xl,
     borderTopRightRadius: theme.radii.xl,
-    borderWidth: theme.modal.borderWidth,
-    borderColor: theme.modal.borderColor,
     paddingTop: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.lg,
+    shadowColor: theme.colors.accentDark,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 10,
   },
 
   closeBtnSheet: {

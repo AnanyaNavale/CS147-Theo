@@ -1,6 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
@@ -26,6 +32,7 @@ type Task = {
 };
 
 type DeleteMode = "single" | "all" | null;
+const teddy = require("../../../assets/theo/waving.png");
 
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
@@ -45,10 +52,12 @@ export default function SessionBreakdownScreen() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteMode, setDeleteMode] = useState<DeleteMode>(null);
 
-  const [showContinueConfirm, setShowContinueConfirm] = useState(false);
-
   const [editText, setEditText] = useState("");
   const [editMinutes, setEditMinutes] = useState("");
+
+  const { width } = useWindowDimensions();
+  const isCompact = width < 360;
+  const teddySize = isCompact ? 180 : 220;
 
   function openEditModal(task: Task) {
     setEditingTask(task);
@@ -198,7 +207,6 @@ export default function SessionBreakdownScreen() {
           steps={["Setup", "Customize", "Finalize"]}
           activeCount={2}
           style={styles.headerProgress}
-          onPressBack={() => router.back()}
           onPressMenu={() => {}}
         />
       </View>
@@ -221,9 +229,22 @@ export default function SessionBreakdownScreen() {
 
       <Spacer size="xxl" />
       {tasks.length === 0 && (
-        <Text style={styles.prompt}>
-          Would you like to break down your goal into tasks?
-        </Text>
+        <>
+          {goalText ? (
+            <Text style={styles.prompt}>
+              Would you like to break down your goal into tasks?
+            </Text>
+          ) : (
+            <Text style={styles.prompt}>
+              Would you like to create tasks for this session?
+            </Text>
+          )}
+
+          <Image
+            source={teddy}
+            style={[styles.teddy, { width: teddySize, height: teddySize }]}
+          />
+        </>
       )}
       {tasks.length > 0 && (
         <Text variant="h2" color="accentDark" style={styles.taskHeader}>
@@ -703,5 +724,12 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.accentDark,
+  },
+  teddy: {
+    position: "absolute",
+    left: theme.spacing.sm,
+    bottom: theme.spacing.xl,
+    resizeMode: "contain",
+    zIndex: -1,
   },
 });

@@ -1,9 +1,15 @@
-import React, { useEffect, useRef } from "react";
-import { View, Animated, StyleSheet } from "react-native";
 import { theme } from "@/design/theme";
+import React, { useEffect, useRef } from "react";
+import { Animated, StyleSheet, View } from "react-native";
 import { Text } from "./Text";
 
-export function PawLoader() {
+type PawLoaderProps = {
+  message?: string;
+};
+
+export function PawLoader({
+  message = "Getting your session ready...",
+}: PawLoaderProps) {
   const anims = [
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
@@ -55,7 +61,7 @@ export function PawLoader() {
         <View style={styles.mainPad} />
       </View>
 
-      <Text variant="h3">Getting your session ready...</Text>
+      <Text variant="h3">{message}</Text>
     </View>
   );
 }
@@ -100,4 +106,9 @@ const styles = StyleSheet.create({
   toe2: { top: "3%", left: "40%" },
   toe3: { top: "10%", right: "20%" },
   toe4: { top: "22%", right: "6%" },
+
+  message: {
+    marginTop: theme.spacing.md,
+    textAlign: "center",
+  },
 });
