@@ -108,7 +108,7 @@ export default function SessionBreakdownScreen() {
         orderNumber < 1 ||
         orderNumber > maxPosition)
     ) {
-      setNewOrderError(`Enter 1 to ${maxPosition}`);
+      setNewOrderError(`The valid order numbers are 1 to ${maxPosition}`);
       return;
     }
 
