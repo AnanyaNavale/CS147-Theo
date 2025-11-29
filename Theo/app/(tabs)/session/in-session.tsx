@@ -1,18 +1,25 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Image, Pressable, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  Image,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import { AppModal } from "@/components/ui/AppModal";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon } from "@/components/ui/Icon";
 import { InputField } from "@/components/ui/InputField";
-import { Menu } from "@/components/ui/Menu";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { Timer } from "@/components/ui/Timer";
 
 import { colors } from "@/assets/themes/colors";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
 
@@ -55,7 +62,7 @@ export default function SessionScreen() {
     parsedTasks = [
       {
         id: Date.now().toString(),
-        text: `Work on: ${sessionGoal || "Goal"}`,
+        text: `Work towards anything you need!`,
         minutes: 20,
       },
     ];
@@ -124,6 +131,7 @@ export default function SessionScreen() {
   const [editedTaskName, setEditedTaskName] = useState("");
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   /* ANIMATION VALUES */
   const contentOpacity = useRef(new Animated.Value(1)).current;
@@ -139,6 +147,8 @@ export default function SessionScreen() {
   const goToEndSession = () => {
     router.push("./end-session");
   };
+
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   /* PRELOAD IMAGES */
   useEffect(() => {
@@ -387,48 +397,72 @@ export default function SessionScreen() {
 
   return (
     <View style={styles.container}>
+      {menuOpen && (
+        <Pressable
+          style={styles.menuOverlay}
+          onPress={() => setMenuOpen(false)}
+        />
+      )}
       {/* MENU */}
-      <View style={{ position: "absolute", top: 60, right: 20 }}>
-        <Menu
-          options={
-            [
-              currentTask
-                ? {
+      <View style={styles.menuAnchor}>
+        <TouchableOpacity onPress={toggleMenu} hitSlop={12}>
+          <Icon name="more-vertical" size={24} tint={theme.colors.accentDark} />
+        </TouchableOpacity>
+
+        {menuOpen && (
+          <View style={styles.menuCard}>
+            {(currentTask
+              ? [
+                  {
                     label: "Mark task done",
                     onPress: () => setShowCompleteModal(true),
-                  }
-                : null,
-              currentTask
-                ? {
+                  },
+                  {
                     label: "Add time to task",
                     onPress: () => {
                       setNewTime("");
                       setShowAddTimeModal(true);
                     },
-                  }
-                : null,
-              currentTask
-                ? {
+                  },
+                  {
                     label: "Skip task",
                     onPress: () => setShowSkipConfirm(true),
-                  }
-                : null,
-              currentTask
-                ? {
+                  },
+                  {
                     label: "Edit task",
                     onPress: () => {
                       setEditedTaskName(currentTask.name);
                       setShowEditTaskModal(true);
                     },
-                  }
-                : null,
-              {
-                label: "View progress",
-                onPress: () => setShowProgressModal(true),
-              },
-            ].filter(Boolean) as any
-          }
-        />
+                  },
+                  {
+                    label: "View progress",
+                    onPress: () => setShowProgressModal(true),
+                  },
+                ]
+              : [
+                  {
+                    label: "View progress",
+                    onPress: () => setShowProgressModal(true),
+                  },
+                ]
+            ).map((opt, idx, arr) => (
+              <View key={opt.label}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setMenuOpen(false);
+                    opt.onPress();
+                  }}
+                  style={styles.menuItem}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.menuLabel}>{opt.label}</Text>
+                </TouchableOpacity>
+                {idx < arr.length - 1 && <View style={styles.menuDivider} />}
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* GOAL + TASK */}
@@ -439,21 +473,37 @@ export default function SessionScreen() {
           opacity: contentOpacity,
         }}
       >
-        <Text variant="h2" color="accentDark">
-          Goal
-        </Text>
+        {sessionGoal ? (
+          <>
+            <SvgStrokeText
+              text="Goal"
+              stroke={theme.colors.accentDark}
+              textStyle={{ color: theme.colors.accentDark }}
+            ></SvgStrokeText>
 
-        <Text variant="h3" weight="bold">
-          {sessionGoal || "No goal provided"}
-        </Text>
+            <Text variant="h3" weight="bold">
+              {sessionGoal}
+            </Text>
+          </>
+        ) : (
+          <>
+            <SvgStrokeText
+              text="Work session"
+              stroke={theme.colors.accentDark}
+              textStyle={{ color: theme.colors.accentDark }}
+            ></SvgStrokeText>
+          </>
+        )}
 
         <Spacer size="md" />
 
         {currentTask ? (
           <>
-            <Text variant="h2" color="accentDark">
-              Task
-            </Text>
+            <SvgStrokeText
+              text="Task:"
+              stroke={theme.colors.accentDark}
+              textStyle={{ color: theme.colors.accentDark }}
+            ></SvgStrokeText>
 
             <View style={styles.taskRow}>
               <Text variant="h3">
@@ -643,7 +693,7 @@ export default function SessionScreen() {
         onClose={() => setShowAddTimeModal(false)}
         variant="bottom-sheet"
         title="Add time to task"
-        height={350}
+        height={300}
       >
         <InputField
           label="Minutes to add"
@@ -712,6 +762,46 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: colors.light.background,
+  },
+  menuAnchor: {
+    position: "absolute",
+    top: 60,
+    right: 20,
+    zIndex: 3,
+  },
+  menuOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+  },
+  menuCard: {
+    position: "absolute",
+    top: 40,
+    right: 0,
+    backgroundColor: theme.colors.accentDark,
+    borderRadius: theme.radii.lg,
+    paddingVertical: theme.spacing.xs,
+    minWidth: 200,
+    ...theme.shadow.medium,
+    zIndex: 4,
+  },
+  menuItem: {
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+  },
+  menuLabel: {
+    color: theme.solidColors.white,
+    fontFamily: theme.typography.families.regular,
+    fontSize: theme.typography.sizes.md,
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    opacity: 0.6,
+    marginHorizontal: theme.spacing.sm,
   },
   row: {
     flexDirection: "row",

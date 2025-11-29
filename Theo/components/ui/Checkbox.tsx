@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
   },
   box: {
-    borderWidth: theme.input.borderWidth,
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },

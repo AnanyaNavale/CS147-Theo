@@ -1,7 +1,7 @@
 // design/theme.ts
 export const theme = {
   colors: {
-    background: "#FDF6EE",
+    background: "#fff",
     ghost: "#f2f2f2ff",
     text: "#4A3728", // warm brown
     mutedText: "#8B7C6A",
@@ -101,23 +101,23 @@ export const theme = {
   input: {
     height: 48,
     paddingHorizontal: 14,
-    borderWidth: 2,
+    borderWidth: 1,
     borderRadius: 14,
-    borderColor: "#C8B39A",
+    borderColor: "#8A5E3C",
     placeholder: "#B8A895",
   },
 
   checkbox: {
     size: 22,
-    borderColor: "#8B674A",
-    checkColor: "#8B674A",
+    borderColor: "#8A5E3C",
+    checkColor: "#000",
     bg: "transparent",
   },
 
   modal: {
     cardBg: "#FFFFFF",
     radius: 18,
-    borderColor: "#BFA98D",
-    borderWidth: 3,
+    borderColor: "#8A5E3C",
+    borderWidth: 1,
   },
 };

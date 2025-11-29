@@ -2,13 +2,13 @@
 
 import React from "react";
 import {
-  View,
+  StyleSheet,
   Text,
   TextInput,
   TextInputProps,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  View,
+  ViewStyle,
 } from "react-native";
 import { theme } from "../../design/theme";
 
@@ -19,10 +19,11 @@ export type InputFieldProps = {
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
   errorStyle?: TextStyle;
-
+  row?: boolean;
   small?: boolean;
   centered?: boolean;
   noBorder?: boolean;
+  width?: ViewStyle["width"];
 } & TextInputProps;
 
 export const InputField = React.forwardRef<TextInput, InputFieldProps>(
@@ -33,16 +34,25 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
       small = false,
       centered = false,
       noBorder = false,
+      row = false,
       containerStyle,
       labelStyle,
       errorStyle,
       style,
+      width,
       ...rest
     },
     ref
   ) => {
     return (
-      <View style={[styles.container, containerStyle]}>
+      <View
+        style={[
+          styles.container,
+          width != null ? { width } : null,
+          containerStyle,
+          row && styles.row,
+        ]}
+      >
         {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
 
         <TextInput
@@ -53,6 +63,7 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
             centered && styles.centeredInput,
             noBorder && styles.noBorder,
             error && styles.inputError,
+            row && styles.rowInput,
             style,
           ]}
           placeholderTextColor={theme.input.placeholder}
@@ -71,11 +82,15 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md + 2,
   },
 
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   label: {
-    fontSize: theme.typography.sizes.md,
-    fontFamily: theme.typography.families.handwritten,
-    marginBottom: theme.spacing.xs,
-    color: theme.colors.text,
+    fontSize: theme.typography.sizes.lg,
+    fontFamily: theme.typography.families.regular,
+    marginBottom: theme.spacing.sm,
+    color: theme.colors.accentDark,
   },
 
   input: {
@@ -100,6 +115,10 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
 
+  rowInput: {
+    marginLeft: theme.spacing.sm,
+    width: "auto",
+  },
   centeredInput: {
     textAlign: "center",
   },
@@ -107,6 +126,8 @@ const styles = StyleSheet.create({
   noBorder: {
     borderWidth: 0,
     backgroundColor: "transparent",
+    paddingLeft: 0,
+    marginTop: -theme.spacing.sm,
   },
 
   inputError: {
