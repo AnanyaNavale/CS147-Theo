@@ -23,6 +23,7 @@ const ICONS = {
   exit: require("../../assets/icons/exit.png"),
   report: require("../../assets/icons/report.png"),
   help: require("../../assets/icons/help.png"),
+  drag: require("../../assets/icons/drag.png"),
 } as const;
 
 // 2. Infer valid icon names
