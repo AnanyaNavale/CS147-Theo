@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
@@ -35,10 +36,31 @@ export function StepProgressIndicator({
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const navigation = useNavigation();
 
   const toggleMenu = () => {
     onPressMenu?.();
     setMenuOpen((prev) => !prev);
+  };
+
+  const handleBack = () => {
+    setMenuOpen(false);
+    if (onPressBack) {
+      onPressBack();
+      return;
+    }
+
+    if (activeCount <= 1) {
+      router.replace("./");
+      return;
+    }
+
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    router.replace("../(tabs)/index");
   };
 
   const handleMenuAction = (action: () => void) => () => {
@@ -59,7 +81,7 @@ export function StepProgressIndicator({
       <View style={styles.iconSlot}>
         {showBackIcon ? (
           <TouchableOpacity
-            onPress={onPressBack}
+            onPress={handleBack}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Go back"

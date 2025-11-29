@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { InputField } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
 import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
@@ -33,7 +32,7 @@ export default function GoalScreen() {
   const isCompact = width < 360;
 
   const hasGoal = goal.trim().length > 0;
-  const primaryLabel = hasGoal ? "Continue" : "Skip";
+  const primaryLabel = hasGoal ? "Next" : "Skip";
 
   const teddySize = isCompact ? 180 : 220;
   const micSize = isCompact ? 30 : 36;
@@ -49,15 +48,8 @@ export default function GoalScreen() {
   const handleContinue = () => {
     const trimmedGoal = goal.trim();
     setSessionGoal(trimmedGoal);
-
-    if (!hasGoal) {
-      // Skip straight to task manager when no goal is provided
-      router.push("./breakdown");
-      return;
-    }
-
-    // Ask whether to set up tasks for this goal
-    setShowTaskPrompt(true);
+    router.push("./breakdown");
+    return;
   };
 
   const handleYesTasks = () => {
@@ -84,87 +76,49 @@ export default function GoalScreen() {
           <StepProgressIndicator
             steps={["Setup", "Customize", "Finalize"]}
             activeCount={2}
-            onPressBack={() => router.back()}
             onPressMenu={() => {}}
           />
         </View>
 
         <Spacer size="xxl" />
 
-        {!showTaskPrompt ? (
-          <View>
-            <Text style={styles.prompt}>
-              Would you like to set a goal for your work?
-            </Text>
+        <View>
+          <Text style={styles.prompt}>
+            Would you like to set a goal for your work?
+          </Text>
 
-            <Spacer size="lg" />
+          <Spacer size="lg" />
 
-            <Text variant="h2" style={styles.label}>
-              GOAL:
-            </Text>
+          <Text variant="h2" style={styles.label}>
+            GOAL:
+          </Text>
 
-            <Spacer size="md" />
+          <Spacer size="md" />
 
-            <View style={styles.inputContainer}>
-              <InputField
-                value={goal}
-                onChangeText={setGoal}
-                placeholder="Tap to input your goal"
-                textAlignVertical="center"
-                width="80%"
-                style={[styles.goalInput]}
-              />
+          <View style={styles.inputContainer}>
+            <InputField
+              value={goal}
+              onChangeText={setGoal}
+              placeholder="Tap to input your goal"
+              textAlignVertical="center"
+              width="80%"
+              style={[styles.goalInput]}
+            />
 
-              <TouchableOpacity
-                onPress={() => {}}
-                activeOpacity={0.9}
-                style={[
-                  styles.micWrapper,
-                  { width: micSize, height: micSize, right: theme.spacing.md },
-                ]}
-              >
-                <Icon
-                  name="mic"
-                  size={micSize}
-                  tint={theme.colors.accentDark}
-                />
-              </TouchableOpacity>
-            </View>
-            <Spacer size="xxl" />
-            <Spacer size="xxl" />
+            <TouchableOpacity
+              onPress={() => {}}
+              activeOpacity={0.9}
+              style={[
+                styles.micWrapper,
+                { width: micSize, height: micSize, right: theme.spacing.md },
+              ]}
+            >
+              <Icon name="mic" size={micSize} tint={theme.colors.accentDark} />
+            </TouchableOpacity>
           </View>
-        ) : (
-          <>
-            <Text style={styles.prompt}>
-              Would you like to set up some tasks for your goal?
-            </Text>
-
-            <Spacer size="xxl" />
-
-            <View style={styles.goalDisplayRow}>
-              <Text variant="h2" style={styles.labelInline}>
-                GOAL:
-              </Text>
-              <Text style={styles.goalValue}>{goal.trim()}</Text>
-            </View>
-
-            <Spacer size="xxl" />
-
-            <View>
-              <BasicButton text="Yes, please!" onPress={handleYesTasks} />
-            </View>
-
-            <Spacer size="lg" />
-
-            <View>
-              <BasicButton
-                text="Skip this step"
-                onPress={handleSkipTasks}
-                variant="secondary"
-              />
-            </View>
-          </>
-        )}
+          <Spacer size="xxl" />
+          <Spacer size="xxl" />
+        </View>
       </ScrollView>
 
       <Image
