@@ -1,6 +1,7 @@
 import { theme } from "@/design/theme";
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { Icon } from "./Icon";
 import { Text } from "./Text";
 
 export type BreakdownItemProps = {
@@ -17,6 +18,9 @@ export function BreakdownItem({ minutes, text }: BreakdownItemProps) {
 
       <View style={styles.taskBox}>
         <Text style={styles.taskText}>{text}</Text>
+        <View style={styles.grip}>
+          <Icon name="drag" size={30} tint={theme.colors.border} />
+        </View>
       </View>
     </View>
   );
@@ -55,6 +59,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: theme.radii.lg,
     paddingVertical: theme.spacing.md - 5,
     paddingHorizontal: theme.spacing.md,
+    paddingRight: theme.spacing.xl,
     //justifyContent: "center",
   },
 
@@ -62,5 +67,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.typography.sizes.sm,
     //lineHeight: 22,
+  },
+
+  grip: {
+    position: "absolute",
+    right: theme.spacing.xs,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
   },
 });
