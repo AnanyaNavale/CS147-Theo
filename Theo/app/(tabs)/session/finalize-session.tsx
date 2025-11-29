@@ -100,10 +100,9 @@ export default function FinalizeSessionScreen() {
               GOAL:
             </Text>
             <Text style={styles.goalValue}>{goalText}</Text>
+            <Spacer size="md" />
           </View>
         )}
-
-        <Spacer size="md" />
 
         {!showSettings ? (
           <>
@@ -147,7 +146,9 @@ export default function FinalizeSessionScreen() {
                 checked={friendsOnly}
                 onChange={setFriendsOnly}
                 label="Friends only, please!"
+                containerStyle={{ marginLeft: theme.spacing.xl }}
               />
+              <Spacer></Spacer>
               <Checkbox
                 checked={saveDefault}
                 onChange={setSaveDefault}
