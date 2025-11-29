@@ -27,12 +27,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "100%",
     height: 100,
-    borderRadius: theme.radii.lg,
+    borderRadius: 10,
     marginBottom: theme.spacing.sm,
   },
 
   timeBox: {
-    width: 100,
+    width: 80,
     backgroundColor: theme.colors.accentDark,
     borderTopLeftRadius: theme.radii.lg,
     borderBottomLeftRadius: theme.radii.lg,
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 
   taskText: {
     color: theme.colors.text,
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.md,
     //lineHeight: 22,
   },
 });

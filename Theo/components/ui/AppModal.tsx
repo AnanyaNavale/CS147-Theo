@@ -1,6 +1,7 @@
 import { BlurView } from "expo-blur";
 import React from "react";
 import {
+  Dimensions,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -9,8 +10,12 @@ import {
   View,
 } from "react-native";
 import { theme } from "../../design/theme";
+import { colors } from "@/assets/themes/colors";
 import { Button } from "./Button";
 import { Text } from "./Text";
+import SvgStrokeText from "../SvgStrokeText";
+import { Spacer } from "./Spacer";
+import { Feather } from "@expo/vector-icons";
 
 export type ModalVariant = "alert" | "custom" | "bottom-sheet";
 
@@ -43,8 +48,13 @@ export function AppModal({
   height = 360,
   children,
 }: AppModalProps) {
+
   return (
-    <Modal transparent visible={visible} animationType="fade">
+    <Modal
+      transparent
+      visible={visible}
+      animationType="fade"
+    >
       {/* BLUR BACKGROUND */}
       <BlurView intensity={50} tint="light" style={StyleSheet.absoluteFill} />
 
@@ -111,12 +121,21 @@ export function AppModal({
           >
             <View style={[styles.bottomSheet, { minHeight: height }]}>
               <TouchableOpacity onPress={onClose} style={styles.closeBtnSheet}>
-                <Text style={styles.closeIcon}>×</Text>
+                <Feather name="x" size={36} color={colors.light.iconsStandalone}/>
               </TouchableOpacity>
 
-              {title && <Text style={styles.sheetTitle}>{title}</Text>}
+              {title && (
+                <SvgStrokeText
+                  text={title}
+                  textStyle={{ fontSize: 24 }}
+                  containerStyle={{ alignSelf: "center" }}
+                />
+              )}
+
+              <Spacer size="md" />
 
               <View>{children}</View>
+              <Spacer size="md" />
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -216,8 +235,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.modal.cardBg,
     borderTopLeftRadius: theme.radii.xl,
     borderTopRightRadius: theme.radii.xl,
-    borderWidth: theme.modal.borderWidth,
-    borderColor: theme.modal.borderColor,
+    borderWidth: 2,
+    borderColor: colors.light.border,
     paddingTop: theme.spacing.xl,
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.lg,

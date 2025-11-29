@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
@@ -17,6 +17,10 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { isSearchBarAvailableForCurrentPlatform } from "react-native-screens";
+import { colors } from "@/assets/themes/colors";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { fonts } from "@/assets/themes/typography";
 
 type Task = {
   id: string;
@@ -185,9 +189,14 @@ export default function SessionBreakdownScreen() {
 
       {goalText && (
         <View style={styles.goalRow}>
-          <Text variant="h1" color="accentDark" style={styles.goalLabel}>
-            GOAL:
-          </Text>
+          <SvgStrokeText
+            text={"GOAL:"}
+            textStyle={{
+              color: colors.light.primary,
+              fontSize: fonts.sizes.header2,
+            }}
+            stroke={colors.light.header2}
+          />
 
           <Text style={styles.goalValue} variant="h3">
             {goalText}
@@ -197,21 +206,28 @@ export default function SessionBreakdownScreen() {
 
       <Spacer size="sm" />
 
-      <Text variant="h2" color="accentDark" style={styles.taskHeader}>
-        Tasks:
-      </Text>
+      <SvgStrokeText
+        text={"Tasks:"}
+        textStyle={{
+          color: colors.light.primary,
+          fontSize: fonts.sizes.header2,
+        }}
+        containerStyle={{ marginLeft: 10 }}
+        stroke={colors.light.header2}
+      />
 
-      <Spacer size="sm" />
+      {/* <Spacer size="sm" /> */}
 
       {/* LIST / EMPTY STATE */}
       <View style={styles.listContainer}>
         {tasks.length === 0 ? (
           <>
-            <Spacer size="md" />
+            {/* <Spacer size="md" /> */}
             <BasicButton
-              text="Create tasks yourself"
+              text="Create your tasks"
               onPress={() => setShowAddModal(true)}
               style={styles.primaryActionButton}
+              width={250}
             />
 
             <Spacer size="lg" />
@@ -219,22 +235,30 @@ export default function SessionBreakdownScreen() {
             <BasicButton
               text="Create tasks with AI"
               onPress={() => {
+                console.log("'Create tasks with AI' unimplemented.");
                 // TODO: implement AI task generation
               }}
               variant="secondary"
               style={styles.bottomButton}
+              width={250}
             />
+
             <TouchableOpacity
               onPress={confirmContinue}
               style={styles.continueRow}
             >
-              <Text variant="h2" style={styles.continueText}>
-                Skip
-              </Text>
+              <SvgStrokeText
+                text={"Skip"}
+                textStyle={{
+                  color: colors.light.body,
+                  fontSize: fonts.sizes.header2,
+                }}
+                containerStyle={{ marginTop: 5 }}
+              />
               <Icon
                 style={styles.continueArrow}
                 name="arrow-right"
-                size={100}
+                size={85}
                 tint={theme.colors.accentDark}
               />
             </TouchableOpacity>
@@ -314,9 +338,14 @@ export default function SessionBreakdownScreen() {
             onPress={confirmContinue}
             style={styles.continueRow}
           >
-            <Text variant="h2" style={styles.continueText}>
-              Continue
-            </Text>
+            <SvgStrokeText
+              text={"Continue"}
+              textStyle={{
+                color: colors.light.body,
+                fontSize: fonts.sizes.header2,
+              }}
+              containerStyle={{ marginBottom: 2 }}
+            />
             <Icon
               style={styles.continueArrow}
               name="arrow-right"
@@ -343,7 +372,7 @@ export default function SessionBreakdownScreen() {
         />
 
         <InputField
-          label="Minutes"
+          label="Task length (minutes)"
           keyboardType="numeric"
           value={editMinutes}
           onChangeText={setEditMinutes}
@@ -384,11 +413,11 @@ export default function SessionBreakdownScreen() {
           label="Task description"
           value={newText}
           onChangeText={setNewText}
-          placeholder="Describe the task..."
+          placeholder="Describe your task..."
         />
 
         <InputField
-          label="Minutes"
+          label="Task length (minutes)"
           keyboardType="numeric"
           value={newMinutes}
           onChangeText={setNewMinutes}
@@ -396,7 +425,13 @@ export default function SessionBreakdownScreen() {
         />
 
         <Spacer size="md" />
-        <Button label="Add Task" onPress={addTask} />
+        <BasicButton
+          text="Add Task"
+          onPress={addTask}
+          width={250}
+          style={{ alignSelf: "center" }}
+        />
+        {/* <Button label="Add Task" onPress={addTask} /> */}
       </AppModal>
 
       {/* DELETE CONFIRM (single or all) */}
@@ -426,7 +461,7 @@ export default function SessionBreakdownScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.light.background,
   },
 
   headerRow: {
@@ -454,7 +489,8 @@ const styles = StyleSheet.create({
   },
 
   goalValue: {
-    flexShrink: 1,
+    // flexShrink: 1,
+    paddingTop: 5,
   },
 
   taskHeader: {
@@ -500,9 +536,7 @@ const styles = StyleSheet.create({
   bottomBar: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
-    backgroundColor: theme.colors.background,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    backgroundColor: colors.light.background,
   },
 
   actionsRow: {
@@ -545,12 +579,12 @@ const styles = StyleSheet.create({
 
   continueRow: {
     position: "absolute",
-    bottom: theme.spacing.sm,
-    right: theme.spacing.md,
+    bottom: theme.spacing.xs,
+    right: theme.spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
 
   continueText: {

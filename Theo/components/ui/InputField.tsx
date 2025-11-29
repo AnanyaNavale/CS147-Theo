@@ -11,6 +11,7 @@ import {
   TextStyle,
 } from "react-native";
 import { theme } from "../../design/theme";
+import { colors } from "@/assets/themes/colors";
 
 export type InputFieldProps = {
   label?: string;
@@ -73,8 +74,8 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: theme.typography.sizes.md,
-    fontFamily: theme.typography.families.handwritten,
-    marginBottom: theme.spacing.xs,
+    fontFamily: theme.typography.families.regular,
+    marginBottom: theme.spacing.sm,
     color: theme.colors.text,
   },
 
@@ -83,11 +84,11 @@ const styles = StyleSheet.create({
     height: theme.input.height,
     paddingHorizontal: theme.input.paddingHorizontal,
     fontSize: theme.typography.sizes.md,
-    backgroundColor: theme.colors.background,
-    borderWidth: theme.input.borderWidth,
-    borderColor: theme.input.borderColor,
-    borderRadius: theme.input.borderRadius,
-    color: theme.colors.text,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    borderRadius: 10,
+    color: colors.light.body,
     fontFamily: theme.typography.families.regular,
   },
 

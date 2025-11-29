@@ -45,8 +45,7 @@ export default function StartSessionScreen() {
           <BasicButton
             text="Create a new session"
             onPress={handleCreateNew}
-            width={230}
-            height={60}
+            width={250}
           />
           <Spacer size="md" />
           <Text style={styles.actionDescription}>
@@ -66,8 +65,7 @@ export default function StartSessionScreen() {
               // TODO: implement copy flow
             }}
             variant="secondary"
-            width={230}
-            height={60}
+            width={250}
           />
           <Spacer size="md" />
           <View style={{ width: "80%" }}>
@@ -89,8 +87,7 @@ export default function StartSessionScreen() {
               // TODO: implement complete flow
             }}
             variant="tertiary"
-            width={230}
-            height={60}
+            width={250}
           />
           <Spacer size="md" />
           <View style={{ width: "80%" }}>

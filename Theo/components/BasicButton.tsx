@@ -20,6 +20,7 @@ export type BasicButtonProps = {
   shadowColor?: string;
   textStyle?: TextStyle;
   style?: ViewStyle;
+  disabled?: boolean;
 } & React.ComponentProps<typeof Pressable>;
 
 export const BasicButton = React.forwardRef<View, BasicButtonProps>(
@@ -33,6 +34,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
       shadowColor = colors.light.shadowPrimary,
       textStyle,
       style,
+      disabled = false,
       ...rest
     },
     ref
@@ -60,16 +62,26 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
 
     const { backgroundColor: bg, shadowColor: sc } = getColors(variant);
 
+    const finalBg = disabled
+      ? colors.light.inactive
+      : backgroundColor || bg;
+    const finalShadow = disabled
+      ? colors.light.shadowInactive
+      : shadowColor || sc;
+
     return (
       <Pressable
         ref={ref}
-        style={[
+        disabled={disabled}
+        style={({ pressed }) => [
           styles.base,
           {
             width,
             height,
             backgroundColor: bg,
             shadowColor: sc,
+            opacity: pressed ? 0.6 : 1, // ◀ fade effect
+            transform: [{ scale: pressed ? 0.97 : 1 }], // (optional nice press feedback)
           },
           style,
         ]}

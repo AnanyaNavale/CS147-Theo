@@ -148,14 +148,14 @@ const styles = StyleSheet.create({
   },
 
   stepDotActive: {
-    backgroundColor: theme.colors.accentDark,
+    backgroundColor: colors.light.progressBarComplete,
   },
 
   stepLabel: {
     marginTop: theme.spacing.xs,
     fontSize: theme.typography.sizes.sm,
     fontFamily: theme.typography.families.regular,
-    color: theme.colors.accentDark,
+    color: colors.light.progressBarComplete,
   },
 
   stepLabelInactive: {

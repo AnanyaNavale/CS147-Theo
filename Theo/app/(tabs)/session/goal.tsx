@@ -43,13 +43,14 @@ export default function GoalScreen() {
 
   const goalInputPadding = useMemo(
     () => ({
-      paddingHorizontal: theme.spacing.lg,
-      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
     }),
     []
   );
 
   const handleContinue = () => {
+    // Get AI summarized version - remove personal references, use action verbs
     const trimmedGoal = goal.trim();
     setSessionGoal(trimmedGoal);
 
@@ -94,15 +95,21 @@ export default function GoalScreen() {
 
         {!showTaskPrompt ? (
           <>
-            <Text style={styles.prompt}>
-              Would you like to set a goal for your work?
-            </Text>
+            <SvgStrokeText
+              text={"Would you like to set\na goal for your work?"}
+            />
 
             <Spacer size="lg" />
 
-            <Text variant="h2" style={styles.label}>
-              GOAL:
-            </Text>
+            <SvgStrokeText
+              text={"GOAL:"}
+              containerStyle={{ alignSelf: "center" }}
+              textStyle={{
+                color: colors.light.header2,
+                fontSize: fonts.sizes.header2,
+              }}
+              stroke={colors.light.header2}
+            />
 
             <Spacer size="md" />
 
@@ -117,10 +124,10 @@ export default function GoalScreen() {
                 value={goal}
                 onChangeText={setGoal}
                 placeholder="Tap to input your goal"
-                placeholderTextColor="#B7B1AD"
+                placeholderTextColor={colors.light.inputPlaceholder}
                 multiline
-                style={styles.input}
-                textAlignVertical="top"
+                style={[styles.input, { paddingTop: 0, paddingBottom: 0 }]}
+                textAlignVertical="center"
               />
             </View>
 
@@ -129,37 +136,55 @@ export default function GoalScreen() {
             <Spacer size="xxl" />
 
             <View style={styles.primaryButtonWrapper}>
-              <BasicButton text={primaryLabel} onPress={handleContinue} />
+              <BasicButton
+                text={primaryLabel}
+                onPress={handleContinue}
+                width={250}
+              />
             </View>
           </>
         ) : (
           <>
-            <Text style={styles.prompt}>
+            <SvgStrokeText
+              text={"Would you like to set\nsome tasks for your goal?"}
+              containerStyle={{ alignSelf: "center" }}
+            />
+            {/* <Text style={styles.prompt}>
               Would you like to set up some tasks for your goal?
-            </Text>
+            </Text> */}
 
             <Spacer size="xxl" />
 
             <View style={styles.goalDisplayRow}>
-              <Text variant="h2" style={styles.labelInline}>
-                GOAL:
-              </Text>
+              <SvgStrokeText
+                text={"GOAL:"}
+                textStyle={{
+                  color: colors.light.header2,
+                  fontSize: fonts.sizes.header2,
+                }}
+                stroke={colors.light.header2}
+              />
               <Text style={styles.goalValue}>{goal.trim()}</Text>
-            </View>
-
-            <Spacer size="xxl" />
-
-            <View style={styles.primaryButtonWrapper}>
-              <BasicButton text="Yes, please!" onPress={handleYesTasks} />
             </View>
 
             <Spacer size="lg" />
 
             <View style={styles.primaryButtonWrapper}>
               <BasicButton
+                text="Yes, please!"
+                onPress={handleYesTasks}
+                width={250}
+              />
+            </View>
+
+            <Spacer size="sm" />
+
+            <View style={styles.primaryButtonWrapper}>
+              <BasicButton
                 text="Skip this step"
                 onPress={handleSkipTasks}
                 variant="secondary"
+                width={250}
               />
             </View>
           </>
@@ -176,7 +201,12 @@ export default function GoalScreen() {
         activeOpacity={0.9}
         style={[
           styles.micWrapper,
-          { width: micSize, height: micSize, right: theme.spacing.md },
+          {
+            width: micSize,
+            height: micSize,
+            right: theme.spacing.xl,
+            bottom: theme.spacing.xxl,
+          },
         ]}
       >
         <View style={styles.micBg}>
@@ -190,7 +220,7 @@ export default function GoalScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FDF6EE",
+    backgroundColor: colors.light.background,
   },
   content: {
     flexGrow: 1,
@@ -212,16 +242,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   inputShell: {
-    borderRadius: theme.radii.md,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: theme.colors.accentDark,
-    backgroundColor: "#FFF9F2",
+    borderColor: colors.light.border,
+    backgroundColor: colors.light.background,
   },
   input: {
     flex: 1,
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
+    color: colors.light.body,
   },
   goalDisplayRow: {
     flexDirection: "row",
@@ -236,6 +266,8 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+    paddingTop: 6,
+    width: "70%",
   },
   teddy: {
     position: "absolute",
@@ -261,8 +293,5 @@ const styles = StyleSheet.create({
   },
   primaryButtonWrapper: {
     alignItems: "center",
-  },
-  button: {
-    paddingVertical: theme.spacing.md,
   },
 });
