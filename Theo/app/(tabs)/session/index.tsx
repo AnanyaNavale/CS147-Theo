@@ -13,6 +13,9 @@ import { BasicButton } from "@/components/BasicButton";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
+import SvgStrokeText from "@/components/SvgStrokeText";
 
 export default function StartSessionScreen() {
   const handleCreateNew = () => router.push("../(tabs)/session/goal");
@@ -35,14 +38,16 @@ export default function StartSessionScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text variant="h1" style={styles.subtitle}>
-          How would you like to get started?
-        </Text>
-
-        <Spacer size="xxl" />
+        <SvgStrokeText text={"How would you like to\nget started?"} />
+        <Spacer size="xl" />
 
         <View style={styles.actionBlock}>
-          <BasicButton text="Create a new session" onPress={handleCreateNew} />
+          <BasicButton
+            text="Create a new session"
+            onPress={handleCreateNew}
+            width={230}
+            height={60}
+          />
           <Spacer size="md" />
           <Text style={styles.actionDescription}>
             Set up a fresh goal or set of tasks.
@@ -50,7 +55,8 @@ export default function StartSessionScreen() {
         </View>
 
         <Spacer size="xl" />
-        <View style={styles.divider} />
+        <View style={styles.separator} />
+        {/* <View style={styles.divider} /> */}
         <Spacer size="xl" />
 
         <View style={styles.actionBlock}>
@@ -60,15 +66,20 @@ export default function StartSessionScreen() {
               // TODO: implement copy flow
             }}
             variant="secondary"
+            width={230}
+            height={60}
           />
           <Spacer size="md" />
-          <Text style={styles.actionDescription}>
-            Duplicate & edit a past session&apos;s goals, tasks, and timings.
-          </Text>
+          <View style={{ width: "80%" }}>
+            <Text style={styles.actionDescription}>
+              Duplicate & edit a past session&apos;s goals, tasks, and timings.
+            </Text>
+          </View>
         </View>
 
         <Spacer size="xl" />
-        <View style={styles.divider} />
+        <View style={styles.separator} />
+        {/* <View style={styles.divider} /> */}
         <Spacer size="xl" />
 
         <View style={styles.actionBlock}>
@@ -78,12 +89,15 @@ export default function StartSessionScreen() {
               // TODO: implement complete flow
             }}
             variant="tertiary"
-            //style={[styles.actionButton, { width: buttonWidth }]}
+            width={230}
+            height={60}
           />
           <Spacer size="md" />
-          <Text style={styles.actionDescription}>
-            Return to unfinished work sessions or mark sessions as completed.
-          </Text>
+          <View style={{ width: "80%" }}>
+            <Text style={styles.actionDescription}>
+              Use saved plans from the archive to begin a new session.
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -93,22 +107,18 @@ export default function StartSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FDF6EE",
+    backgroundColor: colors.light.background,
   },
   content: {
     flexGrow: 1,
     //paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.lg,
+    alignItems: "center",
   },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  subtitle: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.xl,
   },
   headerProgress: {
     flex: 1,
@@ -125,12 +135,19 @@ const styles = StyleSheet.create({
   actionDescription: {
     textAlign: "center",
     fontSize: theme.typography.sizes.sm + 2,
+    // width: "30%",
 
     paddingHorizontal: theme.spacing.xl,
   },
-  divider: {
+  separator: {
+    // marginVertical: 5,
     height: 1,
-    backgroundColor: "#CBB7A0",
-    marginHorizontal: theme.spacing.lg,
+    width: "80%",
+    backgroundColor: colors.light.separator,
   },
+  // divider: {
+  //   height: 1,
+  //   backgroundColor: "#CBB7A0",
+  //   marginHorizontal: theme.spacing.lg,
+  // },
 });

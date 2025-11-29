@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { colors } from "@/assets/themes/colors";
 
 type StepProgressIndicatorProps = {
   steps: string[];
@@ -26,7 +27,7 @@ export function StepProgressIndicator({
   showMenuIcon = true,
   onPressBack,
   onPressMenu,
-  tint = theme.colors.accentDark,
+  tint = colors.light.progressBarIncomplete,
   iconSize = 26,
 }: StepProgressIndicatorProps) {
   return (
@@ -39,7 +40,7 @@ export function StepProgressIndicator({
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Icon name="arrow-left" size={iconSize} tint={tint} />
+            <Icon name="arrow-left" size={36} tint={colors.light.iconsStandalone} />
           </TouchableOpacity>
         ) : (
           <View style={{ width: iconSize, height: iconSize }} />
@@ -86,7 +87,7 @@ export function StepProgressIndicator({
             accessibilityRole="button"
             accessibilityLabel="Menu"
           >
-            <Icon name="more-vertical" size={iconSize - 4} tint={tint} />
+            <Icon name="more-vertical" size={36} tint={colors.light.iconsStandalone} />
           </TouchableOpacity>
         ) : (
           <View style={{ width: iconSize, height: iconSize }} />
@@ -140,9 +141,10 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
-    backgroundColor: theme.colors.background,
+    // borderWidth: 2,
+    // borderColor: ,
+    backgroundColor: colors.light.progressBarIncomplete,
+    marginTop: 1,
   },
 
   stepDotActive: {
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
   },
 
   stepLabelInactive: {
-    color: theme.colors.mutedText,
+    color: colors.light.progressBarIncomplete,
   },
 
   iconSlot: {
