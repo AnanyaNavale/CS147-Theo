@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BasicButton } from "@/components/BasicButton";
+import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
@@ -30,6 +31,9 @@ export default function FinalizeSessionScreen() {
     tasks?: string;
   }>();
   const goalText = goal ?? "";
+  const { width } = useWindowDimensions();
+  const isCompact = width < 360;
+  const teddySize = isCompact ? 180 : 220;
 
   const parsedTasks: Task[] = useMemo(() => {
     if (!tasks) return [];
@@ -40,9 +44,6 @@ export default function FinalizeSessionScreen() {
       return [];
     }
   }, [tasks]);
-
-  const { width } = useWindowDimensions();
-  const controlWidth = Math.min(width * 0.8, 320);
 
   const [showSettings, setShowSettings] = useState(false);
   const [reflection, setReflection] = useState(false);
@@ -83,7 +84,9 @@ export default function FinalizeSessionScreen() {
           />
         </View>
 
-        <Spacer size="xl" />
+        <Spacer size="md" />
+
+        <Spacer size="xxl" />
 
         <Text variant="h1" style={styles.prompt}>
           {promptText}
@@ -163,7 +166,11 @@ export default function FinalizeSessionScreen() {
         )}
       </ScrollView>
 
-      <Image source={teddy} style={styles.teddy} />
+      <Image
+        source={teddy}
+        style={[styles.teddy, { width: teddySize, height: teddySize }]}
+      />
+      <ArrowAction label={"Skip"} onPress={handleStartSession} />
     </SafeAreaView>
   );
 }
@@ -223,9 +230,8 @@ const styles = StyleSheet.create({
   teddy: {
     position: "absolute",
     left: theme.spacing.sm,
-    bottom: theme.spacing.lg,
-    width: 160,
-    height: 200,
+    bottom: theme.spacing.xl,
     resizeMode: "contain",
+    zIndex: -1,
   },
 });

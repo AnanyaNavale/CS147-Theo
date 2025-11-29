@@ -23,6 +23,7 @@ export type InputFieldProps = {
   small?: boolean;
   centered?: boolean;
   noBorder?: boolean;
+  width?: ViewStyle["width"];
 } & TextInputProps;
 
 export const InputField = React.forwardRef<TextInput, InputFieldProps>(
@@ -38,12 +39,20 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
       labelStyle,
       errorStyle,
       style,
+      width,
       ...rest
     },
     ref
   ) => {
     return (
-      <View style={[styles.container, containerStyle, row && styles.row]}>
+      <View
+        style={[
+          styles.container,
+          width != null ? { width } : null,
+          containerStyle,
+          row && styles.row,
+        ]}
+      >
         {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
 
         <TextInput

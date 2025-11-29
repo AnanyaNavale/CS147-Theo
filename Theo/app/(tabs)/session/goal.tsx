@@ -4,14 +4,15 @@ import {
   Image,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { InputField } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
+import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
@@ -30,13 +31,12 @@ export default function GoalScreen() {
   const [showTaskPrompt, setShowTaskPrompt] = useState(false);
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
-  const controlWidth = Math.min(width * 0.8, 320);
 
   const hasGoal = goal.trim().length > 0;
-  const primaryLabel = hasGoal ? "Continue" : "Skip to Task Manager";
+  const primaryLabel = hasGoal ? "Continue" : "Skip";
 
   const teddySize = isCompact ? 180 : 220;
-  const micSize = isCompact ? 62 : 70;
+  const micSize = isCompact ? 30 : 36;
 
   const goalInputPadding = useMemo(
     () => ({
@@ -68,8 +68,10 @@ export default function GoalScreen() {
   };
 
   const handleSkipTasks = () => {
-    // Placeholder navigation for future flow
-    console.log("Skip tasks flow not implemented yet");
+    router.push({
+      pathname: "./finalize-session",
+      params: { goal: goal.trim() },
+    });
   };
 
   return (
@@ -90,7 +92,7 @@ export default function GoalScreen() {
         <Spacer size="xxl" />
 
         {!showTaskPrompt ? (
-          <>
+          <View>
             <Text style={styles.prompt}>
               Would you like to set a goal for your work?
             </Text>
@@ -103,31 +105,34 @@ export default function GoalScreen() {
 
             <Spacer size="md" />
 
-            <View
-              style={[
-                styles.inputShell,
-                goalInputPadding,
-                { width: controlWidth, alignSelf: "center" },
-              ]}
-            >
-              <TextInput
+            <View style={styles.inputContainer}>
+              <InputField
                 value={goal}
                 onChangeText={setGoal}
                 placeholder="Tap to input your goal"
-                placeholderTextColor="#B7B1AD"
-                multiline
-                style={styles.input}
-                textAlignVertical="top"
+                textAlignVertical="center"
+                width="80%"
+                style={[styles.goalInput]}
               />
-            </View>
 
+              <TouchableOpacity
+                onPress={() => {}}
+                activeOpacity={0.9}
+                style={[
+                  styles.micWrapper,
+                  { width: micSize, height: micSize, right: theme.spacing.md },
+                ]}
+              >
+                <Icon
+                  name="mic"
+                  size={micSize}
+                  tint={theme.colors.accentDark}
+                />
+              </TouchableOpacity>
+            </View>
             <Spacer size="xxl" />
             <Spacer size="xxl" />
-
-            <View style={styles.primaryButtonWrapper}>
-              <BasicButton text={primaryLabel} onPress={handleContinue} />
-            </View>
-          </>
+          </View>
         ) : (
           <>
             <Text style={styles.prompt}>
@@ -145,13 +150,13 @@ export default function GoalScreen() {
 
             <Spacer size="xxl" />
 
-            <View style={styles.primaryButtonWrapper}>
+            <View>
               <BasicButton text="Yes, please!" onPress={handleYesTasks} />
             </View>
 
             <Spacer size="lg" />
 
-            <View style={styles.primaryButtonWrapper}>
+            <View>
               <BasicButton
                 text="Skip this step"
                 onPress={handleSkipTasks}
@@ -167,18 +172,9 @@ export default function GoalScreen() {
         style={[styles.teddy, { width: teddySize, height: teddySize }]}
       />
 
-      <TouchableOpacity
-        onPress={() => {}}
-        activeOpacity={0.9}
-        style={[
-          styles.micWrapper,
-          { width: micSize, height: micSize, right: theme.spacing.md },
-        ]}
-      >
-        <View style={styles.micBg}>
-          <Icon name="mic" size={40} tint="#fff" />
-        </View>
-      </TouchableOpacity>
+      {!showTaskPrompt && (
+        <ArrowAction label={primaryLabel} onPress={handleContinue} />
+      )}
     </SafeAreaView>
   );
 }
@@ -207,17 +203,15 @@ const styles = StyleSheet.create({
     color: theme.colors.accentDark,
     textAlign: "center",
   },
+  goalInput: {
+    //textAlignVertical: "center",
+    //paddingVertical: theme.spacing.sm,
+  },
   inputShell: {
     borderRadius: theme.radii.md,
     borderWidth: 1,
     borderColor: theme.colors.accentDark,
     backgroundColor: theme.colors.background,
-  },
-  input: {
-    flex: 1,
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
   },
   goalDisplayRow: {
     flexDirection: "row",
@@ -241,25 +235,17 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   micWrapper: {
-    position: "absolute",
-    bottom: theme.spacing.xl,
     alignItems: "center",
     justifyContent: "center",
-  },
-  micBg: {
-    //flex: 1,
-    width: 70,
-    height: 70,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: theme.radii.pill,
-    backgroundColor: theme.colors.accentDark,
-    ...theme.shadow.soft,
-  },
-  primaryButtonWrapper: {
-    alignItems: "center",
+    marginLeft: theme.spacing.md,
   },
   button: {
     paddingVertical: theme.spacing.md,
+  },
+
+  inputContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

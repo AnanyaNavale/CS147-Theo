@@ -19,6 +19,10 @@ const ICONS = {
   mic: require("../../assets/icons/mic.png"),
   pencil: require("../../assets/icons/pencil.png"),
   x: require("../../assets/icons/x.png"),
+  ai: require("../../assets/icons/ai.png"),
+  exit: require("../../assets/icons/exit.png"),
+  report: require("../../assets/icons/report.png"),
+  help: require("../../assets/icons/help.png"),
 } as const;
 
 // 2. Infer valid icon names

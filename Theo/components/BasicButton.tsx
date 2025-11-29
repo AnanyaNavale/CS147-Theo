@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
+import { Icon, IconName } from "@/components/ui/Icon";
 
 export type BasicButtonProps = {
   text: string;
@@ -20,6 +21,9 @@ export type BasicButtonProps = {
   shadowColor?: string;
   textStyle?: TextStyle;
   style?: ViewStyle;
+  iconName?: IconName;
+  iconSize?: number;
+  iconTint?: string;
 } & React.ComponentProps<typeof Pressable>;
 
 export const BasicButton = React.forwardRef<View, BasicButtonProps>(
@@ -33,6 +37,9 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
       shadowColor = colors.light.shadowPrimary,
       textStyle,
       style,
+      iconName,
+      iconSize = 20,
+      iconTint = colors.light.buttonText,
       ...rest
     },
     ref
@@ -75,6 +82,9 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
         ]}
         {...rest}
       >
+        {iconName && (
+          <Icon name={iconName} size={iconSize} tint={iconTint} style={styles.icon} />
+        )}
         <Text style={[styles.text, textStyle]}>{text}</Text>
       </Pressable>
     );
@@ -83,6 +93,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
 
 const styles = StyleSheet.create({
   base: {
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
@@ -98,5 +109,9 @@ const styles = StyleSheet.create({
     color: colors.light.buttonText,
     fontSize: fonts.sizes.button,
     fontFamily: "Raleway-Regular",
+  },
+
+  icon: {
+    marginRight: 8,
   },
 });

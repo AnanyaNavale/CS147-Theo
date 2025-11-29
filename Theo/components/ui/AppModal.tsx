@@ -233,6 +233,7 @@ const styles = StyleSheet.create({
 
   sheetTitle: {
     textAlign: "center",
+    paddingHorizontal: theme.spacing.lg,
     fontSize: theme.typography.sizes.xl,
     marginBottom: theme.spacing.md,
     color: theme.colors.text,

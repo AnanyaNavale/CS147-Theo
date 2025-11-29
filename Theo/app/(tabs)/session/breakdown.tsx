@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BasicButton } from "@/components/BasicButton";
 import { AppModal } from "@/components/ui/AppModal";
+import { ArrowAction } from "@/components/ui/ArrowAction";
 import { BreakdownItem } from "@/components/ui/BreakdownItem";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
@@ -195,11 +196,17 @@ export default function SessionBreakdownScreen() {
         </View>
       )}
 
-      <Spacer size="sm" />
-
-      <Text variant="h2" color="accentDark" style={styles.taskHeader}>
-        Tasks:
-      </Text>
+      <Spacer size="xxl" />
+      {tasks.length === 0 && (
+        <Text style={styles.prompt}>
+          Would you like to break down your goal into tasks?
+        </Text>
+      )}
+      {tasks.length > 0 && (
+        <Text variant="h2" color="accentDark" style={styles.taskHeader}>
+          Tasks:
+        </Text>
+      )}
 
       <Spacer size="sm" />
 
@@ -218,26 +225,14 @@ export default function SessionBreakdownScreen() {
 
             <BasicButton
               text="Create tasks with AI"
+              iconName="ai"
+              iconSize={24}
               onPress={() => {
                 // TODO: implement AI task generation
               }}
               variant="secondary"
-              style={styles.bottomButton}
+              style={styles.primaryActionButton}
             />
-            <TouchableOpacity
-              onPress={confirmContinue}
-              style={styles.continueRow}
-            >
-              <Text variant="h2" style={styles.continueText}>
-                Skip
-              </Text>
-              <Icon
-                style={styles.continueArrow}
-                name="arrow-right"
-                size={100}
-                tint={theme.colors.accentDark}
-              />
-            </TouchableOpacity>
           </>
         ) : (
           <DraggableFlatList
@@ -251,6 +246,14 @@ export default function SessionBreakdownScreen() {
           />
         )}
       </View>
+
+      {/* SKIP ROW FOR EMPTY STATE */}
+      {tasks.length === 0 && (
+        <ArrowAction label="Skip" onPress={confirmContinue} />
+      )}
+      {tasks.length > 0 && (
+        <ArrowAction label="Continue" onPress={confirmContinue} />
+      )}
 
       {/* BOTTOM ACTIONS + CONTINUE */}
       {tasks.length > 0 && (
@@ -308,22 +311,6 @@ export default function SessionBreakdownScreen() {
           </View>
 
           <Spacer size="lg" />
-
-          {/* CONTINUE ROW */}
-          <TouchableOpacity
-            onPress={confirmContinue}
-            style={styles.continueRow}
-          >
-            <Text variant="h2" style={styles.continueText}>
-              Continue
-            </Text>
-            <Icon
-              style={styles.continueArrow}
-              name="arrow-right"
-              size={100}
-              tint={theme.colors.accentDark}
-            />
-          </TouchableOpacity>
         </View>
       )}
 
@@ -438,7 +425,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-
+  prompt: {
+    textAlign: "center",
+    fontFamily: theme.typography.families.serif,
+    fontSize: theme.typography.sizes.xl,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -555,7 +548,7 @@ const styles = StyleSheet.create({
 
   continueRow: {
     position: "absolute",
-    bottom: theme.spacing.sm,
+    bottom: theme.spacing.lg,
     right: theme.spacing.md,
     flexDirection: "row",
     alignItems: "center",
@@ -574,10 +567,11 @@ const styles = StyleSheet.create({
   primaryActionButton: {
     alignSelf: "center",
   },
+
   bottomButton: {
     alignSelf: "center",
     position: "absolute",
-    bottom: theme.spacing.xxl,
+    bottom: theme.spacing.xl * 2,
   },
 
   swipeActions: {
