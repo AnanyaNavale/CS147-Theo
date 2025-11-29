@@ -251,7 +251,7 @@ export default function SessionBreakdownScreen() {
       )}
       {tasks.length > 0 && (
         <SvgStrokeText
-              text={"Tasks: "} textStyle={{ color: colors.light.header2, fontSize: fonts.sizes.header2 }} stroke={colors.light.header2} containerStyle={{ right: 140 }}
+              text={"Tasks: "} textStyle={{ color: colors.light.header2, fontSize: fonts.sizes.header2 }} stroke={colors.light.header2} containerStyle={{ alignSelf: 'flex-start' }}
             />
       )}
 

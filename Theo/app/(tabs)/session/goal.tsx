@@ -88,14 +88,21 @@ export default function GoalScreen() {
         <View>
           <SvgStrokeText
             text={"Would you like to set\na goal for your work?"}
+            containerStyle={{ alignSelf: "center" }}
           />
 
           <Spacer size="lg" />
 
           <SvgStrokeText
-            text={"GOAL: "} stroke={colors.light.header2} textStyle={{ color: colors.light.header2, fontSize: fonts.sizes.header2 }}containerStyle={{ alignSelf: "flex-start" }}
+            text={"GOAL: "}
+            stroke={colors.light.header2}
+            textStyle={{
+              color: colors.light.header2,
+              fontSize: fonts.sizes.header2,
+            }}
+            containerStyle={{ alignSelf: "center" }}
           />
-    
+
           <Spacer size="md" />
 
           <View style={styles.inputContainer}>

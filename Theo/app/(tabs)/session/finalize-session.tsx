@@ -88,10 +88,7 @@ export default function FinalizeSessionScreen() {
 
         <Spacer size="xxl" />
 
-        <SvgStrokeText text={promptText} />
-        {/* <Text variant="h1" style={styles.prompt}>
-          {promptText}
-        </Text> */}
+        <SvgStrokeText text={promptText} containerStyle={{ alignSelf: 'center' }}/>
 
         <Spacer size="lg" />
 

@@ -28,6 +28,7 @@ export default function StartSessionScreen() {
           activeCount={1}
           style={styles.headerProgress}
           onPressMenu={() => {}}
+          firstPage={true}
         />
       </View>
 
@@ -36,7 +37,7 @@ export default function StartSessionScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <SvgStrokeText text={"How would you like to\nget started?"} />
+        <SvgStrokeText text={"How would you like to\nget started?"} containerStyle={{ alignSelf: 'center' }}/>
 
         <Spacer size="xxl" />
 

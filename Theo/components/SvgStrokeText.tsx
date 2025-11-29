@@ -9,9 +9,10 @@ export type SvgStrokeTextProps = {
   text: string;
   stroke?: string;
   strokeWidth?: number;
-
+  
   textStyle?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
+  textAnchor?: "start" | "middle" | "end"
 };
 
 export default function SvgStrokeText({
@@ -20,6 +21,7 @@ export default function SvgStrokeText({
   strokeWidth = 0.3,
   textStyle,
   containerStyle,
+  textAnchor = "middle",
 }: SvgStrokeTextProps) {
   // Flatten textStyle so we can extract font props
   const flattened = Array.isArray(textStyle)
@@ -38,12 +40,13 @@ export default function SvgStrokeText({
   const width = Math.max(...lines.map((l) => l.length)) * (fontSize * 0.6) + 10; // padding
 
   return (
-    <View style={[containerStyle, { alignContent: "center", alignSelf: 'center' }]}>
+    <View style={containerStyle}>
+    {/* <View style={[containerStyle, { alignSelf: 'center' }]}> */}
       <Svg width={width} height={height}>
         <SvgText
           x="50%"
           y={fontSize}
-          textAnchor="middle"
+          textAnchor={textAnchor}
           fontSize={fontSize}
           fontFamily={fontFamily}
           fill={fill}

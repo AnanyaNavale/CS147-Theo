@@ -14,6 +14,7 @@ type StepProgressIndicatorProps = {
   /** Number of steps that should appear active (filled dots). */
   activeCount?: number;
   style?: ViewStyle;
+  firstPage?: boolean;
   showBackIcon?: boolean;
   showMenuIcon?: boolean;
   onPressBack?: () => void;
@@ -26,6 +27,7 @@ export function StepProgressIndicator({
   steps,
   activeCount = 0,
   style,
+  firstPage = false,
   showBackIcon = true,
   showMenuIcon = true,
   onPressBack,
@@ -80,17 +82,33 @@ export function StepProgressIndicator({
       )}
 
       <View style={styles.iconSlot}>
-        {showBackIcon ? (
+        {firstPage ? (
           <TouchableOpacity
             onPress={handleBack}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Icon name="arrow-left" size={36} tint={colors.light.iconsStandalone} />
+            <Icon
+              name="x"
+              size={36}
+              tint={colors.light.iconsStandalone}
+            />
           </TouchableOpacity>
         ) : (
-          <View style={{ width: iconSize, height: iconSize }} />
+          <TouchableOpacity
+            onPress={handleBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Icon
+              name="arrow-left"
+              size={36}
+              tint={colors.light.iconsStandalone}
+            />
+          </TouchableOpacity>
+          // <View style={{ width: iconSize, height: iconSize }} />
         )}
       </View>
 
@@ -138,7 +156,11 @@ export function StepProgressIndicator({
             accessibilityRole="button"
             accessibilityLabel="Menu"
           >
-            <Icon name="more-vertical" size={36} tint={colors.light.iconsStandalone} />
+            <Icon
+              name="more-vertical"
+              size={36}
+              tint={colors.light.iconsStandalone}
+            />
           </TouchableOpacity>
         ) : (
           <View style={{ width: iconSize, height: iconSize }} />
