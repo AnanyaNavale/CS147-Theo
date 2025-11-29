@@ -135,7 +135,8 @@ const styles = StyleSheet.create({
   },
 
   error: {
-    marginTop: theme.spacing.xs,
+    position: "absolute",
+    marginTop: theme.spacing.xxl,
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.danger,
     fontFamily: theme.typography.families.regular,
