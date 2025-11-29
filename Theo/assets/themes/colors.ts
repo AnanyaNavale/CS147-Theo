@@ -13,7 +13,7 @@ export const colors = {
     navBar: "#8A5E3C",
 
     progressBarComplete: "#8A5E3C",
-    progressbarIncomplete: "#CFBEAD",
+    progressBarIncomplete: "#CFBEAD",
 
     inputLabel: "#8A5E3C",
     inputPlaceholder: "#A9A9A9",
@@ -44,9 +44,13 @@ export const colors = {
     shadowPrimary: "#8A5E3C80",
     shadowSecondary: "#CF984180",
     shadowTertiary: "#7C303080",
+    shadowInactive: "#A9A9A980",
 
     // Boxes
     border: "#8A5E3C",
+
+    // Separator
+    separator: "#A9A9A9",
   },
   dark: {
     // Screen

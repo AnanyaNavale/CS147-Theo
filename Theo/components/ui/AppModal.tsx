@@ -12,6 +12,8 @@ import { theme } from "../../design/theme";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
+import SvgStrokeText from "../SvgStrokeText";
+import { colors } from "@/assets/themes/colors";
 
 export type ModalVariant = "alert" | "custom" | "bottom-sheet";
 
@@ -54,11 +56,11 @@ export function AppModal({
         <View style={styles.centerLayout}>
           <View style={styles.alertCard}>
             {title && (
-              <Text variant={"h1"} style={styles.title}>
-                {title}
-              </Text>
+              <SvgStrokeText text={title}/>
             )}
-            {message && <Text style={styles.message}>{message}</Text>}
+            {message && 
+            <Text style={styles.message}>{message}</Text>
+            }
 
             <View style={styles.row}>
               <View style={[styles.flexButton, styles.buttonLeft]}>
@@ -73,6 +75,7 @@ export function AppModal({
               <View style={[styles.flexButton, styles.buttonRight]}>
                 <Button
                   label={confirmLabel}
+                  variant="danger"
                   onPress={() => {
                     onConfirm?.();
                     onClose();
@@ -93,7 +96,10 @@ export function AppModal({
               <Icon name="x"></Icon>
             </TouchableOpacity>
 
-            {title && <Text style={styles.title}>{title}</Text>}
+            {title && 
+            <SvgStrokeText text={title} />
+            // <Text style={styles.title}>{title}</Text>
+            }
 
             <View style={styles.customContent}>{children}</View>
           </View>

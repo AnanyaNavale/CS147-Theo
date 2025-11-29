@@ -16,6 +16,7 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import SvgStrokeText from "@/components/SvgStrokeText";
 
 const teddy = require("../../../assets/theo/waving.png");
 
@@ -87,9 +88,10 @@ export default function FinalizeSessionScreen() {
 
         <Spacer size="xxl" />
 
-        <Text variant="h1" style={styles.prompt}>
+        <SvgStrokeText text={promptText} />
+        {/* <Text variant="h1" style={styles.prompt}>
           {promptText}
-        </Text>
+        </Text> */}
 
         <Spacer size="lg" />
 
@@ -165,7 +167,7 @@ export default function FinalizeSessionScreen() {
         source={teddy}
         style={[styles.teddy, { width: teddySize, height: teddySize }]}
       />
-      <ArrowAction label={"Start"} onPress={handleStartSession} />
+      {/* <ArrowAction label={"Start"} onPress={handleStartSession} /> */}
     </SafeAreaView>
   );
 }
@@ -221,6 +223,8 @@ const styles = StyleSheet.create({
   },
   checkboxList: {
     gap: theme.spacing.sm,
+    width: "90%",
+    alignSelf: 'center',
   },
   teddy: {
     position: "absolute",

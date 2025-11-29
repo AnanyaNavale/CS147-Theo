@@ -24,6 +24,9 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 
 type Task = {
   id: string;
@@ -231,13 +234,13 @@ export default function SessionBreakdownScreen() {
       {tasks.length === 0 && (
         <>
           {goalText ? (
-            <Text style={styles.prompt}>
-              Would you like to break down your goal into tasks?
-            </Text>
+            <SvgStrokeText
+              text={"Would you like to set\nsome tasks for your goal?"}
+            />
           ) : (
-            <Text style={styles.prompt}>
-              Would you like to create tasks for this session?
-            </Text>
+            <SvgStrokeText
+              text={"Would you like to create\ntasks for this session?"}
+            />
           )}
 
           <Image
@@ -247,9 +250,9 @@ export default function SessionBreakdownScreen() {
         </>
       )}
       {tasks.length > 0 && (
-        <Text variant="h2" color="accentDark" style={styles.taskHeader}>
-          Tasks:
-        </Text>
+        <SvgStrokeText
+              text={"Tasks: "} textStyle={{ color: colors.light.header2, fontSize: fonts.sizes.header2 }} stroke={colors.light.header2} containerStyle={{ right: 140 }}
+            />
       )}
 
       <Spacer size="sm" />
@@ -260,7 +263,7 @@ export default function SessionBreakdownScreen() {
           <>
             <Spacer size="md" />
             <BasicButton
-              text="Create tasks yourself"
+              text="Create your tasks"
               onPress={() => setShowAddModal(true)}
               style={styles.primaryActionButton}
             />

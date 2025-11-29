@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleProp, TextStyle, ViewStyle } from "react-native";
-import Svg, { Text as SvgText } from "react-native-svg";
+import Svg, { Text as SvgText, TSpan } from "react-native-svg";
 
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
@@ -30,17 +30,19 @@ export default function SvgStrokeText({
   const fontFamily = flattened.fontFamily || fonts.typeface.header;
   const fill = flattened.color || colors.light.header1;
 
+  const lines = text.split(/\r?\n/);
+
   // Size SVG based on some simple estimate
-  const width = text.length * (fontSize * 0.6);
-  const height = fontSize * 1.2;
+  const lineHeight = fontSize * 1.3; // more breathing room
+  const height = lines.length * lineHeight; // padding to prevent clipping
+  const width = Math.max(...lines.map((l) => l.length)) * (fontSize * 0.6) + 10; // padding
 
   return (
-    <View style={containerStyle}>
+    <View style={[containerStyle, { alignContent: "center", alignSelf: 'center' }]}>
       <Svg width={width} height={height}>
         <SvgText
           x="50%"
-          y="50%"
-          alignmentBaseline="middle"
+          y={fontSize}
           textAnchor="middle"
           fontSize={fontSize}
           fontFamily={fontFamily}
@@ -48,7 +50,11 @@ export default function SvgStrokeText({
           stroke={stroke}
           strokeWidth={strokeWidth}
         >
-          {text}
+          {lines.map((line, index) => (
+            <TSpan key={index} x="50%" dy={index === 0 ? 0 : lineHeight}>
+              {line}
+            </TSpan>
+          ))}
         </SvgText>
       </Svg>
     </View>

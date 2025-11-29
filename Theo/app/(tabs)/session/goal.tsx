@@ -18,6 +18,9 @@ import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { setSessionGoal } from "@/state/sessionGoal";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 
 const teddy = require("../../../assets/theo/waving.png");
 
@@ -83,16 +86,16 @@ export default function GoalScreen() {
         <Spacer size="xxl" />
 
         <View>
-          <Text style={styles.prompt}>
-            Would you like to set a goal for your work?
-          </Text>
+          <SvgStrokeText
+            text={"Would you like to set\na goal for your work?"}
+          />
 
           <Spacer size="lg" />
 
-          <Text variant="h2" style={styles.label}>
-            GOAL:
-          </Text>
-
+          <SvgStrokeText
+            text={"GOAL: "} stroke={colors.light.header2} textStyle={{ color: colors.light.header2, fontSize: fonts.sizes.header2 }}containerStyle={{ alignSelf: "flex-start" }}
+          />
+    
           <Spacer size="md" />
 
           <View style={styles.inputContainer}>

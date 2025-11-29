@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import SvgStrokeText from "../SvgStrokeText";
 
 type ArrowActionProps = {
   label: string;
@@ -14,9 +15,10 @@ type ArrowActionProps = {
 export function ArrowAction({ label, onPress, style }: ArrowActionProps) {
   return (
     <TouchableOpacity onPress={onPress} style={[styles.container, style]}>
-      <Text variant="h2" style={styles.text}>
+      <SvgStrokeText text={label} containerStyle={{ paddingLeft: 10 }}/>
+      {/* <Text variant="h2" style={styles.text}>
         {label}
-      </Text>
+      </Text> */}
       <Icon
         style={styles.arrow}
         name="arrow-right"
@@ -43,5 +45,6 @@ const styles = StyleSheet.create({
   },
   arrow: {
     marginVertical: -35,
+    marginLeft: -5,
   },
 });

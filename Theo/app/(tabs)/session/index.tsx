@@ -13,6 +13,8 @@ import { BasicButton } from "@/components/BasicButton";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { colors } from "@/assets/themes/colors";
 
 export default function StartSessionScreen() {
   const handleCreateNew = () => router.push("../(tabs)/session/goal");
@@ -34,9 +36,7 @@ export default function StartSessionScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text variant="h1" style={styles.subtitle}>
-          How would you like to get started?
-        </Text>
+        <SvgStrokeText text={"How would you like to\nget started?"} />
 
         <Spacer size="xxl" />
 
@@ -81,7 +81,7 @@ export default function StartSessionScreen() {
           />
           <Spacer size="md" />
           <Text style={styles.actionDescription}>
-            Return to unfinished work sessions or mark sessions as completed.
+            Use saved plans from the archive to begin a new session.
           </Text>
         </View>
       </ScrollView>
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#CBB7A0",
+    backgroundColor: colors.light.separator,
     marginHorizontal: theme.spacing.lg,
   },
 });
