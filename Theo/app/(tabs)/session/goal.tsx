@@ -123,7 +123,6 @@ export default function GoalScreen() {
 
             <Spacer size="xxl" />
             <Spacer size="xxl" />
-            <Spacer size="xxl" />
 
             <View style={styles.primaryButtonWrapper}>
               <BasicButton text={primaryLabel} onPress={handleContinue} />
@@ -187,7 +186,7 @@ export default function GoalScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FDF6EE",
+    backgroundColor: theme.colors.background,
   },
   content: {
     flexGrow: 1,
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.md,
     borderWidth: 1,
     borderColor: theme.colors.accentDark,
-    backgroundColor: "#FFF9F2",
+    backgroundColor: theme.colors.background,
   },
   input: {
     flex: 1,
@@ -225,6 +224,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xl,
   },
   labelInline: {
     color: theme.colors.accentDark,

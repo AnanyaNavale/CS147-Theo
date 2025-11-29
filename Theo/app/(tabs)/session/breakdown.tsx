@@ -336,18 +336,20 @@ export default function SessionBreakdownScreen() {
         height={380}
       >
         <InputField
-          label="Task description"
+          label="Description*"
           value={editText}
           onChangeText={setEditText}
-          placeholder="Describe the task..."
+          placeholder="Tap to input task description"
+          noBorder={true}
         />
 
         <InputField
-          label="Minutes"
+          label="Length*"
           keyboardType="numeric"
           value={editMinutes}
           onChangeText={setEditMinutes}
-          placeholder="e.g. 45"
+          placeholder="00 : 00 : 00"
+          row={true}
         />
 
         <Spacer size="md" />
@@ -380,23 +382,31 @@ export default function SessionBreakdownScreen() {
         title="Add Task"
         height={340}
       >
+        <Spacer size={"md"}></Spacer>
         <InputField
-          label="Task description"
+          label="Description*"
           value={newText}
           onChangeText={setNewText}
-          placeholder="Describe the task..."
+          placeholder="Tap to input task description"
+          noBorder={true}
         />
 
         <InputField
-          label="Minutes"
+          label="Length*"
           keyboardType="numeric"
           value={newMinutes}
           onChangeText={setNewMinutes}
-          placeholder="e.g. 45"
+          placeholder="00 : 00 : 00"
+          row={true}
         />
 
         <Spacer size="md" />
-        <Button label="Add Task" onPress={addTask} />
+        <BasicButton
+          text="Add Task"
+          variant="secondary"
+          style={{ alignSelf: "center" }}
+          onPress={addTask}
+        />
       </AppModal>
 
       {/* DELETE CONFIRM (single or all) */}

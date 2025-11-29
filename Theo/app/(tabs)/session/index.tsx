@@ -93,7 +93,7 @@ export default function StartSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FDF6EE",
+    backgroundColor: theme.colors.background,
   },
   content: {
     flexGrow: 1,

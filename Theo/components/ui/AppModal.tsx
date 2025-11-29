@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { theme } from "../../design/theme";
 import { Button } from "./Button";
+import { Icon } from "./Icon";
 import { Text } from "./Text";
 
 export type ModalVariant = "alert" | "custom" | "bottom-sheet";
@@ -111,7 +112,7 @@ export function AppModal({
           >
             <View style={[styles.bottomSheet, { minHeight: height }]}>
               <TouchableOpacity onPress={onClose} style={styles.closeBtnSheet}>
-                <Text style={styles.closeIcon}>×</Text>
+                <Icon name="x" size={34}></Icon>
               </TouchableOpacity>
 
               {title && <Text style={styles.sheetTitle}>{title}</Text>}
@@ -218,20 +219,20 @@ const styles = StyleSheet.create({
     borderTopRightRadius: theme.radii.xl,
     borderWidth: theme.modal.borderWidth,
     borderColor: theme.modal.borderColor,
-    paddingTop: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.lg,
   },
 
   closeBtnSheet: {
     position: "absolute",
-    top: 12,
-    right: 16,
+    top: theme.spacing.lg,
+    left: theme.spacing.md,
+    zIndex: 20,
   },
 
   sheetTitle: {
     textAlign: "center",
-    //fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.xl,
     marginBottom: theme.spacing.md,
     color: theme.colors.text,
