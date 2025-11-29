@@ -90,7 +90,7 @@ export function AppModal({
         <View style={styles.centerLayout}>
           <View style={styles.customCard}>
             <TouchableOpacity onPress={onClose} style={styles.closeBtnFloating}>
-              <Text style={styles.closeIcon}>×</Text>
+              <Icon name="x"></Icon>
             </TouchableOpacity>
 
             {title && <Text style={styles.title}>{title}</Text>}
@@ -182,12 +182,13 @@ const styles = StyleSheet.create({
     borderWidth: theme.modal.borderWidth,
     borderColor: theme.modal.borderColor,
     padding: theme.spacing.xl,
+    paddingTop: theme.spacing.xxl,
   },
 
   closeBtnFloating: {
     position: "absolute",
     top: 14,
-    right: 14,
+    left: 14,
   },
 
   closeIcon: {

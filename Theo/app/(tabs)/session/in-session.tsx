@@ -19,6 +19,7 @@ import { Text } from "@/components/ui/Text";
 import { Timer } from "@/components/ui/Timer";
 
 import { colors } from "@/assets/themes/colors";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
 
@@ -474,9 +475,11 @@ export default function SessionScreen() {
       >
         {sessionGoal ? (
           <>
-            <Text variant="h1" color="accentDark">
-              Goal:
-            </Text>
+            <SvgStrokeText
+              text="Goal"
+              stroke={theme.colors.accentDark}
+              textStyle={{ color: theme.colors.accentDark }}
+            ></SvgStrokeText>
 
             <Text variant="h3" weight="bold">
               {sessionGoal}
@@ -484,9 +487,11 @@ export default function SessionScreen() {
           </>
         ) : (
           <>
-            <Text variant="h1" color="accentDark">
-              Work session
-            </Text>
+            <SvgStrokeText
+              text="Work session"
+              stroke={theme.colors.accentDark}
+              textStyle={{ color: theme.colors.accentDark }}
+            ></SvgStrokeText>
           </>
         )}
 
@@ -494,9 +499,11 @@ export default function SessionScreen() {
 
         {currentTask ? (
           <>
-            <Text variant="h1" color="accentDark">
-              Task:
-            </Text>
+            <SvgStrokeText
+              text="Task:"
+              stroke={theme.colors.accentDark}
+              textStyle={{ color: theme.colors.accentDark }}
+            ></SvgStrokeText>
 
             <View style={styles.taskRow}>
               <Text variant="h3">

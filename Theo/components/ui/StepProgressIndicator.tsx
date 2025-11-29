@@ -1,6 +1,8 @@
+import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
+import { AppModal } from "@/components/ui/AppModal";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
@@ -30,6 +32,9 @@ export function StepProgressIndicator({
   iconSize = 26,
 }: StepProgressIndicatorProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const toggleMenu = () => {
     onPressMenu?.();
@@ -122,28 +127,59 @@ export function StepProgressIndicator({
           <MenuItem
             label="Exit setup"
             icon="exit"
-            onPress={handleMenuAction(() => {
-              // TODO: wire exit handler globally
-            })}
+            onPress={handleMenuAction(() => setShowExitConfirm(true))}
           />
           <View style={styles.menuDivider} />
           <MenuItem
             label="Help"
             icon="help"
-            onPress={handleMenuAction(() => {
-              // TODO: wire help handler globally
-            })}
+            onPress={handleMenuAction(() => setShowHelpModal(true))}
           />
           <View style={styles.menuDivider} />
           <MenuItem
             label="Report a problem"
             icon="report"
-            onPress={handleMenuAction(() => {
-              // TODO: wire report handler globally
-            })}
+            onPress={handleMenuAction(() => setShowReportModal(true))}
           />
         </View>
       )}
+
+      {/* Exit confirmation */}
+      <AppModal
+        visible={showExitConfirm}
+        onClose={() => setShowExitConfirm(false)}
+        variant="alert"
+        title="Exit setup?"
+        message="This will leave the setup flow and return you home."
+        confirmLabel="Exit"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          setShowExitConfirm(false);
+          router.push("../");
+        }}
+      />
+
+      {/* Help modal */}
+      <AppModal
+        visible={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+        variant="custom"
+        title="Help"
+      >
+        <Text style={styles.modalBody}>Help content coming soon.</Text>
+      </AppModal>
+
+      {/* Report modal */}
+      <AppModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        variant="custom"
+        title="Report a problem"
+      >
+        <Text style={styles.modalBody}>
+          Reporting will be available shortly.
+        </Text>
+      </AppModal>
     </View>
   );
 }
@@ -275,5 +311,11 @@ const styles = StyleSheet.create({
     left: -1000,
     right: -1000,
     zIndex: 2,
+  },
+
+  modalBody: {
+    fontFamily: theme.typography.families.regular,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text,
   },
 });
