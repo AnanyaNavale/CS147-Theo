@@ -241,20 +241,21 @@ export async function fetchUserProfile(
 ///////////////////////////////
 
 export interface CreateSessionPayload {
-  user_id?: string | null;
+  user_id: string | null;
+  title: string;
+  has_settings: boolean;
+  total_time: number;
   status: string;
   has_goal: boolean;
-  goal?: string | null;
+  goal: string | null;
   has_tasks: boolean;
-  summary?: Json | null;
-  reflection_chat?: Json | null;
 }
 
 /**
- * Creates a new work session for a user.
+ * Creates a new active work session for a user.
  */
 export async function createSession(
-  userId: string,
+  userId: string | null,    // TODO: Users table
   hasGoal: boolean,
   goal?: string | null,
   hasTasks: boolean = false
@@ -263,12 +264,45 @@ export async function createSession(
     .from("sessions")
     .insert({
       user_id: userId,
+      title: "", // required
+      has_settings: true, // required
+      total_time: 0, // required
       status: "active",
       has_goal: hasGoal,
-      goal: goal ?? null,
+      goal: goal,
       has_tasks: hasTasks,
-      summary: null,
-      reflection_chat: null,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create session: ${error.message}`);
+  return data;
+}
+
+/**
+ * Creates a new work plan for a user.
+ * 
+ * Used for ARCHIVE.
+ */
+export async function createPlan(
+  userId: string | null, // TODO: Users table
+  hasGoal: boolean,
+  hasTasks: boolean = false,
+  total_time: number,
+  title?: string,
+  goal?: string | null
+): Promise<WorkSession> {
+  const { data, error } = await supabase
+    .from("sessions")
+    .insert({
+      user_id: userId,
+      title: title,
+      has_settings: false, // required
+      total_time: total_time, // required
+      status: "planned",
+      has_goal: hasGoal,
+      goal: goal,
+      has_tasks: hasTasks,
     })
     .select()
     .single();

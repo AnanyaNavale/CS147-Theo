@@ -23,8 +23,8 @@ export interface Database {
           has_goal: boolean;
           goal: string | null;
           has_tasks: boolean;
-          summary: Json | null;
-          reflection_chat: Json | null;
+          // summary: Json | null;
+          // reflection_chat: Json | null;
         };
         Insert: {
           id?: string;
@@ -38,8 +38,8 @@ export interface Database {
           has_goal: boolean;
           goal?: string | null;
           has_tasks: boolean;
-          summary?: Json | null;
-          reflection_chat?: Json | null;
+          // summary?: Json | null;
+          // reflection_chat?: Json | null;
         };
         Update: {
           id?: string;
@@ -53,8 +53,8 @@ export interface Database {
           has_goal?: boolean;
           goal?: string | null;
           has_tasks?: boolean;
-          summary?: Json | null;
-          reflection_chat?: Json | null;
+          // summary?: Json | null;
+          // reflection_chat?: Json | null;
         };
         Relationships: [];
       };
