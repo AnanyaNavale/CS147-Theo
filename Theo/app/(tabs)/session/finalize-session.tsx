@@ -15,6 +15,9 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { colors } from "@/assets/themes/colors";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { fonts } from "@/assets/themes/typography";
 
 const teddy = require("../../../assets/theo/waving.png");
 
@@ -85,17 +88,22 @@ export default function FinalizeSessionScreen() {
 
         <Spacer size="xl" />
 
-        <Text variant="h1" style={styles.prompt}>
-          {promptText}
-        </Text>
-
+        <SvgStrokeText
+          text={promptText}
+          containerStyle={{ alignSelf: "center" }}
+        />
         <Spacer size="lg" />
 
         {goalText && (
           <View style={styles.goalRow}>
-            <Text variant="h2" style={styles.goalLabel}>
-              GOAL:
-            </Text>
+            <SvgStrokeText
+              text={"GOAL:"}
+              textStyle={{
+                color: colors.light.header2,
+                fontSize: fonts.sizes.header2,
+              }}
+              stroke={colors.light.header2}
+            />
             <Text style={styles.goalValue}>{goalText}</Text>
           </View>
         )}
@@ -109,6 +117,7 @@ export default function FinalizeSessionScreen() {
               text="Select session settings"
               onPress={handleSelectSettings}
               style={styles.button}
+              width={250}
             />
 
             <Spacer size="md" />
@@ -118,15 +127,20 @@ export default function FinalizeSessionScreen() {
               onPress={handleSavePlan}
               variant="secondary"
               style={styles.button}
+              width={250}
             />
           </>
         ) : (
           <>
             <View style={styles.divider} />
             <Spacer size="md" />
-            <Text variant="h1" style={styles.prompt}>
+            <SvgStrokeText
+              text="Select Your Settings"
+              containerStyle={{ alignSelf: "center" }}
+            />
+            {/* <Text variant="h1" style={styles.prompt}>
               Select Your Settings
-            </Text>
+            </Text> */}
             <Spacer size="lg" />
 
             <View style={styles.checkboxList}>
@@ -158,6 +172,7 @@ export default function FinalizeSessionScreen() {
               text="Start your session"
               onPress={handleStartSession}
               style={styles.button}
+              width={250}
             />
           </>
         )}
@@ -171,7 +186,7 @@ export default function FinalizeSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.light.background,
   },
   content: {
     flexGrow: 1,
@@ -200,14 +215,15 @@ const styles = StyleSheet.create({
   goalValue: {
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
+    color: colors.light.body,
+    paddingTop: 6,
   },
   button: {
     alignSelf: "center",
   },
   divider: {
     height: 1,
-    backgroundColor: theme.colors.border,
+    backgroundColor: colors.light.separator,
     marginHorizontal: theme.spacing.md,
     marginTop: theme.spacing.md,
   },
@@ -219,6 +235,10 @@ const styles = StyleSheet.create({
   },
   checkboxList: {
     gap: theme.spacing.sm,
+    width: "90%",
+    borderColor: 'red',
+    // borderWidth: 1,
+    alignSelf: 'center',
   },
   teddy: {
     position: "absolute",
