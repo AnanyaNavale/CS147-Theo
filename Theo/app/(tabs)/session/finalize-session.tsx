@@ -197,12 +197,13 @@ export default function FinalizeSessionScreen() {
 
                           setShowConfirmationModal(false);
 
-                          router.push({
-                            pathname: "../../archive/[date]",
-                            params: { date: todayStr },
-                          });
+                          router.push(`../../archiveStack/${todayStr}`);
+                          // router.push({
+                          //   pathname: "/archiveStack/[date]", // Not './archive/[id]' or 'archive/[id]'
+                          //   params: { date: todayStr },
+                          // });
+
                         }}
-                        // style={styles.fullWidthButton}
                       />
                     {/* </View> */}
                   </View>
