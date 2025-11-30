@@ -9,16 +9,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AppModal, Button } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
-import { ArrowAction } from "@/components/ui/ArrowAction";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { createPlan, supabase } from "@/lib/supabase";
-import { AppModal, Button } from "@/components";
+import { createPlan } from "@/lib/supabase";
 
 const teddy = require("@/assets/theo/waving.png");
 
@@ -75,7 +74,6 @@ export default function FinalizeSessionScreen() {
   };
 
   const handleSavePlan = async () => {
-
     try {
       // Determine if we have a goal
       const hasGoal = Boolean(goal && goal.trim());
@@ -99,7 +97,7 @@ export default function FinalizeSessionScreen() {
         hasTasks,
         total_time,
         goal ?? undefined,
-        title,
+        title
       );
 
       console.log("Plan saved:", newPlan);
@@ -107,8 +105,6 @@ export default function FinalizeSessionScreen() {
       console.error("Error saving plan:", err);
     }
   };
-
-
 
   const handleStartSession = () => {
     router.push({
@@ -183,28 +179,30 @@ export default function FinalizeSessionScreen() {
                 title="Plan saved!"
                 message="Your plan is now available in your archive."
                 children={
-                  <View style={{ alignItems: 'center' }}>
+                  <View style={{ alignItems: "center" }}>
                     {/* <View style={[styles.flexButton, styles.buttonLeft]}> */}
-                      <Button
-                        label="Visit archive"
-                        variant="brown"
-                        onPress={() => {
-                          const today = new Date();
-                          const yyyy = today.getFullYear();
-                          const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
-                          const dd = String(today.getDate()).padStart(2, "0");
-                          const todayStr = `${yyyy}-${mm}-${dd}`;
+                    <Button
+                      label="Visit archive"
+                      variant="brown"
+                      onPress={() => {
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(
+                          2,
+                          "0"
+                        ); // months are 0-based
+                        const dd = String(today.getDate()).padStart(2, "0");
+                        const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                          setShowConfirmationModal(false);
+                        setShowConfirmationModal(false);
 
-                          router.push(`../../archiveStack/${todayStr}`);
-                          // router.push({
-                          //   pathname: "/archiveStack/[date]", // Not './archive/[id]' or 'archive/[id]'
-                          //   params: { date: todayStr },
-                          // });
-
-                        }}
-                      />
+                        router.push(`../../archiveStack/${todayStr}`);
+                        // router.push({
+                        //   pathname: "/archiveStack/[date]", // Not './archive/[id]' or 'archive/[id]'
+                        //   params: { date: todayStr },
+                        // });
+                      }}
+                    />
                     {/* </View> */}
                   </View>
                 }
@@ -312,7 +310,7 @@ const styles = StyleSheet.create({
   checkboxList: {
     gap: theme.spacing.sm,
     width: "90%",
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   teddy: {
     position: "absolute",
