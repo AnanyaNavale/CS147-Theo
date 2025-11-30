@@ -48,12 +48,7 @@ export default function ArchiveLayout() {
           header: () => (
             <MainHeader />
           ),
-        }}
-      />
-      <Stack.Screen
-        name="[date]/index" // daily page
-        options={{
-          headerShown: false,
+          animation: 'slide_from_left',
         }}
       />
     </Stack>

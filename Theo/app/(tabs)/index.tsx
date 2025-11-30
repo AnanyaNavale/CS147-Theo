@@ -88,11 +88,8 @@ export default function HomeScreen() {
       <Spacer size="xl" />
 
       <QuoteOfTheDay />
-      {/* <View style={styles.quoteCard}>
-        <Text style={styles.quoteText}>{quote}</Text>
-      </View> */}
 
-      <Spacer size="lg" />
+      <Spacer size="md" />
 
       <BasicButton
         text="Start a work session"

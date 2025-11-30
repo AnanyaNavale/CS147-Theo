@@ -77,7 +77,7 @@ export default function SingleDayScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.replace("./index")}
+          onPress={() => router.replace("/archive")}
           style={styles.backButton}
         >
           <Feather
@@ -91,9 +91,7 @@ export default function SingleDayScreen() {
         </View>
       </View>
 
-      <View
-        style={styles.shadow}
-      />
+      <View style={styles.shadow} />
 
       <SectionList
         sections={sections}
@@ -104,6 +102,12 @@ export default function SingleDayScreen() {
             time={item.total_time}
             has_settings={item.has_settings}
             status={item.status}
+            onPress={() =>
+              router.push({
+                pathname: "../[session]",
+                params: { session: item.id },
+              })
+            }
           />
         )}
         renderSectionHeader={({ section: { title } }) => (
