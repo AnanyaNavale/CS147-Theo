@@ -13,7 +13,10 @@ import DraggableFlatList, {
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import { BasicButton } from "@/components/BasicButton";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { AppModal } from "@/components/ui/AppModal";
 import { ArrowAction } from "@/components/ui/ArrowAction";
 import { BreakdownItem } from "@/components/ui/BreakdownItem";
@@ -24,9 +27,6 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 
 type Task = {
   id: string;
@@ -40,6 +40,7 @@ const teddy = require("../../../assets/theo/waving.png");
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
   const goalText = goal ?? "";
+  console.log(goalText);
 
   const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -251,8 +252,14 @@ export default function SessionBreakdownScreen() {
       )}
       {tasks.length > 0 && (
         <SvgStrokeText
-              text={"Tasks: "} textStyle={{ color: colors.light.header2, fontSize: fonts.sizes.header2 }} stroke={colors.light.header2} containerStyle={{ alignSelf: 'flex-start' }}
-            />
+          text={"Tasks: "}
+          textStyle={{
+            color: colors.light.header2,
+            fontSize: fonts.sizes.header2,
+          }}
+          stroke={colors.light.header2}
+          containerStyle={{ alignSelf: "flex-start" }}
+        />
       )}
 
       <Spacer size="sm" />
