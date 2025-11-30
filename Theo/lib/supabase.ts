@@ -512,10 +512,12 @@ export async function deleteSession(sessionId: string): Promise<void> {
 ///////////////////////////////
 
 export interface CreateTaskPayload {
-  scheduled_session_id: string;
-  title: string;
-  estimated_minutes?: number | null;
-  order_index?: number | null;
+  session_id: string;
+  task_name: string;
+  is_completed?: boolean;
+  order_index: number;
+  time_allotted?: number | null;
+  time_completed?: number | null;
 }
 
 export async function createTask(payload: CreateTaskPayload): Promise<Task> {
@@ -533,7 +535,7 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
-    .eq("scheduled_session_id", sessionId);
+    .eq("session_id", sessionId);
 
   if (error) throw new Error(`Failed to fetch tasks: ${error.message}`);
   return data;

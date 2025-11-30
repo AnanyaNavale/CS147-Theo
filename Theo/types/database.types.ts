@@ -62,39 +62,39 @@ export interface Database {
       // ------------------ TASKS TABLE ------------------
       tasks: {
         Row: {
-          id: string;
-          scheduled_session_id: string;
-          title: string;
+          id: string; // bigint
+          session_id: string;
+          task_name: string;
           is_completed: boolean;
           order_index: number;
-          estimated_minutes: number;
+          time_allotted: number | null;
           time_completed: number | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          scheduled_session_id: string;
-          title: string;
+          session_id: string;
+          task_name: string;
           is_completed?: boolean;
-          order_index?: number;
-          estimated_minutes?: number;
+          order_index: number;
+          time_allotted?: number | null;
           time_completed?: number | null;
           created_at?: string;
         };
         Update: {
           id?: string;
-          scheduled_session_id?: string;
-          title?: string;
+          session_id?: string;
+          task_name?: string;
           is_completed?: boolean;
           order_index?: number;
-          estimated_minutes?: number;
+          time_allotted?: number | null;
           time_completed?: number | null;
           created_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "tasks_scheduled_session_id_fkey";
-            columns: ["scheduled_session_id"];
+            foreignKeyName: "tasks_session_id_fkey";
+            columns: ["session_id"];
             referencedRelation: "sessions";
             referencedColumns: ["id"];
           }

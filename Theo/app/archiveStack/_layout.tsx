@@ -26,16 +26,17 @@ export default function ArchiveStackLayout() {
       screenOptions={{
         header: () => (
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => router.push("../(tabs)/archive")}
-              style={styles.backButton}
-            >
-              <Feather
-                name={"arrow-left"}
-                size={36}
-                color={colors.light.iconsStandalone}
-                // marginTop={90}
-              />
+            <View style={styles.topRow}>
+              <TouchableOpacity
+                onPress={() => router.push("../(tabs)/archive")}
+                style={styles.backButton}
+              >
+                <Feather
+                  name={"arrow-left"}
+                  size={32}
+                  color={colors.light.iconsStandalone}
+                />
+              </TouchableOpacity>
 
               <TouchableOpacity onPress={() => router.push("../profile")}>
                 <View style={styles.userIcon}>
