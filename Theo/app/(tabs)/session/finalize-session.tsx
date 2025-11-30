@@ -33,7 +33,6 @@ export default function FinalizeSessionScreen() {
     tasks?: string;
   }>();
   const goalText = goal ?? "";
-  console.log(goalText);
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
   const teddySize = isCompact ? 180 : 220;

@@ -40,7 +40,6 @@ const teddy = require("../../../assets/theo/waving.png");
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
   const goalText = goal ?? "";
-  console.log(goalText);
 
   const [tasks, setTasks] = useState<Task[]>([]);
 
