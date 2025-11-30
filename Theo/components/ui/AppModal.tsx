@@ -1,6 +1,7 @@
 import { BlurView } from "expo-blur";
 import React from "react";
 import {
+  DimensionValue,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -9,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { theme } from "../../design/theme";
-import { Button } from "./Button";
+import { ButtonVariant, Button } from "./Button";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
 import SvgStrokeText from "../SvgStrokeText";
@@ -26,10 +27,14 @@ export type AppModalProps = {
   message?: string;
 
   confirmLabel?: string;
+  confirmVariant?: ButtonVariant;
   cancelLabel?: string;
+  cancelVariant?: ButtonVariant;
   onConfirm?: () => void;
 
   height?: number;
+  
+  showClose?: boolean;
 
   children?: React.ReactNode;
 };
@@ -41,9 +46,12 @@ export function AppModal({
   title,
   message,
   confirmLabel = "Confirm",
+  confirmVariant = "danger" as ButtonVariant,
   cancelLabel = "Cancel",
+  cancelVariant = "ghost" as ButtonVariant,
   onConfirm,
   height = 360,
+  showClose = true,
   children,
 }: AppModalProps) {
   return (
@@ -56,26 +64,27 @@ export function AppModal({
         <View style={styles.centerLayout}>
           <View style={styles.alertCard}>
             {title && (
-              <SvgStrokeText text={title}/>
+              <SvgStrokeText
+                text={title}
+                containerStyle={{ alignSelf: "center" }}
+              />
             )}
-            {message && 
-            <Text style={styles.message}>{message}</Text>
-            }
+            {message && <Text style={styles.message}>{message}</Text>}
 
             <View style={styles.row}>
               <View style={[styles.flexButton, styles.buttonLeft]}>
                 <Button
                   label={cancelLabel}
-                  variant="ghost"
+                  variant={cancelVariant}
                   onPress={onClose}
                   style={styles.fullWidthButton}
                 />
               </View>
 
-              <View style={[styles.flexButton, styles.buttonRight]}>
+              <View style={[styles.flexButton, styles.buttonRight, ,]}>
                 <Button
                   label={confirmLabel}
-                  variant="danger"
+                  variant={confirmVariant}
                   onPress={() => {
                     onConfirm?.();
                     onClose();
@@ -92,14 +101,22 @@ export function AppModal({
       {variant === "custom" && (
         <View style={styles.centerLayout}>
           <View style={styles.customCard}>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtnFloating}>
-              <Icon name="x"></Icon>
-            </TouchableOpacity>
+            {showClose && (
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.closeBtnFloating}
+              >
+                <Icon name="x"></Icon>
+              </TouchableOpacity>
+            )}
 
-            {title && 
-            <SvgStrokeText text={title} />
-            // <Text style={styles.title}>{title}</Text>
-            }
+            {title && (
+              <SvgStrokeText
+                text={title}
+                containerStyle={{ alignSelf: "center" }}
+              />
+            )}
+            {message && <Text style={styles.message}>{message}</Text>}
 
             <View style={styles.customContent}>{children}</View>
           </View>
@@ -172,6 +189,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginTop: theme.spacing.lg,
+    alignItems: 'center',
   },
 
   flexButton: { flex: 1 },

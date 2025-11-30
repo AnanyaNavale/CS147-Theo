@@ -200,7 +200,7 @@ export function StepProgressIndicator({
         cancelLabel="Cancel"
         onConfirm={() => {
           setShowExitConfirm(false);
-          router.push("../");
+          router.push("/" as unknown as any);
         }}
       />
 

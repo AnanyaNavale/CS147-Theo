@@ -188,5 +188,6 @@ export interface Database {
 
 export type WorkSession = Database["public"]["Tables"]["sessions"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
-export type SessionSetting = Database["public"]["Tables"]["session_settings"]["Row"];
+export type SessionSetting =
+  Database["public"]["Tables"]["session_settings"]["Row"];
 export type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];

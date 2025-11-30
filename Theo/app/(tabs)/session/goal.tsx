@@ -10,17 +10,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import { InputField } from "@/components";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { setSessionGoal } from "@/state/sessionGoal";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 
 const teddy = require("../../../assets/theo/waving.png");
 
@@ -49,24 +47,11 @@ export default function GoalScreen() {
   );
 
   const handleContinue = () => {
-    const trimmedGoal = goal.trim();
-    setSessionGoal(trimmedGoal);
-    router.push("./breakdown");
-    return;
-  };
-
-  const handleYesTasks = () => {
     router.push({
       pathname: "./breakdown",
       params: { goal: goal.trim() },
     });
-  };
-
-  const handleSkipTasks = () => {
-    router.push({
-      pathname: "./finalize-session",
-      params: { goal: goal.trim() },
-    });
+    return;
   };
 
   return (

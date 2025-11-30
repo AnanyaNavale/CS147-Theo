@@ -9,16 +9,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AppModal, Button } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
-import { ArrowAction } from "@/components/ui/ArrowAction";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import SvgStrokeText from "@/components/SvgStrokeText";
+import { createPlan } from "@/lib/supabase";
 
-const teddy = require("../../../assets/theo/waving.png");
+const teddy = require("@/assets/theo/waving.png");
 
 type Task = {
   id: string;
@@ -52,11 +53,57 @@ export default function FinalizeSessionScreen() {
   const [friendsOnly, setFriendsOnly] = useState(false);
   const [saveDefault, setSaveDefault] = useState(false);
 
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
   const handleSelectSettings = () => setShowSettings(true);
 
-  const handleSavePlan = () => {
-    // TODO: integrate calendar save
-    console.log("Save plan to calendar not implemented yet");
+  // Used for 'Save plan to calendar' button
+  const handleButtonPress = async () => {
+    try {
+      // First action: save the plan
+      await handleSavePlan();
+
+      // Second action: show your custom confirmation modal
+      setShowConfirmationModal(true);
+
+      // You can add more actions here if needed
+      // e.g., reset form fields, navigate, etc.
+    } catch (err) {
+      console.error("Error handling button press:", err);
+    }
+  };
+
+  const handleSavePlan = async () => {
+    try {
+      // Determine if we have a goal
+      const hasGoal = Boolean(goal && goal.trim());
+
+      // Determine if we have tasks
+      const hasTasks = parsedTasks.length > 0;
+
+      // Sum total minutes from tasks
+      const total_time = parsedTasks.reduce(
+        (sum, task) => sum + task.minutes,
+        0
+      );
+
+      // Title can be anything you want; for now, we can default it
+      const title = hasGoal ? goal! : undefined;
+
+      // Call your createPlan function
+      const newPlan = await createPlan(
+        null, // TODO: Users table
+        hasGoal,
+        hasTasks,
+        total_time,
+        goal ?? undefined,
+        title
+      );
+
+      console.log("Plan saved:", newPlan);
+    } catch (err) {
+      console.error("Error saving plan:", err);
+    }
   };
 
   const handleStartSession = () => {
@@ -88,7 +135,10 @@ export default function FinalizeSessionScreen() {
 
         <Spacer size="xxl" />
 
-        <SvgStrokeText text={promptText} containerStyle={{ alignSelf: 'center' }}/>
+        <SvgStrokeText
+          text={promptText}
+          containerStyle={{ alignSelf: "center" }}
+        />
 
         <Spacer size="lg" />
 
@@ -114,11 +164,50 @@ export default function FinalizeSessionScreen() {
             <Spacer size="md" />
 
             <BasicButton
-              text="Save plan to calendar"
-              onPress={handleSavePlan}
+              text="Save plan to archive"
+              onPress={handleButtonPress}
               variant="secondary"
               style={styles.button}
             />
+
+            {showConfirmationModal && (
+              <AppModal
+                visible={showConfirmationModal}
+                onClose={() => setShowConfirmationModal(false)}
+                variant="custom"
+                showClose={false}
+                title="Plan saved!"
+                message="Your plan is now available in your archive."
+                children={
+                  <View style={{ alignItems: "center" }}>
+                    {/* <View style={[styles.flexButton, styles.buttonLeft]}> */}
+                    <Button
+                      label="Visit archive"
+                      variant="brown"
+                      onPress={() => {
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(
+                          2,
+                          "0"
+                        ); // months are 0-based
+                        const dd = String(today.getDate()).padStart(2, "0");
+                        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+                        setShowConfirmationModal(false);
+
+                        router.push(`../../archiveStack/${todayStr}`);
+                        // router.push({
+                        //   pathname: "/archiveStack/[date]", // Not './archive/[id]' or 'archive/[id]'
+                        //   params: { date: todayStr },
+                        // });
+                      }}
+                    />
+                    {/* </View> */}
+                  </View>
+                }
+              />
+            )}
           </>
         ) : (
           <>
@@ -221,7 +310,7 @@ const styles = StyleSheet.create({
   checkboxList: {
     gap: theme.spacing.sm,
     width: "90%",
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   teddy: {
     position: "absolute",

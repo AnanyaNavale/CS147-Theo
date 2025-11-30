@@ -12,7 +12,7 @@ import { theme } from "../../design/theme";
 import { Text } from "./Text";
 
 type ButtonSize = "sm" | "md" | "lg";
-type ButtonVariant =
+export type ButtonVariant =
   | "gold"
   | "brown"
   | "danger"

@@ -491,9 +491,7 @@ export default function SessionScreen() {
               textStyle={{ color: theme.colors.accentDark }}
             ></SvgStrokeText>
 
-            <Text variant="h3" weight="bold">
-              {sessionGoal}
-            </Text>
+            <Text variant="h3">{sessionGoal}</Text>
           </>
         ) : (
           <>

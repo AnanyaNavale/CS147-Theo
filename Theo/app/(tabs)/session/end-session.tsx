@@ -50,13 +50,6 @@ export default function EndSessionScreen() {
       >
         <Spacer size="lg" />
         <View style={styles.centered}>
-          {goalText && (
-            <>
-              <Text style={styles.goalLabel}>GOAL:</Text>
-              <Text style={styles.goalValue}>{goalText}</Text>
-            </>
-          )}
-
           <Spacer size="xl" />
           {goalText ? (
             <>
@@ -66,9 +59,7 @@ export default function EndSessionScreen() {
                 textStyle={{ color: theme.colors.accentDark }}
               ></SvgStrokeText>
 
-              <Text variant="h3" weight="bold">
-                {goalText}
-              </Text>
+              <Text variant="h3">{goalText}</Text>
               <Spacer />
             </>
           ) : (
