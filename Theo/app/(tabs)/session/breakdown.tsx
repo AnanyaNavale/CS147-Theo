@@ -27,6 +27,9 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { generateTasksWithAI } from "@/lib/ai";
+import { createSession, createTask } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 type Task = {
   id: string;
@@ -40,6 +43,7 @@ const teddy = require("../../../assets/theo/waving.png");
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
   const goalText = goal ?? "";
+  const { session: authSession } = useSupabase();
 
   const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -50,6 +54,10 @@ export default function SessionBreakdownScreen() {
   const [newMinutes, setNewMinutes] = useState("");
   const [newOrder, setNewOrder] = useState("");
   const [newOrderError, setNewOrderError] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [persisting, setPersisting] = useState(false);
+  const [persistError, setPersistError] = useState<string | null>(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -145,11 +153,53 @@ export default function SessionBreakdownScreen() {
     setShowAddModal(false);
   }
 
-  function confirmContinue() {
-    router.push({
+  async function confirmContinue() {
+    let sessionId: string | undefined = undefined;
+
+    if (authSession?.user) {
+      setPersisting(true);
+      setPersistError(null);
+      try {
+        const session = await createSession(
+          authSession.user.id,
+          !!goalText,
+          goalText || null,
+          tasks.length > 0
+        );
+        sessionId = session.id;
+
+        if (tasks.length > 0) {
+          const ordered = tasks.map((t, idx) => ({
+            session_id: session.id,
+            task_name: t.text,
+            order_index: idx + 1,
+            time_allotted: t.minutes,
+            is_completed: false,
+          }));
+
+          for (const payload of ordered) {
+            await createTask(payload as any);
+          }
+        }
+      } catch (err) {
+        const msg =
+          err instanceof Error ? err.message : "Failed to save tasks.";
+        setPersistError(msg);
+      } finally {
+        setPersisting(false);
+      }
+    }
+
+    const nextRoute = {
       pathname: "./finalize-session",
-      params: { tasks: JSON.stringify(tasks), goal: goalText },
-    });
+      params: {
+        tasks: JSON.stringify(tasks),
+        goal: goalText,
+        sessionId,
+      },
+    } as const;
+
+    router.push(nextRoute);
   }
 
   const renderItem = ({
@@ -280,12 +330,51 @@ export default function SessionBreakdownScreen() {
               text="Create tasks with AI"
               iconName="ai"
               iconSize={24}
-              onPress={() => {
-                // TODO: implement AI task generation
+              onPress={async () => {
+                if (isGenerating) return;
+                setAiError(null);
+                setIsGenerating(true);
+                try {
+                  const aiTasks = await generateTasksWithAI(goalText || "");
+                  if (aiTasks.length === 0) {
+                    setAiError("Could not generate tasks. Try again.");
+                  } else {
+                    setTasks(
+                      aiTasks.map((t, idx) => ({
+                        id: `${Date.now()}-${idx}`,
+                        text: t.text,
+                        minutes: t.minutes,
+                      }))
+                    );
+                  }
+                } catch (err) {
+                  const msg =
+                    err instanceof Error
+                      ? err.message
+                      : "Task generation failed.";
+                  setAiError(msg);
+                } finally {
+                  setIsGenerating(false);
+                }
               }}
               variant="secondary"
               style={styles.primaryActionButton}
             />
+            {aiError && (
+              <Text color="danger" style={styles.aiStatus}>
+                {aiError}
+              </Text>
+            )}
+            {persistError && (
+              <Text color="danger" style={styles.aiStatus}>
+                {persistError}
+              </Text>
+            )}
+            {(isGenerating || persisting) && (
+              <Text color="mutedText" style={styles.aiStatus}>
+                {isGenerating ? "Generating tasks..." : "Saving tasks..."}
+              </Text>
+            )}
           </>
         ) : (
           <DraggableFlatList
@@ -300,12 +389,21 @@ export default function SessionBreakdownScreen() {
         )}
       </View>
 
+      {tasks.length > 0 && persistError && (
+        <Text color="danger" style={styles.aiStatus}>
+          {persistError}
+        </Text>
+      )}
+
       {/* SKIP ROW FOR EMPTY STATE */}
       {tasks.length === 0 && (
         <ArrowAction label="Skip" onPress={confirmContinue} />
       )}
       {tasks.length > 0 && (
-        <ArrowAction label="Continue" onPress={confirmContinue} />
+        <ArrowAction
+          label={persisting ? "Saving..." : "Continue"}
+          onPress={persisting ? undefined : confirmContinue}
+        />
       )}
 
       {/* BOTTOM ACTIONS + CONTINUE */}
@@ -656,6 +754,10 @@ const styles = StyleSheet.create({
 
   continueArrow: {
     marginVertical: -35,
+  },
+  aiStatus: {
+    marginTop: theme.spacing.sm,
+    textAlign: "center",
   },
 
   primaryActionButton: {

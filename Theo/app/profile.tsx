@@ -1,171 +1,334 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  Dimensions,
-  Image,
-  ImageSourcePropType,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import SvgStrokeText from "@/components/SvgStrokeText";
+import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 
-// import { BottomSheetModal } from "@/components/ui/BottomSheetModal";
+import { Button } from "@/components/ui/Button";
+import { Container } from "@/components/ui/Container";
+import { InputField } from "@/components/ui/InputField";
+import { Spacer } from "@/components/ui/Spacer";
+import { Text } from "@/components/ui/Text";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import {
+  ensureUserProfile,
+  fetchUserProfile,
+  supabase,
+} from "@/lib/supabase";
 import { theme } from "@/design/theme";
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
-
-// import { Text } from "@/components/ui/Text";
-// import { theme } from "@/design/theme";
-
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function ProfileScreen() {
-  const name = "Anna";
+  const router = useRouter();
+  const { session } = useSupabase();
+  const user = session?.user;
+
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    const load = async () => {
+      try {
+        const profile = await fetchUserProfile(user.id);
+        setDisplayName(
+          profile?.display_name ??
+            (user.user_metadata?.display_name as string | undefined) ??
+            ""
+        );
+        setEmail(user.email ?? "");
+        setAvatarUrl(
+          profile?.avatar_url ??
+            (user.user_metadata?.avatar_url as string | undefined) ??
+            null
+        );
+      } catch (err) {
+        console.error(err);
+        setError("Couldn't load your profile right now.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [user, router]);
+
+  const handleSave = async () => {
+    if (!user || saving) return;
+    setSaving(true);
+    setMessage(null);
+    setError(null);
+
+    try {
+      const updatePayload: any = {
+        data: {
+          display_name: displayName || null,
+          avatar_url: avatarUrl || null,
+        },
+      };
+
+      if (email && email !== user.email) {
+        updatePayload.email = email.trim();
+      }
+
+      const { error: authError } = await supabase.auth.updateUser(
+        updatePayload
+      );
+      if (authError) throw authError;
+
+      await ensureUserProfile({
+        id: user.id,
+        displayName: displayName || null,
+        avatarUrl: avatarUrl || null,
+      });
+
+      setMessage("Profile updated.");
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to update profile.";
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!user) return null;
+
+  const pickAndUploadAvatar = async () => {
+    if (uploading) return;
+    setError(null);
+    setMessage(null);
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setError("Permission required to access photos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets?.length) return;
+
+    const asset = result.assets[0];
+    setUploading(true);
+    try {
+      const manip = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        [{ resize: { width: 600 } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      const fileExt = manip.uri.split(".").pop() || "jpg";
+      const fileName = `avatar-${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const response = await fetch(manip.uri);
+      const blob = await response.blob();
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+      setAvatarUrl(publicUrl);
+      setMessage("Photo updated. Save to apply.");
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to upload image.";
+      setError(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={() => router.back()}
-        >
-          <Feather name={"arrow-left"} size={36} color="#8A5E3C" />
-        </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <SvgStrokeText
-            text={name + "'s Profile"}
-          />
-        </View>
-      </View>
-
-      <View style={styles.imageContainer}>
-        <Image
-          source={require("../assets/images/profile_sample.webp")}
-          style={styles.profileImage}
-          resizeMode="contain"
-        />
-      </View>
-
-      <TouchableOpacity
-        onPress={() => console.log("Change Image")}
-        style={styles.cameraContainer}
+    <Container padded style={styles.safe}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Feather name="camera" size={25} color="white" />
-      </TouchableOpacity>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color={theme.colors.text} />
+            </TouchableOpacity>
+            <Text variant="h1" style={styles.title}>
+              Profile
+            </Text>
+            <View style={{ width: 28 }} />
+          </View>
 
-      <View style={styles.detailsContainer}>
-        <Text style={styles.firstName}>First Name</Text>
-        {/* <InputField label="First Name" /> */}
-        <Text style={styles.lastName}>Last Name</Text>
-        {/* <InputField label="Last Name" /> */}
-        <Text style={styles.userName}>Username</Text>
-        {/* <InputField label="Username" /> */}
-        <Text style={styles.email}>Email</Text>
-        {/* <InputField label="Email" /> */}
-        <Text style={styles.password}>Password</Text>
-        {/* <InputField label="Password" /> */}
-      </View>
+          <Spacer size="lg" />
 
-    </SafeAreaView>
+          <View style={styles.avatarRow}>
+            <TouchableOpacity
+              onPress={pickAndUploadAvatar}
+              disabled={uploading || loading}
+              style={styles.avatarButton}
+            >
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <Image
+                  source={require("../assets/images/profile_sample.webp")}
+                  style={styles.avatarImage}
+                />
+              )}
+              {uploading && (
+                <View style={styles.avatarOverlay}>
+                  <ActivityIndicator color="#fff" />
+                </View>
+              )}
+            </TouchableOpacity>
+            <Text style={styles.avatarHint}>Tap to update photo</Text>
+          </View>
+
+          <Spacer />
+
+          <InputField
+            label="Name"
+            placeholder="Your name"
+            value={displayName}
+            onChangeText={setDisplayName}
+            editable={!loading && !saving}
+            containerStyle={styles.inputContainer}
+          />
+
+          <InputField
+            label="Email"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            editable={!loading && !saving}
+            containerStyle={styles.inputContainer}
+          />
+
+          {error && (
+            <Text color="danger" style={styles.infoText}>
+              {error}
+            </Text>
+          )}
+          {message && (
+            <Text color="accentDark" style={styles.infoText}>
+              {message}
+            </Text>
+          )}
+
+          <Button
+            label={saving ? "Saving..." : "Save changes"}
+            onPress={handleSave}
+            variant="brown"
+            size="lg"
+            disabled={saving}
+            style={styles.saveButton}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Container>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    backgroundColor: "white",
-    padding: 16,
-    borderColor: "red",
-    alignItems: "center",
-    // borderWidth: 2,
+    backgroundColor: theme.colors.background,
   },
-  headerContainer: {
-    width: "100%",
-    borderColor: "red",
-    // borderWidth: 1,
+  scroll: {
+    flexGrow: 1,
+    paddingVertical: theme.spacing.lg,
+  },
+  title: {
+    color: theme.colors.text,
+  },
+  infoText: {
+    marginTop: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
+  },
+  headerRow: {
     flexDirection: "row",
-  },
-  titleContainer: {
     alignItems: "center",
-    borderColor: "blue",
-    // borderWidth: 2,
-    position: "absolute",
-    paddingTop: 2,
-    left: 0,
-    right: 0,
+    justifyContent: "space-between",
   },
-  header: {
-    fontFamily: "AnticDidone-Regular",
-    fontSize: 24,
-    color: "black",
+  avatarRow: {
+    alignItems: "center",
   },
-  imageContainer: {
-    marginVertical: 30,
-    // borderWidth: 2,
-    // borderColor: theme.colors.light.border,
-    borderRadius: 100,
-    width: SCREEN_WIDTH * 0.5,
-    aspectRatio: 1,
+  avatarButton: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     overflow: "hidden",
-    zIndex: 1,
-    // shadowOffset: { width: 0, height: 4 },
-    // shadowOpacity: 0.5,
-    // shadowRadius: 4,
-    // shadowColor: "#B28F6D80",
+    ...theme.shadow.medium,
   },
-  profileImage: {
+  avatarImage: {
     width: "100%",
     height: "100%",
+    resizeMode: "cover",
   },
-  cameraContainer: {
-    borderRadius: 100,
-    backgroundColor: "#8A5E3CBF",
-    width: "12%",
-    aspectRatio: 1,
+  avatarOverlay: {
     position: "absolute",
-    alignItems: "center",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.35)",
     justifyContent: "center",
-    right: 110,
-    top: 300,
-    zIndex: 2,
+    alignItems: "center",
   },
-  detailsContainer: {
-    borderColor: "#8A5E3C",
-    // borderWidth: 1,
-    borderRadius: 10,
-    padding: 16,
-    // backgroundColor: "#8A5E3C80",
-    width: "95%",
-    height: SCREEN_HEIGHT * 0.4, // 0.5
+  cameraBadge: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    backgroundColor: theme.colors.accentDark,
+    borderRadius: 12,
+    padding: 6,
+    ...theme.shadow.soft,
   },
-  firstName: {
-    fontFamily: "Raleway-Regular",
-    fontSize: 16,
-    color: "#8A5E3CBF",
+  avatarHint: {
+    marginTop: theme.spacing.sm,
+    color: theme.colors.mutedText,
+    fontFamily: theme.typography.families.regular,
   },
-  lastName: {
-    fontFamily: "Raleway-Regular",
-    fontSize: 16,
-    color: "#8A5E3CBF",
+  inputContainer: {
+    width: "92%",
+    alignSelf: "center",
   },
-  userName: {
-    fontFamily: "Raleway-Regular",
-    fontSize: 16,
-    color: "#8A5E3CBF",
-  },
-  email: {
-    fontFamily: "Raleway-Regular",
-    fontSize: 16,
-    color: "#8A5E3CBF",
-  },
-  password: {
-    fontFamily: "Raleway-Regular",
-    fontSize: 16,
-    color: "#8A5E3CBF",
+  saveButton: {
+    marginTop: theme.spacing.lg,
+    borderRadius: theme.radii.lg,
+    width: "70%",
+    alignSelf: "center",
+    ...theme.shadow.medium,
   },
 });

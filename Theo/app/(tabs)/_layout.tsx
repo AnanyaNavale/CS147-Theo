@@ -80,6 +80,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
+          headerShown: false,
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
@@ -100,6 +101,7 @@ export default function TabLayout() {
         name="archive"
         options={{
           title: "Archive",
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="calendar" color={color} size={28} />
           ),

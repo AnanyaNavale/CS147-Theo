@@ -1,8 +1,5 @@
-import {
-  Animated, Dimensions,
-  StyleSheet,
-} from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { Dimensions, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 
 // SUPABASE
@@ -11,7 +8,7 @@ import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchSessionDatesForMonth } from "@/lib/supabase";
 
 // import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+import { Text, View } from "@/components/Themed";
 
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Feather } from "@expo/vector-icons";
@@ -144,9 +141,7 @@ export default function ArchiveScreen() {
 
   return (
     <View style={styles.container}>
-      <SvgStrokeText
-        text="Session & Plan Archive"
-      />
+      <SvgStrokeText text="Session & Plan Archive" />
       <View style={styles.calendarContainer}>
         <Calendar
           renderHeader={(date) => {
