@@ -184,28 +184,21 @@ export default function FinalizeSessionScreen() {
                 message="Your plan is now available in your archive."
                 children={
                   <View style={{ alignItems: 'center' }}>
-                    {/* <View style={[styles.flexButton, styles.buttonLeft]}> */}
-                      <Button
-                        label="Visit archive"
-                        variant="brown"
-                        onPress={() => {
-                          const today = new Date();
-                          const yyyy = today.getFullYear();
-                          const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
-                          const dd = String(today.getDate()).padStart(2, "0");
-                          const todayStr = `${yyyy}-${mm}-${dd}`;
+                    <Button
+                      label="Visit archive"
+                      variant="brown"
+                      onPress={() => {
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
+                        const dd = String(today.getDate()).padStart(2, "0");
+                        const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                          setShowConfirmationModal(false);
+                        setShowConfirmationModal(false);
 
-                          router.push(`../../archiveStack/${todayStr}`);
-                          // router.push({
-                          //   pathname: "/archiveStack/[date]", // Not './archive/[id]' or 'archive/[id]'
-                          //   params: { date: todayStr },
-                          // });
-
-                        }}
-                      />
-                    {/* </View> */}
+                        router.push(`../archive/${todayStr}/index`);
+                      }}
+                    />
                   </View>
                 }
               />
