@@ -156,7 +156,7 @@ export default function SessionBreakdownScreen() {
   async function confirmContinue() {
     let sessionId: string | undefined = undefined;
 
-    if (tasks.length && authSession?.user) {
+    if (authSession?.user) {
       setPersisting(true);
       setPersistError(null);
       try {
@@ -168,16 +168,18 @@ export default function SessionBreakdownScreen() {
         );
         sessionId = session.id;
 
-        const ordered = tasks.map((t, idx) => ({
-          session_id: session.id,
-          task_name: t.text,
-          order_index: idx + 1,
-          time_allotted: t.minutes,
-          is_completed: false,
-        }));
+        if (tasks.length > 0) {
+          const ordered = tasks.map((t, idx) => ({
+            session_id: session.id,
+            task_name: t.text,
+            order_index: idx + 1,
+            time_allotted: t.minutes,
+            is_completed: false,
+          }));
 
-        for (const payload of ordered) {
-          await createTask(payload as any);
+          for (const payload of ordered) {
+            await createTask(payload as any);
+          }
         }
       } catch (err) {
         const msg =

@@ -42,9 +42,10 @@ export default function SessionScreen() {
   /* ---------------------------------------------------------
    * GET PASSED-IN GOAL + TASKS
    * --------------------------------------------------------- */
-  const { goal, tasks: tasksParam } = useLocalSearchParams<{
+  const { goal, tasks: tasksParam, sessionId } = useLocalSearchParams<{
     goal?: string;
     tasks?: string;
+    sessionId?: string;
   }>();
 
   const sessionGoal = goal ?? "";
@@ -150,6 +151,7 @@ export default function SessionScreen() {
       params: {
         goal: sessionGoal,
         tasks: JSON.stringify(sessionTasks),
+        sessionId: sessionId ?? null,
       },
     });
   };
@@ -610,7 +612,14 @@ export default function SessionScreen() {
           <Icon name="stop" size={48} />
         </Pressable>
 
-        <Pressable onPress={() => router.push("../../chat")}>
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: "../../chat",
+              params: { sessionId: sessionId ?? null, goal: sessionGoal },
+            })
+          }
+        >
           <Icon name="chat" size={48} />
         </Pressable>
 
@@ -677,7 +686,10 @@ export default function SessionScreen() {
           variant="gold"
           onPress={() => {
             setShowCompleteModal(false);
-            router.push("../chat");
+            router.push({
+              pathname: "../chat",
+              params: { sessionId: sessionId ?? null, goal: sessionGoal },
+            });
           }}
         />
         <Spacer size="sm" />

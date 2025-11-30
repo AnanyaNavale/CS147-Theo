@@ -6,6 +6,13 @@ import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 import type { Json, WorkSession, Task, SessionSetting, UserProfile } from "@/types/database.types";
 
+export type ReflectionChatMessage = {
+  id: string;
+  text: string;
+  from: "user" | "assistant";
+  created_at: string;
+};
+
 ///////////////////////////////////////////////// SUPABASE SETUP
 
 /**
@@ -497,6 +504,30 @@ export async function updateSession(
 
   if (error) throw new Error(`Failed to update session: ${error.message}`);
   return data;
+}
+
+/**
+ * Persists reflection chat history on a session.
+ */
+export async function saveReflectionChat(
+  sessionId: string,
+  messages: ReflectionChatMessage[]
+): Promise<void> {
+  const sanitized = messages.map((m) => ({
+    id: m.id,
+    text: m.text,
+    from: m.from,
+    created_at: m.created_at ?? new Date().toISOString(),
+  })) as unknown as Json[];
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({ reflection_chat: sanitized })
+    .eq("id", sessionId);
+
+  if (error) {
+    throw new Error(`Failed to save reflection chat: ${error.message}`);
+  }
 }
 
 /**
