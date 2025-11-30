@@ -184,7 +184,7 @@ export default function ArchiveScreen() {
           )}
           onDayPress={(day) => {
             router.push({
-              pathname: "../archiveStack/[date]",
+              pathname: "../../(tabs)/archive/[date]",
               params: { date: day.dateString },
             });
           }}

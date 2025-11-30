@@ -40,6 +40,7 @@ function TabBarIcon({
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const image = require("@/assets/images/logo.png");
 
   return (
     <Tabs
@@ -53,26 +54,18 @@ export default function TabLayout() {
           paddingVertical: 2,
         },
         tabBarStyle: styles.tabBar,
-        headerStyle: styles.header,
-        headerLeftContainerStyle: { paddingLeft: 30 },
-        headerRightContainerStyle: { paddingRight: 30 },
-        headerTitle: () => (
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={{ width: 90, height: 40 }}
-          />
-        ),
-        headerLeft: () => (
-          <TouchableOpacity onPress={() => console.log("menu")}>
-            <TabBarIcon name="menu" color="#8A5E3C" size={36} />
-          </TouchableOpacity>
-        ),
-        headerRight: () => (
-          <TouchableOpacity onPress={() => router.push("../profile")}>
-            <View style={styles.userIcon}>
-              <TabBarIcon name="user" color="white" size={36} />
-            </View>
-          </TouchableOpacity>
+        header: () => (
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => console.log("menu")}>
+              <TabBarIcon name="menu" color="#8A5E3C" size={36} />
+            </TouchableOpacity>
+            <Image source={image} style={{ width: 90, height: 40, marginLeft: 10 }} />
+            <TouchableOpacity onPress={() => router.push("../profile")}>
+              <View style={styles.userIcon}>
+                <TabBarIcon name="user" color="white" size={36} />
+              </View>
+            </TouchableOpacity>
+          </View>
         ),
       }}
     >
@@ -113,11 +106,17 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   header: {
-    height: 130, // increase header height
+    height: 130,
     backgroundColor: "#fff",
-    // shadowColor: "transparent", // iOS shadow
     shadowOpacity: 0,
-    elevation: 0, // Android shadow
+    elevation: 0,
+    flexDirection: "row", // horizontal layout
+    justifyContent: "space-between", // spread elements evenly across width
+    alignItems: "flex-end", // vertically center elements
+    borderColor: "red",
+    // borderWidth: 1,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
   },
   tabBar: {
     backgroundColor: "#8A5E3C",
