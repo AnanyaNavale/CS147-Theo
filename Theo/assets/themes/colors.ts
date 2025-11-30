@@ -9,6 +9,7 @@ export const colors = {
     header1: "#000000",
     header2: "#8A5E3C",
     date: "#A9A9A9",
+    quote: "#7D7D7D",
 
     navBar: "#8A5E3C",
 

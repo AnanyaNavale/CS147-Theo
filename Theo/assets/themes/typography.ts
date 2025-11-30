@@ -2,7 +2,7 @@ export const fonts = {
   // Typefaces
   typeface: {
     body: "Raleway-Regular",
-    bodyItalic: "Raleway-MediumItalic",
+    bodyItalic: "Raleway-Italic",
     bodyBold: "Raleway-Bold",
 
     header: "AnticDidone-Regular",

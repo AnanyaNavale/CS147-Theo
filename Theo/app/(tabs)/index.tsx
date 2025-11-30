@@ -15,17 +15,17 @@ import { Spacer } from "@/components";
 import MainHeader from "@/components/ui/MainHeader";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-// import { signOut } from "@/lib/supabase";
 import { Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import QuoteOfTheDay from "@/components/Quote";
 
 const teddyBear = require("@/assets/theo/working.png");
 
-const QUOTES = [
-  `"You are braver than you believe, stronger than you seem, and smarter than you think." - Christopher Robin`,
-  `"Success is the sum of small efforts, repeated day in and day out." - Robert Collier`,
-  `"It always seems impossible until it's done." - Nelson Mandela`,
-];
+// const QUOTES = [
+//   `"You are braver than you believe, stronger than you seem, and smarter than you think." - Christopher Robin`,
+//   `"Success is the sum of small efforts, repeated day in and day out." - Robert Collier`,
+//   `"It always seems impossible until it's done." - Nelson Mandela`,
+// ];
 
 export default function HomeScreen() {
   const userName = "User";
@@ -42,40 +42,14 @@ export default function HomeScreen() {
     return `${weekday}, ${month}/${day}/${year}`;
   }
 
-  const quote = useMemo(() => {
-    const idx = Math.floor(Math.random() * QUOTES.length);
-    return QUOTES[idx];
-  }, []);
-
-  // const handleLogout = async () => {
-  //   setMenuOpen(false);
-  //   try {
-  //     await signOut();
-  //     router.replace("../auth/login");
-  //   } catch (err) {
-  //     console.warn("Failed to log out", err);
-  //   }
-  // };
-
-  // const menuOptions = [
-  //   {
-  //     label: "Settings",
-  //     onPress: () => {
-  //       setMenuOpen(false);
-  //       router.push("../profile");
-  //     },
-  //   },
-  //   { label: "Log out", onPress: handleLogout },
-  // ];
+  // const quote = useMemo(() => {
+  //   const idx = Math.floor(Math.random() * QUOTES.length);
+  //   return QUOTES[idx];
+  // }, []);
 
   return (
     <View style={styles.container}>
       <MainHeader
-        // onMenuPress={() => setMenuOpen((p) => !p)}
-        // onProfilePress={() => router.push("../profile")}
-        // onLayout={(event) => {
-        //   setHeaderHeight(event.nativeEvent.layout.height);
-        // }}
       />
 
       <View style={styles.headerContainer}>
@@ -113,9 +87,10 @@ export default function HomeScreen() {
       </View>
       <Spacer size="xl" />
 
-      <View style={styles.quoteCard}>
+      <QuoteOfTheDay />
+      {/* <View style={styles.quoteCard}>
         <Text style={styles.quoteText}>{quote}</Text>
-      </View>
+      </View> */}
 
       <Spacer size="lg" />
 
@@ -131,24 +106,6 @@ export default function HomeScreen() {
           onPress={() => setMenuOpen(false)}
         />
       )}
-      {/* {menuOpen && (
-        <View style={styles.menuAnchor}>
-          <View style={styles.menuCard}>
-            {menuOptions.map((opt, idx) => (
-              <TouchableOpacity
-                key={opt.label}
-                style={styles.menuItem}
-                onPress={opt.onPress}
-              >
-                <Text style={styles.menuLabel}>{opt.label}</Text>
-                {idx < menuOptions.length - 1 && (
-                  <View style={styles.menuDivider} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )} */}
     </View>
   );
 }
@@ -157,8 +114,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.light.background,
-    // paddingHorizontal: theme.spacing.lg,
-    // paddingTop: theme.spacing.lg,
   },
   headerContainer: {
     flexDirection: "column",

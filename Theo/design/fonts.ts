@@ -4,6 +4,7 @@ export const fontMap = {
   "Raleway-Medium": require("../assets/fonts/Raleway-Medium.ttf"),
   "Raleway-Bold": require("../assets/fonts/Raleway-Bold.ttf"),
   "Raleway-MediumItalic": require("../assets/fonts/Raleway-MediumItalic.ttf"),
+  "Raleway-Italic": require("../assets/fonts/Raleway-Italic.ttf"),
   "Playfair-Display": require("../assets/fonts/PlayfairDisplay-Regular.ttf"),
 } as const;
 
