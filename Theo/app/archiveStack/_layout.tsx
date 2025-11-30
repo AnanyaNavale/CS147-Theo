@@ -29,7 +29,7 @@ export default function ArchiveStackLayout() {
         header: () => (
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => router.push("../(tabs)/archive")}
               style={styles.backButton}
             >
               <Feather
