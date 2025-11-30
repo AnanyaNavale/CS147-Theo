@@ -12,49 +12,49 @@ export interface Database {
       // ------------------ SESSIONS TABLE ------------------
       sessions: {
         Row: {
-          id: string;
+          id: string; // bigint identity in DB; use string for transport
           created_at: string;
-          completed_at: string;
+          completed_at: string | null;
           user_id: string | null;
           title: string;
           has_settings: boolean;
           total_time: number;
-          status: string;
+          status: "planned" | "active" | "incomplete" | "complete";
           has_goal: boolean;
           goal: string | null;
           has_tasks: boolean;
           summary: Json | null;
-          reflection_chat: Json | null;
+          reflection_chat: Json[] | null;
         };
         Insert: {
           id?: string;
           created_at?: string;
-          completed_at?: string;
+          completed_at?: string | null;
           user_id?: string | null;
-          title: string;
-          has_settings: boolean;
-          total_time: number;
-          status: string;
-          has_goal: boolean;
-          goal?: string | null;
-          has_tasks: boolean;
-          summary?: Json | null;
-          reflection_chat?: Json | null;
-        };
-        Update: {
-          id?: string;
-          created_at?: string;
-          completed_at?: string;
-          user_id?: string | null;
-          title: string;
-          has_settings: boolean;
-          total_time: number;
-          status?: string;
+          title?: string;
+          has_settings?: boolean;
+          total_time?: number;
+          status?: "planned" | "active" | "incomplete" | "complete";
           has_goal?: boolean;
           goal?: string | null;
           has_tasks?: boolean;
           summary?: Json | null;
-          reflection_chat?: Json | null;
+          reflection_chat?: Json[] | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          completed_at?: string | null;
+          user_id?: string | null;
+          title?: string;
+          has_settings?: boolean;
+          total_time?: number;
+          status?: "planned" | "active" | "incomplete" | "complete";
+          has_goal?: boolean;
+          goal?: string | null;
+          has_tasks?: boolean;
+          summary?: Json | null;
+          reflection_chat?: Json[] | null;
         };
         Relationships: [];
       };
@@ -63,35 +63,38 @@ export interface Database {
       tasks: {
         Row: {
           id: string;
-          session_id: string;
-          task_name: string;
+          scheduled_session_id: string;
+          title: string;
           is_completed: boolean;
           order_index: number;
-          time_allotted: number | null;
+          estimated_minutes: number;
           time_completed: number | null;
+          created_at: string;
         };
         Insert: {
           id?: string;
-          session_id: string;
-          task_name: string;
-          is_completed: boolean;
-          order_index: number;
-          time_allotted?: number | null;
+          scheduled_session_id: string;
+          title: string;
+          is_completed?: boolean;
+          order_index?: number;
+          estimated_minutes?: number;
           time_completed?: number | null;
+          created_at?: string;
         };
         Update: {
           id?: string;
-          session_id: string;
-          task_name: string;
-          is_completed: boolean;
-          order_index: number;
-          time_allotted?: number | null;
+          scheduled_session_id?: string;
+          title?: string;
+          is_completed?: boolean;
+          order_index?: number;
+          estimated_minutes?: number;
           time_completed?: number | null;
+          created_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "tasks_session_id_fkey";
-            columns: ["session_id"];
+            foreignKeyName: "tasks_scheduled_session_id_fkey";
+            columns: ["scheduled_session_id"];
             referencedRelation: "sessions";
             referencedColumns: ["id"];
           }
@@ -102,10 +105,12 @@ export interface Database {
       session_settings: {
         Row: {
           id: string;
-          user_id: string | null;
           session_id: string;
           reflection_reminders: boolean;
           collab_requests: boolean;
+          collab_friends: boolean;
+          user_id: string | null;
+          created_at: string;
         };
         Insert: {
           id?: string;
@@ -113,6 +118,8 @@ export interface Database {
           session_id: string;
           reflection_reminders?: boolean;
           collab_requests?: boolean;
+          collab_friends?: boolean;
+          created_at?: string;
         };
         Update: {
           id?: string;
@@ -120,6 +127,8 @@ export interface Database {
           session_id?: string;
           reflection_reminders?: boolean;
           collab_requests?: boolean;
+          collab_friends?: boolean;
+          created_at?: string;
         };
         Relationships: [
           {
@@ -136,19 +145,32 @@ export interface Database {
         // USERS TABLE
         Row: {
           id: string;
-          user_id: string;
+          user_id?: string;
           avatar_url: string | null;
-          created_at: string;
           display_name: string | null;
-          // default_break_minutes: number | null;
-          // default_session_minutes: number | null;
           notifications_enabled: boolean | null;
           timezone: string | null;
-          // updated_at: string;
-          // weekly_focus_goal_minutes: number | null;
+          created_at: string;
+          updated_at: string;
         };
-        Insert: {};
-        Update: {};
+        Insert: {
+          id: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          notifications_enabled?: boolean | null;
+          timezone?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          notifications_enabled?: boolean | null;
+          timezone?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
         Relationships: [];
       };
     };

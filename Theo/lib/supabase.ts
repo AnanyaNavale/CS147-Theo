@@ -60,13 +60,19 @@ export async function signUpWithEmail(payload: EmailSignUpPayload) {
   });
 
   if (error) {
+    const lowered = error.message.toLowerCase();
+    if (lowered.includes("registered") || lowered.includes("already exists")) {
+      throw new Error("Email already registered. Try logging in instead.");
+    }
     throw new Error(`Failed to sign up: ${error.message}`);
   }
 
-  if (data.user) {
+  // Only upsert profile when we have an authenticated session so RLS passes.
+  if (data.session?.user) {
     await ensureUserProfile({
-      id: data.user.id,
-      displayName: displayName ?? null,
+      id: data.session.user.id,
+      displayName:
+        data.session.user.user_metadata?.display_name ?? displayName ?? null,
     });
   }
 
@@ -87,6 +93,14 @@ export async function signInWithEmail(
 
   if (error) {
     throw new Error(`Failed to sign in: ${error.message}`);
+  }
+
+  if (data.session?.user) {
+    await ensureUserProfile({
+      id: data.session.user.id,
+      displayName:
+        data.session.user.user_metadata?.display_name ?? null,
+    });
   }
 
   return data.session;

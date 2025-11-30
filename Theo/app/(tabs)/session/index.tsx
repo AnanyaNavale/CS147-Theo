@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     //paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.lg,
+    paddingBottom: theme.spacing.xxl * 1.5,
   },
   headerRow: {
     flexDirection: "row",

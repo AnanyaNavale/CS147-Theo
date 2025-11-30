@@ -2,6 +2,7 @@
 
 import React from "react";
 import {
+  StyleProp,
   StyleSheet,
   Text,
   TextInput,
@@ -24,6 +25,8 @@ export type InputFieldProps = {
   centered?: boolean;
   noBorder?: boolean;
   width?: ViewStyle["width"];
+  rightAccessory?: React.ReactNode;
+  inputStyle?: StyleProp<TextStyle>;
 } & TextInputProps;
 
 export const InputField = React.forwardRef<TextInput, InputFieldProps>(
@@ -40,6 +43,8 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
       errorStyle,
       style,
       width,
+      rightAccessory,
+      inputStyle,
       ...rest
     },
     ref
@@ -55,20 +60,26 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
       >
         {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
 
-        <TextInput
-          ref={ref}
-          style={[
-            styles.input,
-            small && styles.smallInput,
-            centered && styles.centeredInput,
-            noBorder && styles.noBorder,
-            error && styles.inputError,
-            row && styles.rowInput,
-            style,
-          ]}
-          placeholderTextColor={theme.input.placeholder}
-          {...rest}
-        />
+        <View style={styles.inputWrapper}>
+          <TextInput
+            ref={ref}
+            style={[
+              styles.input,
+              small && styles.smallInput,
+              centered && styles.centeredInput,
+              noBorder && styles.noBorder,
+              error && styles.inputError,
+              row && styles.rowInput,
+              style,
+              inputStyle,
+            ]}
+            placeholderTextColor={theme.input.placeholder}
+            {...rest}
+          />
+          {rightAccessory && (
+            <View style={styles.rightAccessory}>{rightAccessory}</View>
+          )}
+        </View>
 
         {error && <Text style={[styles.error, errorStyle]}>{error}</Text>}
       </View>
@@ -80,11 +91,16 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     marginBottom: theme.spacing.md + 2,
+    position: "relative",
   },
 
   row: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  inputWrapper: {
+    width: "100%",
+    justifyContent: "center",
   },
   label: {
     fontSize: theme.typography.sizes.lg,
@@ -104,6 +120,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.input.borderRadius,
     color: theme.colors.text,
     fontFamily: theme.typography.families.regular,
+    paddingRight: theme.spacing.xl * 1.6,
     ...theme.shadow.soft,
   },
 
@@ -141,5 +158,12 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.danger,
     fontFamily: theme.typography.families.regular,
+  },
+  rightAccessory: {
+    position: "absolute",
+    right: theme.spacing.md,
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
   },
 });
