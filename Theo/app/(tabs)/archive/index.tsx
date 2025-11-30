@@ -15,6 +15,7 @@ import { Feather } from "@expo/vector-icons";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
+import MainHeader from "@/components/ui/MainHeader";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 

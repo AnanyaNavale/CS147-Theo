@@ -12,10 +12,12 @@ import { colors } from "@/assets/themes/colors";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { Spacer } from "@/components";
-import { MainHeader } from "@/components/ui/MainHeader";
+import MainHeader from "@/components/ui/MainHeader";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { signOut } from "@/lib/supabase";
+// import { signOut } from "@/lib/supabase";
+import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const teddyBear = require("@/assets/theo/working.png");
 
@@ -29,51 +31,77 @@ export default function HomeScreen() {
   const userName = "User";
   const today = formatHomeDate(new Date());
   const [menuOpen, setMenuOpen] = useState(false);
-  const hasIncomplete = true; // placeholder for incomplete session badge
+  const hasIncomplete = false; // TODO: Page for incomplete sessions
+
+  function formatHomeDate(date: Date) {
+    const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${weekday}, ${month}/${day}/${year}`;
+  }
 
   const quote = useMemo(() => {
     const idx = Math.floor(Math.random() * QUOTES.length);
     return QUOTES[idx];
   }, []);
 
-  const handleLogout = async () => {
-    setMenuOpen(false);
-    try {
-      await signOut();
-      router.replace("../auth/login");
-    } catch (err) {
-      console.warn("Failed to log out", err);
-    }
-  };
+  // const handleLogout = async () => {
+  //   setMenuOpen(false);
+  //   try {
+  //     await signOut();
+  //     router.replace("../auth/login");
+  //   } catch (err) {
+  //     console.warn("Failed to log out", err);
+  //   }
+  // };
 
-  const menuOptions = [
-    {
-      label: "Settings",
-      onPress: () => {
-        setMenuOpen(false);
-        router.push("../profile");
-      },
-    },
-    { label: "Log out", onPress: handleLogout },
-  ];
+  // const menuOptions = [
+  //   {
+  //     label: "Settings",
+  //     onPress: () => {
+  //       setMenuOpen(false);
+  //       router.push("../profile");
+  //     },
+  //   },
+  //   { label: "Log out", onPress: handleLogout },
+  // ];
 
   return (
     <View style={styles.container}>
       <MainHeader
-        onMenuPress={() => setMenuOpen((p) => !p)}
-        onProfilePress={() => router.push("../profile")}
-        showBellDot={hasIncomplete}
-        paddingHorizontal={0}
-        iconSize={28}
+        // onMenuPress={() => setMenuOpen((p) => !p)}
+        // onProfilePress={() => router.push("../profile")}
+        // onLayout={(event) => {
+        //   setHeaderHeight(event.nativeEvent.layout.height);
+        // }}
       />
 
-      <View style={styles.headerText}>
-        <SvgStrokeText
-          text={today}
-          stroke={colors.light.date}
-          textStyle={{ color: colors.light.date, fontSize: 20 }}
-          containerStyle={styles.dateText}
-        />
+      <View style={styles.headerContainer}>
+        <View style={styles.dateContainer}>
+          <SvgStrokeText
+            text={today}
+            stroke={colors.light.date}
+            textStyle={{ color: colors.light.date, fontSize: 20 }}
+            containerStyle={styles.dateText}
+          />
+          <TouchableOpacity>
+            {hasIncomplete ? (
+              <MaterialCommunityIcons
+                name="bell-badge"
+                size={36}
+                color={colors.light.notificationActive}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="bell-outline"
+                size={36}
+                color={colors.light.notificationInactive}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
         <SvgStrokeText
           text={`Hi, ${userName}`}
           containerStyle={styles.hiText}
@@ -83,6 +111,7 @@ export default function HomeScreen() {
       <View style={styles.heroWrapper}>
         <Image source={teddyBear} style={styles.heroImage} />
       </View>
+      <Spacer size="xl" />
 
       <View style={styles.quoteCard}>
         <Text style={styles.quoteText}>{quote}</Text>
@@ -102,7 +131,7 @@ export default function HomeScreen() {
           onPress={() => setMenuOpen(false)}
         />
       )}
-      {menuOpen && (
+      {/* {menuOpen && (
         <View style={styles.menuAnchor}>
           <View style={styles.menuCard}>
             {menuOptions.map((opt, idx) => (
@@ -119,39 +148,44 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
-      )}
+      )} */}
     </View>
   );
-}
-
-function formatHomeDate(date: Date) {
-  const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
-  const month = date.toLocaleDateString("en-US", { month: "long" });
-  const day = date.getDate();
-  return `${weekday}, ${month} ${day}`;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.light.background,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
+    // paddingHorizontal: theme.spacing.lg,
+    // paddingTop: theme.spacing.lg,
   },
-  headerText: {
+  headerContainer: {
+    flexDirection: "column",
     width: "100%",
     marginTop: theme.spacing.xl,
     marginBottom: theme.spacing.lg,
     alignItems: "flex-start",
     paddingLeft: 0,
+    marginHorizontal: 16,
+  },
+  dateContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    width: "85%",
+    borderColor: "red",
+    // borderWidth: 1,
   },
   dateText: {
-    alignSelf: "flex-start",
-    marginBottom: theme.spacing.xs,
+    alignSelf: "center",
+    // marginBottom: theme.spacing.xs,
+    marginLeft: 5,
+    borderColor: "blue",
+    // borderWidth: 1,
   },
   hiText: {
     alignSelf: "flex-start",
-    marginLeft: 3, // manually fixing alignment
   },
   heroWrapper: {
     alignItems: "center",
@@ -159,14 +193,16 @@ const styles = StyleSheet.create({
   heroImage: {
     alignSelf: "center",
     marginTop: theme.spacing.md,
-    width: 220,
     height: 240,
+    aspectRatio: 1,
     resizeMode: "contain",
   },
   quoteCard: {
+    width: "80%",
     marginTop: theme.spacing.md,
     paddingHorizontal: theme.spacing.md,
     alignItems: "center",
+    alignSelf: "center",
   },
   quoteText: {
     fontStyle: "italic",
@@ -185,7 +221,7 @@ const styles = StyleSheet.create({
   },
   menuAnchor: {
     position: "absolute",
-    top: 32,
+    top: 120,
     left: theme.spacing.lg,
     zIndex: 3,
   },

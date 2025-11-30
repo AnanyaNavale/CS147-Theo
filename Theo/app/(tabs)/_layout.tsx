@@ -16,7 +16,6 @@ function TabBarIcon({
   color,
   size = 33,
 }: {
-  // name: FontAwesomeName;
   name: FeatherName;
   color: string;
   size?: number;
@@ -28,12 +27,6 @@ function TabBarIcon({
       size={size}
       style={{ marginBottom: -2 }}
     />
-    // <FontAwesome
-    //   name={name}
-    //   color={color}
-    //   size={size}
-    //   style={{ marginBottom: -2 }}
-    // />
   );
 }
 
@@ -54,19 +47,7 @@ export default function TabLayout() {
           paddingVertical: 2,
         },
         tabBarStyle: styles.tabBar,
-        header: () => (
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => console.log("menu")}>
-              <TabBarIcon name="menu" color="#8A5E3C" size={36} />
-            </TouchableOpacity>
-            <Image source={image} style={{ width: 90, height: 40, marginLeft: 10 }} />
-            <TouchableOpacity onPress={() => router.push("../profile")}>
-              <View style={styles.userIcon}>
-                <TabBarIcon name="user" color="white" size={36} />
-              </View>
-            </TouchableOpacity>
-          </View>
-        ),
+        headerShown: false,
       }}
     >
       <Tabs.Screen

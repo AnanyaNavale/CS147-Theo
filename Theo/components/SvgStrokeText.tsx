@@ -37,7 +37,7 @@ export default function SvgStrokeText({
   // Size SVG based on some simple estimate
   const lineHeight = fontSize * 1.3; // more breathing room
   const height = lines.length * lineHeight; // padding to prevent clipping
-  const width = Math.max(...lines.map((l) => l.length)) * (fontSize * 0.6) + 10; // padding
+  const width = Math.max(...lines.map((l) => l.length)) * (fontSize * 0.6); // padding
 
   return (
     <View style={containerStyle}>

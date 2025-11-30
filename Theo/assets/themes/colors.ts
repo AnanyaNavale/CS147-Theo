@@ -39,6 +39,8 @@ export const colors = {
     inactive: "#A9A9A9",
 
     iconsStandalone: "#8A5E3C",
+    notificationInactive: "#8A5E3CBF",
+    notificationActive: "#7C3030",
 
     // Shadows
     shadowPrimary: "#8A5E3C80",
