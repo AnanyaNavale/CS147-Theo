@@ -11,6 +11,8 @@ export type ReflectionChatMessage = {
   text: string;
   from: "user" | "assistant";
   created_at: string;
+  isVoice?: boolean;
+  displayText?: string | null;
 };
 
 ///////////////////////////////////////////////// SUPABASE SETUP

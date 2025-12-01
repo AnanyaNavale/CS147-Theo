@@ -22,13 +22,21 @@ function parseTasksFromText(text: string): AiTask[] {
     throw new Error("AI response did not include a task list.");
   }
 
+  const candidate = match[0];
+  const sanitized = candidate.replace(/,\s*([}\]])/g, "$1"); // remove trailing commas
+
   try {
-    const extracted = JSON.parse(match[0]);
+    const extracted = JSON.parse(sanitized);
     if (!Array.isArray(extracted)) {
       throw new Error("AI response was not an array.");
     }
     return extracted;
   } catch (err) {
+    console.warn("[Gemini][tasks] parse failed", {
+      original: candidate.slice(0, 400),
+      sanitized: sanitized.slice(0, 400),
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw new Error(
       err instanceof Error ? err.message : "Could not read AI task list."
     );
@@ -79,12 +87,21 @@ Prefer short, actionable tasks. Keep minutes between 10 and 45.
   }
 
   const data = await response.json();
+  console.log("[Gemini][tasks] raw response", {
+    hasCandidates: Array.isArray(data?.candidates),
+    status: response.status,
+    promptFeedback: data?.promptFeedback,
+  });
   const parts =
     (data?.candidates?.[0]?.content?.parts as Array<{ text?: string }> | undefined) ??
     [];
   const text =
     parts.map((p) => (typeof p.text === "string" ? p.text : "")).join("").trim() ||
     "";
+  console.log("[Gemini][tasks] parsed text", {
+    length: text.length,
+    preview: text.slice(0, 160),
+  });
 
   if (!text) {
     const block = data?.promptFeedback?.blockReason;
@@ -203,7 +220,7 @@ ${recent
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.45,
-        maxOutputTokens: 256,
+        maxOutputTokens: 320,
       },
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -219,8 +236,20 @@ ${recent
       hasText: Boolean(primary.text),
     });
 
-    if (primary.text) {
+    const truncated =
+      (primary.finishReason === "MAX_TOKENS" && (primary.text?.length ?? 0) < 40) ||
+      ((primary.text ?? "").split(/\s+/).filter(Boolean).length <= 3);
+
+    if (primary.text && !truncated) {
       return primary.text;
+    }
+
+    if (truncated) {
+      console.warn("[Gemini][reflection] truncation detected, retrying with minimal prompt", {
+        finishReason: primary.finishReason,
+        textLen: primary.text?.length,
+        wordCount: primary.text?.split(/\s+/).filter(Boolean).length,
+      });
     }
 
     // Fallback: minimal prompt, very small token budget to dodge MAX_TOKENS

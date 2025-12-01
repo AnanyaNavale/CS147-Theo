@@ -1,6 +1,6 @@
 // components/ChatBubble.tsx
 
-import React from "react";
+import React, { ReactNode } from "react";
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { theme } from "../../design/theme";
 
@@ -10,6 +10,7 @@ type ChatBubbleProps = {
   /** Extra style for the bubble box itself */
   style?: ViewStyle | ViewStyle[];
   textStyle?: TextStyle | TextStyle[];
+  content?: ReactNode;
 };
 
 export function ChatBubble({
@@ -17,6 +18,7 @@ export function ChatBubble({
   from = "assistant",
   style,
   textStyle,
+  content,
 }: ChatBubbleProps) {
   const isUser = from === "user";
 
@@ -35,15 +37,17 @@ export function ChatBubble({
           style,
         ]}
       >
-        <Text
-          style={[
-            styles.text,
-            isUser ? styles.userText : styles.assistantText,
-            textStyle,
-          ]}
-        >
-          {text}
-        </Text>
+        {content ?? (
+          <Text
+            style={[
+              styles.text,
+              isUser ? styles.userText : styles.assistantText,
+              textStyle,
+            ]}
+          >
+            {text}
+          </Text>
+        )}
       </View>
 
       {/* Tail circles */}
