@@ -1,25 +1,29 @@
 import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   Image,
   Pressable,
   StyleSheet,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 import { colors } from "@/assets/themes/colors";
 import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { Spacer } from "@/components";
-import MainHeader from "@/components/ui/MainHeader";
-import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
-import { Feather } from "@expo/vector-icons";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import QuoteOfTheDay from "@/components/Quote";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import MainHeader from "@/components/ui/MainHeader";
+import { theme } from "@/design/theme";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const teddyBear = require("@/assets/theo/working.png");
+const HEADER_HEIGHT = 145; // size of main header (fixed) including its padding
+const TAB_OVERLAP = 35; // size of the portion of the "session" circle in the tab bar that exceeds the actual tab bar
 
 // const QUOTES = [
 //   `"You are braver than you believe, stronger than you seem, and smarter than you think." - Christopher Robin`,
@@ -32,6 +36,8 @@ export default function HomeScreen() {
   const today = formatHomeDate(new Date());
   const [menuOpen, setMenuOpen] = useState(false);
   const hasIncomplete = false; // TODO: Page for incomplete sessions
+  const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
 
   function formatHomeDate(date: Date) {
     const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
@@ -47,58 +53,69 @@ export default function HomeScreen() {
   //   return QUOTES[idx];
   // }, []);
 
+  const usableHeight = screenHeight - HEADER_HEIGHT - TAB_OVERLAP; // subract out header + overlap for height content can occupy
+
   return (
-    <View style={styles.container}>
-      <MainHeader
-      />
+    <SafeAreaView style={styles.container} edges={[]}>
+      <MainHeader />
 
-      <View style={styles.headerContainer}>
-        <View style={styles.dateContainer}>
+      <View
+        style={[
+          styles.content,
+          {
+            minHeight: usableHeight,
+            paddingBottom: insets.bottom + TAB_OVERLAP + theme.spacing.md,
+          },
+        ]}
+      >
+        {/* Section 1: Date + greeting + bell */}
+        <View style={styles.headerContainer}>
+          <View style={styles.dateContainer}>
+            <SvgStrokeText
+              text={today}
+              stroke={colors.light.date}
+              textStyle={{ color: colors.light.date, fontSize: 20 }}
+              containerStyle={styles.dateText}
+              textAnchor="start"
+            />
+            <TouchableOpacity>
+              {hasIncomplete ? (
+                <MaterialCommunityIcons
+                  name="bell-badge"
+                  size={36}
+                  color={colors.light.notificationActive}
+                />
+              ) : (
+                <MaterialCommunityIcons
+                  name="bell-outline"
+                  size={36}
+                  color={colors.light.notificationInactive}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
           <SvgStrokeText
-            text={today}
-            stroke={colors.light.date}
-            textStyle={{ color: colors.light.date, fontSize: 20 }}
-            containerStyle={styles.dateText}
+            text={`Hi, ${userName}`}
+            containerStyle={styles.hiText}
+            textAnchor="start"
           />
-          <TouchableOpacity>
-            {hasIncomplete ? (
-              <MaterialCommunityIcons
-                name="bell-badge"
-                size={36}
-                color={colors.light.notificationActive}
-              />
-            ) : (
-              <MaterialCommunityIcons
-                name="bell-outline"
-                size={36}
-                color={colors.light.notificationInactive}
-              />
-            )}
-          </TouchableOpacity>
         </View>
-        <SvgStrokeText
-          text={`Hi, ${userName}`}
-          containerStyle={styles.hiText}
-        />
+
+        {/* Section 2: Teddy + quote */}
+        <View style={styles.heroBlock}>
+          <Image source={teddyBear} style={styles.heroImage} />
+          <QuoteOfTheDay />
+        </View>
+
+        {/* Section 3: CTA */}
+        <View style={styles.ctaRow}>
+          <BasicButton
+            text="Start a work session"
+            style={{ alignSelf: "center" }}
+            onPress={() => router.push("../(tabs)/session")}
+          />
+        </View>
       </View>
-
-      <View style={styles.heroWrapper}>
-        <Image source={teddyBear} style={styles.heroImage} />
-      </View>
-      <Spacer size="xl" />
-
-      <QuoteOfTheDay />
-      {/* <View style={styles.quoteCard}>
-        <Text style={styles.quoteText}>{quote}</Text>
-      </View> */}
-
-      <Spacer size="lg" />
-
-      <BasicButton
-        text="Start a work session"
-        style={{ alignSelf: "center", marginTop: 20 }}
-        onPress={() => router.push("../(tabs)/session")}
-      />
 
       {menuOpen && (
         <Pressable
@@ -106,7 +123,7 @@ export default function HomeScreen() {
           onPress={() => setMenuOpen(false)}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -115,42 +132,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.light.background,
   },
+  content: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.lg,
+    justifyContent: "space-between",
+  },
   headerContainer: {
     flexDirection: "column",
     width: "100%",
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.lg,
+    marginTop: theme.spacing.lg,
     alignItems: "flex-start",
-    paddingLeft: 0,
-    marginHorizontal: 16,
   },
   dateContainer: {
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
-    width: "85%",
-    borderColor: "red",
-    // borderWidth: 1,
+    width: "100%",
   },
   dateText: {
     alignSelf: "center",
     // marginBottom: theme.spacing.xs,
-    marginLeft: 5,
-    borderColor: "blue",
-    // borderWidth: 1,
+    //marginLeft: 5,
   },
   hiText: {
     alignSelf: "flex-start",
   },
-  heroWrapper: {
+  heroBlock: {
     alignItems: "center",
+    gap: theme.spacing.md,
   },
   heroImage: {
     alignSelf: "center",
-    marginTop: theme.spacing.md,
     height: 240,
     aspectRatio: 1,
     resizeMode: "contain",
+  },
+  ctaRow: {
+    alignItems: "center",
   },
   quoteCard: {
     width: "80%",

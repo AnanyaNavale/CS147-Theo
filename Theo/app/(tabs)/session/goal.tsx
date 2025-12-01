@@ -34,13 +34,21 @@ export default function GoalScreen() {
 
   const [goal, setGoal] = useState("");
   const [showTaskPrompt, setShowTaskPrompt] = useState(false);
-  const { width } = useWindowDimensions();
-  const isCompact = width < 360;
+  const { width, height } = useWindowDimensions();
+  const isCompact = width < 360 || height < 720;
 
   const hasGoal = goal.trim().length > 0;
   const primaryLabel = hasGoal ? "Next" : "Skip";
 
-  const teddySize = isCompact ? 180 : 220;
+  const baseTeddySize = isCompact ? 170 : 220;
+  const arrowFootprint = 160; // approx width of ArrowAction (text + icon)
+  const horizontalMargin = theme.spacing.md * 2;
+  const maxTeddyWidth = Math.max(
+    140,
+    width - arrowFootprint - horizontalMargin
+  );
+  const maxTeddyHeight = Math.max(140, height * 0.35);
+  const teddySize = Math.min(baseTeddySize, maxTeddyWidth, maxTeddyHeight);
   const micSize = isCompact ? 20 : 26;
   const [showRecorder, setShowRecorder] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);

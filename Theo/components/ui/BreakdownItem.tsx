@@ -33,18 +33,17 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 100,
     borderRadius: theme.radii.lg,
-    marginBottom: theme.spacing.sm,
+    //marginBottom: theme.spacing.sm,
     ...theme.shadow.soft,
   },
 
   timeBox: {
     width: 100,
     backgroundColor: theme.colors.accentDark,
-    borderTopLeftRadius: theme.radii.lg,
-    borderBottomLeftRadius: theme.radii.lg,
-    // justifyContent: "center",
+    borderRadius: theme.radii.md,
     alignItems: "center",
     paddingVertical: theme.spacing.md,
+    zIndex: 2,
   },
 
   timeText: {
@@ -57,12 +56,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.solidColors.white,
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
-    borderTopRightRadius: theme.radii.lg,
-    borderBottomRightRadius: theme.radii.lg,
+    borderTopRightRadius: theme.radii.md,
+    borderBottomRightRadius: theme.radii.md,
+    marginLeft: -theme.spacing.lg, // overlap the time box to cover its rounded edge
     paddingVertical: theme.spacing.md - 5,
-    paddingHorizontal: theme.spacing.md,
-    paddingRight: theme.spacing.xl + 10,
-    //justifyContent: "center",
+    paddingHorizontal: theme.spacing.xl,
   },
 
   taskText: {
