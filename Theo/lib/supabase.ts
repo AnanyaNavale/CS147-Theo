@@ -6,6 +6,13 @@ import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 import type { Json, WorkSession, Task, SessionSetting, UserProfile } from "@/types/database.types";
 
+export type ReflectionChatMessage = {
+  id: string;
+  text: string;
+  from: "user" | "assistant";
+  created_at: string;
+};
+
 ///////////////////////////////////////////////// SUPABASE SETUP
 
 /**
@@ -60,13 +67,19 @@ export async function signUpWithEmail(payload: EmailSignUpPayload) {
   });
 
   if (error) {
+    const lowered = error.message.toLowerCase();
+    if (lowered.includes("registered") || lowered.includes("already exists")) {
+      throw new Error("Email already registered. Try logging in instead.");
+    }
     throw new Error(`Failed to sign up: ${error.message}`);
   }
 
-  if (data.user) {
+  // Only upsert profile when we have an authenticated session so RLS passes.
+  if (data.session?.user) {
     await ensureUserProfile({
-      id: data.user.id,
-      displayName: displayName ?? null,
+      id: data.session.user.id,
+      displayName:
+        data.session.user.user_metadata?.display_name ?? displayName ?? null,
     });
   }
 
@@ -87,6 +100,14 @@ export async function signInWithEmail(
 
   if (error) {
     throw new Error(`Failed to sign in: ${error.message}`);
+  }
+
+  if (data.session?.user) {
+    await ensureUserProfile({
+      id: data.session.user.id,
+      displayName:
+        data.session.user.user_metadata?.display_name ?? null,
+    });
   }
 
   return data.session;
@@ -486,6 +507,30 @@ export async function updateSession(
 }
 
 /**
+ * Persists reflection chat history on a session.
+ */
+export async function saveReflectionChat(
+  sessionId: string,
+  messages: ReflectionChatMessage[]
+): Promise<void> {
+  const sanitized = messages.map((m) => ({
+    id: m.id,
+    text: m.text,
+    from: m.from,
+    created_at: m.created_at ?? new Date().toISOString(),
+  })) as unknown as Json[];
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({ reflection_chat: sanitized })
+    .eq("id", sessionId);
+
+  if (error) {
+    throw new Error(`Failed to save reflection chat: ${error.message}`);
+  }
+}
+
+/**
  * Deletes a session and optionally related tasks and settings.
  */
 export async function deleteSession(sessionId: string): Promise<void> {
@@ -498,10 +543,12 @@ export async function deleteSession(sessionId: string): Promise<void> {
 ///////////////////////////////
 
 export interface CreateTaskPayload {
-  scheduled_session_id: string;
-  title: string;
-  estimated_minutes?: number | null;
-  order_index?: number | null;
+  session_id: string;
+  task_name: string;
+  is_completed?: boolean;
+  order_index: number;
+  time_allotted?: number | null;
+  time_completed?: number | null;
 }
 
 export async function createTask(payload: CreateTaskPayload): Promise<Task> {
@@ -519,7 +566,7 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
-    .eq("scheduled_session_id", sessionId);
+    .eq("session_id", sessionId);
 
   if (error) throw new Error(`Failed to fetch tasks: ${error.message}`);
   return data;

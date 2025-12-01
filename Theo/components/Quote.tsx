@@ -1,0 +1,67 @@
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import quotes from "success-motivational-quotes";
+
+// Simple hash function to turn date string into a number
+function getDayIndex(date: Date, total: number) {
+  const dayString = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+  let hash = 0;
+  for (let i = 0; i < dayString.length; i++) {
+    hash = (hash << 5) - hash + dayString.charCodeAt(i);
+    hash |= 0; // convert to 32-bit integer
+  }
+  return Math.abs(hash) % total;
+}
+
+const FIXED_CATEGORY = "Work";
+
+const QuoteOfTheDay: React.FC = () => {
+  // Filter quotes by "Work" category
+  let workQuotes = quotes
+    .getAllQuotes()
+    .filter((q) => q.category === FIXED_CATEGORY);
+
+  // Fallback if no quotes in this category
+  if (workQuotes.length === 0) {
+    workQuotes = quotes.getAllQuotes();
+  }
+//   const categories = Array.from(new Set(allQuotes.map((q) => q.category)));
+
+//   console.log(categories);
+  const index = getDayIndex(new Date(), workQuotes.length);
+  const todayQuote = workQuotes[index];
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.quoteText}>"{todayQuote.body}"</Text>
+      <Text style={styles.authorText}>~ {todayQuote.by}</Text>
+    </View>
+  );
+};
+
+export default QuoteOfTheDay;
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quoteText: {
+    width: "75%",
+    fontSize: 18,
+    fontFamily: fonts.typeface.bodyItalic,
+    fontStyle: 'italic',
+    textAlign: "center",
+    marginBottom: 10,
+    color: colors.light.quote,
+  },
+  authorText: {
+    fontSize: 16,
+    fontFamily: fonts.typeface.bodyItalic,
+    fontWeight: "700",
+    textAlign: "center",
+    color: colors.light.quote,
+  },
+});

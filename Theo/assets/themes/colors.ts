@@ -9,6 +9,7 @@ export const colors = {
     header1: "#000000",
     header2: "#8A5E3C",
     date: "#A9A9A9",
+    quote: "#7D7D7D",
 
     navBar: "#8A5E3C",
 
@@ -39,6 +40,8 @@ export const colors = {
     inactive: "#A9A9A9",
 
     iconsStandalone: "#8A5E3C",
+    notificationInactive: "#8A5E3CBF",
+    notificationActive: "#7C3030",
 
     // Shadows
     shadowPrimary: "#8A5E3C80",

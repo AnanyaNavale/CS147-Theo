@@ -1,6 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 import { theme } from "../../design/theme";
 import { Text } from "./Text";
 
@@ -19,7 +26,9 @@ type ButtonProps = {
   onPress: () => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
+  labelStyle?: StyleProp<TextStyle>;
+  disabled?: boolean;
 };
 
 // Which variants use a gradient background
@@ -59,12 +68,19 @@ export function Button({
   variant = "gold",
   size = "md",
   style,
+  labelStyle,
+  disabled = false,
 }: ButtonProps) {
   const sizeTokens = sizeStyles[size];
   const isGradient = GRADIENT_VARIANTS.includes(variant);
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      disabled={disabled}
+      style={disabled ? styles.disabledTouchable : undefined}
+    >
       {isGradient ? (
         <LinearGradient
           colors={gradientMap[variant as "gold" | "brown" | "danger"]}
@@ -88,6 +104,7 @@ export function Button({
                 fontSize: sizeTokens.fontSize,
                 fontFamily: theme.typography.families.regular,
               },
+              labelStyle,
             ]}
           >
             {label}
@@ -104,6 +121,7 @@ export function Button({
               borderWidth: getBorderWidth(variant),
               borderColor: getBorderColor(variant),
               backgroundColor: getBackground(variant),
+              opacity: disabled ? 0.6 : 1,
             },
             style,
           ]}
@@ -115,6 +133,7 @@ export function Button({
                 fontSize: sizeTokens.fontSize,
                 color: getLabelColor(variant),
               },
+              labelStyle,
             ]}
           >
             {label}
@@ -159,4 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {},
+  disabledTouchable: {
+    opacity: 0.9,
+  },
 });

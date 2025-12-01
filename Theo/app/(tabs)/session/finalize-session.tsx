@@ -9,16 +9,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AppModal, Button } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
-import { ArrowAction } from "@/components/ui/ArrowAction";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { createPlan, supabase } from "@/lib/supabase";
-import { AppModal, Button } from "@/components";
+import { createPlan } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 const teddy = require("@/assets/theo/waving.png");
 
@@ -29,10 +29,12 @@ type Task = {
 };
 
 export default function FinalizeSessionScreen() {
-  const { goal, tasks } = useLocalSearchParams<{
+  const { goal, tasks, sessionId } = useLocalSearchParams<{
     goal?: string;
     tasks?: string;
+    sessionId?: string;
   }>();
+  const { session } = useSupabase();
   const goalText = goal ?? "";
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
@@ -54,28 +56,22 @@ export default function FinalizeSessionScreen() {
   const [friendsOnly, setFriendsOnly] = useState(false);
   const [saveDefault, setSaveDefault] = useState(false);
 
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   const handleSelectSettings = () => setShowSettings(true);
 
-  // Used for 'Save plan to calendar' button
-  const handleButtonPress = async () => {
-    try {
-      // First action: save the plan
-      await handleSavePlan();
-
-      // Second action: show your custom confirmation modal
-      setShowConfirmationModal(true);
-
-      // You can add more actions here if needed
-      // e.g., reset form fields, navigate, etc.
-    } catch (err) {
-      console.error("Error handling button press:", err);
-    }
-  };
-
   const handleSavePlan = async () => {
+    if (savingPlan) return;
+    setSaveError(null);
 
+    if (!session?.user) {
+      setSaveError("Please sign in to save plans to your archive.");
+      return;
+    }
+
+    setSavingPlan(true);
     try {
       // Determine if we have a goal
       const hasGoal = Boolean(goal && goal.trim());
@@ -92,28 +88,36 @@ export default function FinalizeSessionScreen() {
       // Title can be anything you want; for now, we can default it
       const title = hasGoal ? goal! : undefined;
 
-      // Call your createPlan function
+      // Call your createPlan function with the authenticated user id
       const newPlan = await createPlan(
-        null, // TODO: Users table
+        session.user.id,
         hasGoal,
         hasTasks,
         total_time,
-        goal ?? undefined,
         title,
+        goal ?? null
       );
 
       console.log("Plan saved:", newPlan);
+      setShowConfirmationModal(true);
     } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to save plan.";
+      setSaveError(msg);
       console.error("Error saving plan:", err);
+    } finally {
+      setSavingPlan(false);
     }
   };
-
-
 
   const handleStartSession = () => {
     router.push({
       pathname: "./in-session",
-      params: { goal: goalText, tasks: JSON.stringify(parsedTasks) },
+      params: {
+        goal: goalText,
+        tasks: JSON.stringify(parsedTasks),
+        sessionId: sessionId ?? null,
+      },
     });
   };
 
@@ -168,11 +172,18 @@ export default function FinalizeSessionScreen() {
             <Spacer size="md" />
 
             <BasicButton
-              text="Save plan to archive"
-              onPress={handleButtonPress}
+              text={savingPlan ? "Saving..." : "Save plan to archive"}
+              disabled={savingPlan}
+              onPress={handleSavePlan}
               variant="secondary"
               style={styles.button}
             />
+
+            {saveError && (
+              <Text color="danger" style={{ textAlign: "center" }}>
+                {saveError}
+              </Text>
+            )}
 
             {showConfirmationModal && (
               <AppModal
@@ -184,28 +195,21 @@ export default function FinalizeSessionScreen() {
                 message="Your plan is now available in your archive."
                 children={
                   <View style={{ alignItems: 'center' }}>
-                    {/* <View style={[styles.flexButton, styles.buttonLeft]}> */}
-                      <Button
-                        label="Visit archive"
-                        variant="brown"
-                        onPress={() => {
-                          const today = new Date();
-                          const yyyy = today.getFullYear();
-                          const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
-                          const dd = String(today.getDate()).padStart(2, "0");
-                          const todayStr = `${yyyy}-${mm}-${dd}`;
+                    <Button
+                      label="Visit archive"
+                      variant="brown"
+                      onPress={() => {
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
+                        const dd = String(today.getDate()).padStart(2, "0");
+                        const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                          setShowConfirmationModal(false);
+                        setShowConfirmationModal(false);
 
-                          router.push(`../../archiveStack/${todayStr}`);
-                          // router.push({
-                          //   pathname: "/archiveStack/[date]", // Not './archive/[id]' or 'archive/[id]'
-                          //   params: { date: todayStr },
-                          // });
-
-                        }}
-                      />
-                    {/* </View> */}
+                        router.push(`../archive/${todayStr}/index`);
+                      }}
+                    />
                   </View>
                 }
               />
@@ -312,7 +316,7 @@ const styles = StyleSheet.create({
   checkboxList: {
     gap: theme.spacing.sm,
     width: "90%",
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   teddy: {
     position: "absolute",

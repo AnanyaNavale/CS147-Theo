@@ -1,12 +1,16 @@
 import { Feather } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useColorScheme } from "@/components/useColorScheme";
+import { fonts } from "@/assets/themes/typography";
+import { colors } from "@/assets/themes/colors";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
+type MaterialCommunityIconsName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 type FontAwesomeName = React.ComponentProps<typeof FontAwesome>["name"];
@@ -14,73 +18,71 @@ type FontAwesomeName = React.ComponentProps<typeof FontAwesome>["name"];
 function TabBarIcon({
   name,
   color,
-  size = 33,
+  size = 32,
 }: {
-  // name: FontAwesomeName;
-  name: FeatherName;
+  name: MaterialCommunityIconsName;
   color: string;
   size?: number;
 }) {
   return (
-    <Feather
+    <MaterialCommunityIcons
       name={name}
       color={color}
       size={size}
-      style={{ marginBottom: -2 }}
     />
-    // <FontAwesome
-    //   name={name}
-    //   color={color}
-    //   size={size}
-    //   style={{ marginBottom: -2 }}
-    // />
   );
 }
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const image = require("@/assets/images/logo.png");
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#ffffff",
-        tabBarInactiveTintColor: "#F3DDB4",
-        tabBarLabelStyle: {
-          marginTop: 4,
-        },
+        tabBarActiveTintColor: colors.light.navBar,
+        tabBarInactiveTintColor: colors.light.navBar,
         tabBarItemStyle: {
-          paddingVertical: 2,
+          justifyContent: "center",
+          alignItems: "center",
         },
+        // tabBarLabelStyle: {
+        //   marginTop: 2,
+        //   fontSize: 12,
+        //   fontFamily: fonts.typeface.bodyBold,
+        //   fontWeight: "700",
+        //   textAlign: "center",
+        // },
         tabBarStyle: styles.tabBar,
-        headerStyle: styles.header,
-        headerLeftContainerStyle: { paddingLeft: 30 },
-        headerRightContainerStyle: { paddingRight: 30 },
-        headerTitle: () => (
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={{ width: 90, height: 40 }}
-          />
-        ),
-        headerLeft: () => (
-          <TouchableOpacity onPress={() => console.log("menu")}>
-            <TabBarIcon name="menu" color="#8A5E3C" size={36} />
-          </TouchableOpacity>
-        ),
-        headerRight: () => (
-          <TouchableOpacity onPress={() => router.push("../profile")}>
-            <View style={styles.userIcon}>
-              <TabBarIcon name="user" color="white" size={36} />
-            </View>
-          </TouchableOpacity>
-        ),
+        headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "home" : "home-outline"} // filled if focused, outline if not
+              color={color}
+            />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <Text
+              style={[
+                styles.tabBarLabel,
+                {
+                  fontFamily: focused
+                    ? fonts.typeface.bodyBold
+                    : fonts.typeface.body,
+                },
+              ]}
+            >
+              Home
+            </Text>
+          ),
         }}
       />
 
@@ -89,8 +91,24 @@ export default function TabLayout() {
         options={{
           title: "Session",
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="book-open" color={color} size={28} />
+          tabBarIcon: () => (
+            <View style={styles.session}>
+              <TabBarIcon name="book-open-blank-variant" color={"#FFFFFF"} />
+            </View>
+          ),
+          tabBarLabel: ({ focused }) => (
+            <Text
+              style={[
+                styles.tabBarLabel,
+                {
+                  fontFamily: focused
+                    ? fonts.typeface.bodyBold
+                    : fonts.typeface.body,
+                },
+              ]}
+            >
+              Session
+            </Text>
           ),
           tabBarStyle: { display: "none" },
         }}
@@ -100,8 +118,26 @@ export default function TabLayout() {
         name="archive"
         options={{
           title: "Archive",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="calendar" color={color} size={28} />
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "calendar-month" : "calendar-blank-outline"} // filled if focused, outline if not
+              color={color}
+            />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <Text
+              style={[
+                styles.tabBarLabel,
+                {
+                  fontFamily: focused
+                    ? fonts.typeface.bodyBold
+                    : fonts.typeface.body,
+                },
+              ]}
+            >
+              Archive
+            </Text>
           ),
         }}
       />
@@ -111,18 +147,37 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   header: {
-    height: 130, // increase header height
+    height: 130,
     backgroundColor: "#fff",
-    // shadowColor: "transparent", // iOS shadow
     shadowOpacity: 0,
-    elevation: 0, // Android shadow
+    elevation: 0,
+    flexDirection: "row", // horizontal layout
+    justifyContent: "space-between", // spread elements evenly across width
+    alignItems: "flex-end", // vertically center elements
+    paddingHorizontal: 30,
+    paddingVertical: 15,
   },
   tabBar: {
-    backgroundColor: "#8A5E3C",
-    borderTopColor: "#8A5E3C",
-    height: 88,
-    paddingBottom: 10,
-    paddingTop: 8,
+    backgroundColor: colors.light.background,
+    borderTopColor: colors.light.border,
+    borderTopWidth: 2,
+    height: 90,
+  },
+  session: {
+    borderColor: colors.light.border,
+    borderRadius: 50,
+    backgroundColor: colors.light.navBar,
+    width: 70,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 45,
+  },
+  tabBarLabel: {
+    marginTop: 3,
+    fontSize: 12,
+    textAlign: "center",
+    color: colors.light.navBar,
   },
   userIcon: {
     borderRadius: 22, // half of width/height

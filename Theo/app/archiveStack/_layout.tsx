@@ -1,12 +1,10 @@
 import { Stack } from "expo-router";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity, Image, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Text, View } from "@/components/Themed";
 import SvgStrokeText from "@/components/SvgStrokeText";
 
 import { Feather } from "@expo/vector-icons";
 import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 
 export default function ArchiveStackLayout() {
   const router = useRouter();
@@ -28,21 +26,27 @@ export default function ArchiveStackLayout() {
       screenOptions={{
         header: () => (
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => router.push("../(tabs)/archive")}
-              style={styles.backButton}
-            >
-              <Feather
-                name={"arrow-left"}
-                size={36}
-                color={colors.light.iconsStandalone}
-                // marginTop={90}
-              />
-            </TouchableOpacity>
+            <View style={styles.topRow}>
+              <TouchableOpacity
+                onPress={() => router.push("../(tabs)/archive")}
+                style={styles.backButton}
+              >
+                <Feather
+                  name={"arrow-left"}
+                  size={32}
+                  color={colors.light.iconsStandalone}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => router.push("../profile")}>
+                <View style={styles.userIcon}>
+                  <Feather name="user" size={24} color={colors.light.ghost} />
+                </View>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.dateContainer}>
-              <SvgStrokeText
-                text={displayDate}
-              />
+              <SvgStrokeText text={displayDate} />
             </View>
           </View>
         ),
@@ -53,36 +57,34 @@ export default function ArchiveStackLayout() {
 
 const styles = StyleSheet.create({
   header: {
-    // flex: 1,
-    height: 130,
-    // justifyContent: "center",
-    // paddingLeft: 30,
-    // borderColor: "red",
+    paddingTop: 24,
+    paddingHorizontal: 20,
+    backgroundColor: colors.light.background,
+  },
+  topRow: {
     flexDirection: "row",
     alignItems: "center",
-    position: "relative",
-    justifyContent: "flex-end",
-    backgroundColor: colors.light.background,
-    // paddingTop: 80,
-    // flexDirection: 'row',
-    // borderWidth: 2,
-  },
-  backButton: {
-    position: "absolute",
-    left: 16,
-    top: 80,
-    zIndex: 2,
-    backgroundColor: colors.light.background,
+    justifyContent: "space-between",
   },
   dateContainer: {
-    position: "absolute",
-    top: 83,
-    left: 0,
-    right: 0,
+    marginTop: 12,
     alignItems: "center",
-    zIndex: 1,
-    // textAlign: "center",
-    width: "100%",
-    backgroundColor: colors.light.background,
+    justifyContent: "center",
+    paddingBottom: 8,
+  },
+  logo: {
+    width: 90,
+    height: 38,
+    resizeMode: "contain",
+  },
+  userIcon: {
+    borderRadius: 18,
+    borderWidth: 3,
+    borderColor: colors.light.iconsStandalone,
+    backgroundColor: colors.light.iconsStandalone,
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
