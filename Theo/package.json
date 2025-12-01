@@ -11,7 +11,8 @@
   "dependencies": {
     "@expo-google-fonts/architects-daughter": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
-    "@google/generative-ai": "^0.3.0",
+    "@google/genai": "^1.30.0",
+    "@google/generative-ai": "^0.3.1",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-navigation/native": "^7.1.8",
     "@supabase/supabase-js": "^2.48.0",
