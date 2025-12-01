@@ -94,7 +94,7 @@ export default function EndSessionScreen() {
 
         <Spacer size="xxl" />
 
-        <ArrowAction label="View session summary" onPress={viewSummary} />
+        <ArrowAction label={`View summary`} onPress={viewSummary} />
       </ScrollView>
     </>
   );

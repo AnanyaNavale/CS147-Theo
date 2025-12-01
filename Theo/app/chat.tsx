@@ -366,6 +366,13 @@ export default function ChatScreen() {
     <AnimatedMessage message={item} />
   );
 
+  const hasUserMessage = messages.some((m) => m.from === "user");
+
+  const goBackToSession = () => {
+    if (navigation.canGoBack()) navigation.back();
+    else router.push("../(tabs)/session");
+  };
+
   /* ------------------------------------------------------
      UI
   ------------------------------------------------------- */
@@ -374,7 +381,7 @@ export default function ChatScreen() {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
         <View style={styles.headerRow}>
           <Pressable
@@ -416,14 +423,24 @@ export default function ChatScreen() {
             }
           />
         </Pressable>
-        {persisting && (
+        {/* {hasUserMessage && (
+          <View style={styles.sessionLink}>
+            <ArrowAction
+              label="Back to session"
+              small
+              onPress={goBackToSession}
+              style={{ bottom: theme.spacing.sm }}
+            />
+          </View>
+        )} */}
+        {/* {persisting && (
           <Text
-            color="mutedText"
+            color="accentDark"
             style={{ textAlign: "center", paddingBottom: theme.spacing.xs }}
           >
             Saving reflection...
           </Text>
-        )}
+        )} */}
         {error && (
           <Text color="danger" style={{ textAlign: "center" }}>
             {error}
@@ -505,6 +522,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
+  },
+
+  sessionLink: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xs,
   },
 
   textboxWrapper: {
