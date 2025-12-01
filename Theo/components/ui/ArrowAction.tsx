@@ -38,7 +38,7 @@ export function ArrowAction({
       <Icon
         style={styles.arrow}
         name="arrow-right"
-        size={small ? 50 : 100}
+        size={small ? 50 : 80}
         tint={theme.colors.accentDark}
       />
     </TouchableOpacity>
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   container: {
     position: "absolute",
     bottom: theme.spacing.xxl,
-    right: theme.spacing.md,
+    right: theme.spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
@@ -61,6 +61,5 @@ const styles = StyleSheet.create({
   },
   arrow: {
     marginVertical: -35,
-    marginLeft: -5,
   },
 });
