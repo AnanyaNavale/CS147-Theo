@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppModal } from "@/components/ui/AppModal";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -18,10 +19,10 @@ import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { Timer } from "@/components/ui/Timer";
 
-import { colors } from "@/assets/themes/colors";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
+import { saveReflectionChat } from "@/lib/supabase";
 
 type Task = {
   id: string;
@@ -42,7 +43,11 @@ export default function SessionScreen() {
   /* ---------------------------------------------------------
    * GET PASSED-IN GOAL + TASKS
    * --------------------------------------------------------- */
-  const { goal, tasks: tasksParam, sessionId } = useLocalSearchParams<{
+  const {
+    goal,
+    tasks: tasksParam,
+    sessionId,
+  } = useLocalSearchParams<{
     goal?: string;
     tasks?: string;
     sessionId?: string;
@@ -146,13 +151,27 @@ export default function SessionScreen() {
   };
 
   const goToEndSession = () => {
-    router.push({
-      pathname: "./end-session",
-      params: {
-        goal: sessionGoal,
-        tasks: JSON.stringify(sessionTasks),
-        sessionId: sessionId ?? null,
-      },
+    const clearChatHistory = async () => {
+      try {
+        const key = `reflection-chat-${sessionId || "local"}`;
+        await AsyncStorage.removeItem(key);
+        if (sessionId) {
+          await saveReflectionChat(sessionId, []);
+        }
+      } catch (err) {
+        console.error("Failed to clear reflection chat", err);
+      }
+    };
+
+    clearChatHistory().finally(() => {
+      router.push({
+        pathname: "./end-session",
+        params: {
+          goal: sessionGoal,
+          tasks: JSON.stringify(sessionTasks),
+          sessionId: sessionId ?? null,
+        },
+      });
     });
   };
 
@@ -778,7 +797,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.lg,
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: colors.light.background,
+    backgroundColor: theme.colors.background,
   },
   menuAnchor: {
     position: "absolute",

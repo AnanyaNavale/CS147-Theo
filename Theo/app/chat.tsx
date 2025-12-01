@@ -130,6 +130,7 @@ export default function ChatScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const hasHydratedRef = useRef(false);
+  const latestMessagesRef = useRef<Message[]>([]);
   const storageKey = `reflection-chat-${sessionId || "local"}`;
 
   const listRef = useRef<FlatList>(null);
@@ -142,6 +143,9 @@ export default function ChatScreen() {
   };
 
   useEffect(scrollToBottom, [messages.length]);
+  useEffect(() => {
+    latestMessagesRef.current = messages;
+  }, [messages]);
 
   // Hydrate from local first, then Supabase if available
   useEffect(() => {
@@ -149,12 +153,17 @@ export default function ChatScreen() {
     hasHydratedRef.current = false;
 
     const hydrate = async () => {
+      let nextMessages =
+        latestMessagesRef.current.length > 0 ? latestMessagesRef.current : null;
+      let foundLocalMessages = false;
+
       // Local cache
       try {
         const raw = await AsyncStorage.getItem(storageKey);
         if (raw && isActive) {
           const localMessages: Message[] = JSON.parse(raw);
           setMessages(localMessages);
+          foundLocalMessages = localMessages.length > 0;
         }
       } catch {
         // ignore local errors
@@ -162,14 +171,18 @@ export default function ChatScreen() {
 
       if (!sessionId || !session?.user) {
         if (isActive) {
-          setMessages([
-            {
-              id: "assistant_welcome",
-              text: "Hi! I'm here with you. What would you like to reflect on today?",
-              from: "assistant",
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          if (!foundLocalMessages && !nextMessages?.length) {
+            nextMessages = [
+              {
+                id: "assistant_welcome",
+                text: "Hi! I'm here with you. What would you like to reflect on today?",
+                from: "assistant",
+                createdAt: new Date().toISOString(),
+              },
+            ];
+          }
+          if (nextMessages) setMessages(nextMessages);
+          hasHydratedRef.current = true;
         }
         return;
       }
@@ -181,39 +194,47 @@ export default function ChatScreen() {
           (sessionRow?.reflection_chat as ReflectionChatMessage[]) ?? [];
 
         if (isActive && history.length > 0) {
-          setMessages(
-            history.map((m) => ({
-              id: m.id,
-              text: m.text,
-              from: m.from,
-              createdAt: m.created_at,
-            }))
-          );
-        } else if (isActive) {
-          setMessages([
-            {
-              id: "assistant_welcome",
-              text: "Hi! I'm here with you. What would you like to reflect on today?",
-              from: "assistant",
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          nextMessages = history.map((m) => ({
+            id: m.id,
+            text: m.text,
+            from: m.from,
+            createdAt: m.created_at,
+          }));
+          foundLocalMessages = true;
+        } else if (isActive && !foundLocalMessages) {
+          nextMessages =
+            nextMessages && nextMessages.length > 0
+              ? nextMessages
+              : [
+                  {
+                    id: "assistant_welcome",
+                    text: "Hi! I'm here with you. What would you like to reflect on today?",
+                    from: "assistant",
+                    createdAt: new Date().toISOString(),
+                  },
+                ];
         }
       } catch (err) {
         console.error("Failed to load reflection chat", err);
-        if (isActive) {
-          setMessages([
-            {
-              id: "assistant_welcome",
-              text: "Hi! I'm here with you. What would you like to reflect on today?",
-              from: "assistant",
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+        if (isActive && !foundLocalMessages) {
+          nextMessages =
+            nextMessages && nextMessages.length > 0
+              ? nextMessages
+              : [
+                  {
+                    id: "assistant_welcome",
+                    text: "Hi! I'm here with you. What would you like to reflect on today?",
+                    from: "assistant",
+                    createdAt: new Date().toISOString(),
+                  },
+                ];
         }
       } finally {
-        if (isActive) setLoadingHistory(false);
-        hasHydratedRef.current = true;
+        if (isActive) {
+          if (nextMessages) setMessages(nextMessages);
+          setLoadingHistory(false);
+          hasHydratedRef.current = true;
+        }
       }
     };
 
@@ -380,6 +401,7 @@ export default function ChatScreen() {
             data={messages}
             renderItem={renderMessage}
             keyExtractor={(m) => m.id}
+            style={{ flex: 1 }}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -473,6 +495,7 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
+    flexGrow: 1,
     padding: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
   },
@@ -505,13 +528,12 @@ const styles = StyleSheet.create({
   sendAccessory: {
     position: "absolute",
     right: theme.spacing.sm,
-    bottom: theme.input.height / 2 + 5.5, // center of the input field + half of the icon's height
+    top: theme.input.height / 2 - 22 / 2,
     zIndex: 2,
   },
 
   sendIcon: {
     width: 22,
-    height: 22,
     tintColor: theme.colors.accentDark,
   },
 
