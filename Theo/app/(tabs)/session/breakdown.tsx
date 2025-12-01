@@ -23,6 +23,7 @@ import { BreakdownItem } from "@/components/ui/BreakdownItem";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { InputField } from "@/components/ui/InputField";
+import { PawLoader } from "@/components/ui/PawLoader";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
@@ -42,10 +43,11 @@ const teddy = require("../../../assets/theo/waving.png");
 
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
-  const goalText = goal ?? "";
+  const initialGoal = goal ?? "";
   const { session: authSession } = useSupabase();
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [goalInput, setGoalInput] = useState(initialGoal);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -161,6 +163,32 @@ export default function SessionBreakdownScreen() {
     setShowAddModal(false);
   }
 
+  async function generateAiTasks() {
+    if (isGenerating) return;
+    setAiError(null);
+    setIsGenerating(true);
+    try {
+      const aiTasks = await generateTasksWithAI(goalInput || "");
+      if (aiTasks.length === 0) {
+        setAiError("Could not generate tasks. Try again.");
+      } else {
+        setTasks(
+          aiTasks.map((t, idx) => ({
+            id: `${Date.now()}-${idx}`,
+            text: t.text,
+            minutes: t.minutes,
+          }))
+        );
+      }
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Task generation failed.";
+      setAiError(msg);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
   async function confirmContinue() {
     let sessionId: string | undefined = undefined;
 
@@ -170,8 +198,8 @@ export default function SessionBreakdownScreen() {
       try {
         const session = await createSession(
           authSession.user.id,
-          !!goalText,
-          goalText || null,
+          !!goalInput,
+          goalInput || null,
           tasks.length > 0
         );
         sessionId = session.id;
@@ -202,7 +230,7 @@ export default function SessionBreakdownScreen() {
       pathname: "./finalize-session",
       params: {
         tasks: JSON.stringify(tasks),
-        goal: goalText,
+        goal: goalInput,
         sessionId,
       },
     } as const;
@@ -252,7 +280,11 @@ export default function SessionBreakdownScreen() {
             </View>
 
             <View style={{ flex: 1 }}>
-              <BreakdownItem minutes={item.minutes} text={item.text} />
+              <BreakdownItem
+                minutes={item.minutes}
+                text={item.text}
+                onDelete={() => requestDeleteTask(item.id)}
+              />
             </View>
           </View>
         </TouchableOpacity>
@@ -276,22 +308,30 @@ export default function SessionBreakdownScreen() {
 
       {/* GOAL ROW */}
 
-      {goalText && (
-        <View style={styles.goalRow}>
-          <Text variant="h1" color="accentDark" style={styles.goalLabel}>
-            GOAL:
-          </Text>
+      <View style={styles.goalRow}>
+        <Text variant="h1" color="accentDark" style={styles.goalLabel}>
+          GOAL:
+        </Text>
 
-          <Text style={styles.goalValue} variant="h3">
-            {goalText}
-          </Text>
+        <View style={styles.goalInputWrapper}>
+          <InputField
+            value={goalInput}
+            onChangeText={setGoalInput}
+            placeholder="Tap to input your goal"
+            textAlignVertical="center"
+            numberOfLines={1}
+            multiline={false}
+            width="100%"
+            containerStyle={styles.goalInputContainer}
+            inputStyle={styles.goalInput}
+          />
         </View>
-      )}
+      </View>
 
       <Spacer size="xxl" />
       {tasks.length === 0 && (
         <>
-          {goalText ? (
+          {goalInput ? (
             <SvgStrokeText
               text={"Would you like to set\nsome tasks for your goal?"}
             />
@@ -338,33 +378,7 @@ export default function SessionBreakdownScreen() {
               text="Create tasks with AI"
               iconName="ai"
               iconSize={24}
-              onPress={async () => {
-                if (isGenerating) return;
-                setAiError(null);
-                setIsGenerating(true);
-                try {
-                  const aiTasks = await generateTasksWithAI(goalText || "");
-                  if (aiTasks.length === 0) {
-                    setAiError("Could not generate tasks. Try again.");
-                  } else {
-                    setTasks(
-                      aiTasks.map((t, idx) => ({
-                        id: `${Date.now()}-${idx}`,
-                        text: t.text,
-                        minutes: t.minutes,
-                      }))
-                    );
-                  }
-                } catch (err) {
-                  const msg =
-                    err instanceof Error
-                      ? err.message
-                      : "Task generation failed.";
-                  setAiError(msg);
-                } finally {
-                  setIsGenerating(false);
-                }
-              }}
+              onPress={generateAiTasks}
               variant="secondary"
               style={styles.primaryActionButton}
             />
@@ -404,10 +418,10 @@ export default function SessionBreakdownScreen() {
       )}
 
       {/* SKIP ROW FOR EMPTY STATE */}
-      {tasks.length === 0 && (
+      {tasks.length === 0 && !isGenerating && (
         <ArrowAction label="Skip" onPress={confirmContinue} />
       )}
-      {tasks.length > 0 && (
+      {tasks.length > 0 && !isGenerating && (
         <ArrowAction
           label={persisting ? "Saving..." : "Continue"}
           onPress={persisting ? undefined : confirmContinue}
@@ -435,9 +449,7 @@ export default function SessionBreakdownScreen() {
             {/* Regenerate */}
             <View style={styles.actionItem}>
               <TouchableOpacity
-                onPress={() => {
-                  // TODO: implement regenerate tasks
-                }}
+                onPress={generateAiTasks}
                 style={[styles.actionCircle, styles.actionCircleGold]}
               >
                 <Icon name="refresh" size={35} tint={theme.solidColors.white} />
@@ -614,6 +626,12 @@ export default function SessionBreakdownScreen() {
         cancelLabel="Cancel"
         onConfirm={confirmDelete}
       />
+
+      {isGenerating && (
+        <View style={styles.loaderOverlay}>
+          <PawLoader message="Theo is thinking of tasks..." />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -646,7 +664,6 @@ const styles = StyleSheet.create({
   goalRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     paddingHorizontal: theme.spacing.lg,
     flexWrap: "wrap",
   },
@@ -657,6 +674,16 @@ const styles = StyleSheet.create({
 
   goalValue: {
     flexShrink: 1,
+  },
+  goalInputWrapper: {
+    flex: 1,
+    marginLeft: theme.spacing.sm,
+  },
+  goalInputContainer: {
+    marginBottom: 0,
+  },
+  goalInput: {
+    textAlignVertical: "center",
   },
 
   taskHeader: {
@@ -856,5 +883,16 @@ const styles = StyleSheet.create({
     bottom: theme.spacing.xl,
     resizeMode: "contain",
     zIndex: -1,
+  },
+  loaderOverlay: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: theme.solidColors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: theme.spacing.lg,
   },
 });

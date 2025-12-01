@@ -1,15 +1,16 @@
 import { theme } from "@/design/theme";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
 
 export type BreakdownItemProps = {
   minutes: number;
   text: string;
+  onDelete?: () => void;
 };
 
-export function BreakdownItem({ minutes, text }: BreakdownItemProps) {
+export function BreakdownItem({ minutes, text, onDelete }: BreakdownItemProps) {
   return (
     <View style={styles.row}>
       <View style={styles.timeBox}>
@@ -18,9 +19,9 @@ export function BreakdownItem({ minutes, text }: BreakdownItemProps) {
 
       <View style={styles.taskBox}>
         <Text style={styles.taskText}>{text}</Text>
-        <View style={styles.grip}>
-          <Icon name="drag" size={30} tint={theme.colors.border} />
-        </View>
+        <TouchableOpacity onPress={onDelete} style={styles.grip}>
+          <Icon name="trash" size={24} tint={theme.colors.border} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
 
   grip: {
     position: "absolute",
-    right: theme.spacing.xs,
+    right: theme.spacing.sm,
     top: 0,
     bottom: 0,
     justifyContent: "center",
