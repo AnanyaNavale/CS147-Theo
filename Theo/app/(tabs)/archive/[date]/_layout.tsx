@@ -16,6 +16,7 @@ export default function DateStackLayout() {
           name="index" // single session page
           options={{
             headerShown: false,
+            // tabBarStyle: { display: "none" },
           }}
         />
         <Stack.Screen

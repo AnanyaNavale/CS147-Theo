@@ -104,8 +104,8 @@ export default function SingleDayScreen() {
             status={item.status}
             onPress={() =>
               router.push({
-                pathname: "../[session]",
-                params: { session: item.id },
+                pathname: "../../../(tabs)/archive/[date]/[session]",
+                params: { date: date, session: item.id },
               })
             }
           />

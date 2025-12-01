@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Tabs, useRouter } from "expo-router";
+import { Tabs, usePathname, useRouter } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -37,6 +37,19 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const image = require("@/assets/images/logo.png");
+  const pathname = usePathname();
+  console.log(pathname);
+
+  // Hide on entire session stack
+  const inSessionStack = pathname.startsWith("/session");
+
+  // Hide on nested archive screens (but not archive index)
+  const inNestedArchive =
+    pathname.startsWith("/archive") && pathname !== "/archive";
+
+  const hideTabBar = inSessionStack || inNestedArchive;
+
+
 
   return (
     <Tabs
@@ -47,15 +60,9 @@ export default function TabLayout() {
           justifyContent: "center",
           alignItems: "center",
         },
-        // tabBarLabelStyle: {
-        //   marginTop: 2,
-        //   fontSize: 12,
-        //   fontFamily: fonts.typeface.bodyBold,
-        //   fontWeight: "700",
-        //   textAlign: "center",
-        // },
-        tabBarStyle: styles.tabBar,
+        // tabBarStyle: styles.tabBar,
         headerShown: false,
+        tabBarStyle: hideTabBar ? { display: "none" } : styles.tabBar,
       }}
     >
       <Tabs.Screen
@@ -110,7 +117,7 @@ export default function TabLayout() {
               Session
             </Text>
           ),
-          tabBarStyle: { display: "none" },
+          // tabBarStyle: { display: "none" },
         }}
       />
 
