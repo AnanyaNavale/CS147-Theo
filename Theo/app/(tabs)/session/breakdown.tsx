@@ -486,8 +486,9 @@ export default function SessionBreakdownScreen() {
           keyboardType="numeric"
           value={editMinutes}
           onChangeText={setEditMinutes}
-          placeholder="00 : 00 : 00"
-          row={true}
+          placeholder="00 : 00"
+          row
+          inputStyle={{ width: 100 }}
         />
 
         <Spacer size="md" />
@@ -540,6 +541,7 @@ export default function SessionBreakdownScreen() {
           onChangeText={setNewMinutes}
           placeholder="00 : 00"
           row
+          inputStyle={{ width: 100 }}
         />
 
         <Spacer size="md" />
@@ -668,7 +670,7 @@ const styles = StyleSheet.create({
   taskRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
 
   taskIndexCircle: {
@@ -772,7 +774,8 @@ const styles = StyleSheet.create({
 
   swipeActions: {
     flexDirection: "row",
-    height: "85%",
+    alignSelf: "stretch",
+    marginBottom: theme.spacing.md,
     borderRadius: theme.radii.lg,
     overflow: "hidden",
   },
