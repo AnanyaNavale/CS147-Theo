@@ -39,11 +39,10 @@ const styles = StyleSheet.create({
   timeBox: {
     width: 100,
     backgroundColor: theme.colors.accentDark,
-    borderTopLeftRadius: theme.radii.lg,
-    borderBottomLeftRadius: theme.radii.lg,
-    // justifyContent: "center",
+    borderRadius: theme.radii.md,
     alignItems: "center",
     paddingVertical: theme.spacing.md,
+    zIndex: 2,
   },
 
   timeText: {
@@ -56,12 +55,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.solidColors.white,
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
-    borderTopRightRadius: theme.radii.lg,
-    borderBottomRightRadius: theme.radii.lg,
+    borderTopRightRadius: theme.radii.md,
+    borderBottomRightRadius: theme.radii.md,
+    marginLeft: -theme.spacing.lg, // overlap the time box to cover its rounded edge
     paddingVertical: theme.spacing.md - 5,
-    paddingHorizontal: theme.spacing.md,
-    paddingRight: theme.spacing.xl,
-    //justifyContent: "center",
+    paddingHorizontal: theme.spacing.xl,
   },
 
   taskText: {
