@@ -1,33 +1,33 @@
+import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
-  StyleSheet,
+  Animated,
   FlatList,
+  Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Keyboard,
-  Image,
-  Animated,
+  StyleSheet,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
 
-import { theme } from "@/design/theme";
 import { InputField } from "@/components";
 import { ChatBubble } from "@/components/ui/ChatBubble";
+import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
+import { theme } from "@/design/theme";
 import { generateReflectionReply } from "@/lib/ai";
 import {
   ReflectionChatMessage,
+  createSession,
   fetchSessionById,
   saveReflectionChat,
-  createSession,
 } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
-import { Icon } from "@/components/ui/Icon";
-import { router, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useRouter } from "expo-router";
 
 /* ------------------------------------------------------
    MESSAGE TYPE
@@ -280,7 +280,14 @@ export default function ChatScreen() {
     ) {
       persistChat(messages);
     }
-  }, [messages, storageKey, sessionId, session?.user, loadingHistory, persistChat]);
+  }, [
+    messages,
+    storageKey,
+    sessionId,
+    session?.user,
+    loadingHistory,
+    persistChat,
+  ]);
 
   /* ------------------------------------------------------
      SEND MESSAGE
@@ -411,10 +418,7 @@ export default function ChatScreen() {
               style={styles.sendAccessory}
               hitSlop={8}
             >
-              <Image
-                source={require("../assets/icons/send.png")}
-                style={styles.sendIcon}
-              />
+              <Icon name={"send"} style={styles.sendIcon} />
             </Pressable>
             <InputField
               placeholder={
@@ -422,7 +426,6 @@ export default function ChatScreen() {
               }
               value={input}
               onChangeText={setInput}
-              noBorder
               style={styles.textInput}
               returnKeyType="send"
               onSubmitEditing={handleSend}
@@ -478,9 +481,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: 0,
-    backgroundColor: theme.solidColors.white,
+    paddingVertical: theme.spacing.md,
   },
 
   textboxWrapper: {
@@ -490,9 +491,8 @@ const styles = StyleSheet.create({
   },
 
   textInput: {
-    backgroundColor: theme.solidColors.white,
+    position: "relative",
     borderWidth: 2,
-    borderColor: theme.colors.accentDark,
     borderRadius: theme.radii.md,
     paddingLeft: theme.spacing.md,
     paddingRight: 35,
@@ -505,10 +505,7 @@ const styles = StyleSheet.create({
   sendAccessory: {
     position: "absolute",
     right: theme.spacing.sm,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
+    bottom: theme.input.height / 2 + 5.5, // center of the input field + half of the icon's height
     zIndex: 2,
   },
 
@@ -521,9 +518,6 @@ const styles = StyleSheet.create({
   micWrapper: {
     marginLeft: theme.spacing.md,
     height: theme.input.height,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 12,
   },
 
   micIcon: {
