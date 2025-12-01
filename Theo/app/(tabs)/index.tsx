@@ -23,7 +23,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const teddyBear = require("@/assets/theo/working.png");
 const HEADER_HEIGHT = 145; // size of main header (fixed) including its padding
-const TAB_OVERLAP = 40; // size of the portion of the "session" circle in the tab bar that exceeds the actual tab bar
+const TAB_OVERLAP = 35; // size of the portion of the "session" circle in the tab bar that exceeds the actual tab bar
 
 // const QUOTES = [
 //   `"You are braver than you believe, stronger than you seem, and smarter than you think." - Christopher Robin`,
@@ -53,7 +53,7 @@ export default function HomeScreen() {
   //   return QUOTES[idx];
   // }, []);
 
-  const usableHeight = Math.max(0, screenHeight - HEADER_HEIGHT - TAB_OVERLAP); // subract out header + overlap for height content can occupy
+  const usableHeight = screenHeight - HEADER_HEIGHT - TAB_OVERLAP; // subract out header + overlap for height content can occupy
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
@@ -76,6 +76,7 @@ export default function HomeScreen() {
               stroke={colors.light.date}
               textStyle={{ color: colors.light.date, fontSize: 20 }}
               containerStyle={styles.dateText}
+              textAnchor="start"
             />
             <TouchableOpacity>
               {hasIncomplete ? (
@@ -96,6 +97,7 @@ export default function HomeScreen() {
           <SvgStrokeText
             text={`Hi, ${userName}`}
             containerStyle={styles.hiText}
+            textAnchor="start"
           />
         </View>
 
@@ -140,7 +142,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: theme.spacing.lg,
     alignItems: "flex-start",
-    //paddingLeft: 0,
   },
   dateContainer: {
     flexDirection: "row",
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   dateText: {
     alignSelf: "center",
     // marginBottom: theme.spacing.xs,
-    marginLeft: 5,
+    //marginLeft: 5,
   },
   hiText: {
     alignSelf: "flex-start",
