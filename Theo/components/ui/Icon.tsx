@@ -24,6 +24,7 @@ const ICONS = {
   report: require("../../assets/icons/report.png"),
   help: require("../../assets/icons/help.png"),
   drag: require("../../assets/icons/drag.png"),
+  send: require("../../assets/icons/send.png"),
 } as const;
 
 // 2. Infer valid icon names

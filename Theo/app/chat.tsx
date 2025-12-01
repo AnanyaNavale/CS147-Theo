@@ -1,33 +1,33 @@
+import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
-  StyleSheet,
+  Animated,
   FlatList,
+  Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Keyboard,
-  Image,
-  Animated,
+  StyleSheet,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
 
-import { theme } from "@/design/theme";
 import { InputField } from "@/components";
 import { ChatBubble } from "@/components/ui/ChatBubble";
+import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
+import { theme } from "@/design/theme";
 import { generateReflectionReply } from "@/lib/ai";
 import {
   ReflectionChatMessage,
+  createSession,
   fetchSessionById,
   saveReflectionChat,
-  createSession,
 } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
-import { Icon } from "@/components/ui/Icon";
-import { router, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useRouter } from "expo-router";
 
 /* ------------------------------------------------------
    MESSAGE TYPE
@@ -130,6 +130,7 @@ export default function ChatScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const hasHydratedRef = useRef(false);
+  const latestMessagesRef = useRef<Message[]>([]);
   const storageKey = `reflection-chat-${sessionId || "local"}`;
 
   const listRef = useRef<FlatList>(null);
@@ -142,6 +143,9 @@ export default function ChatScreen() {
   };
 
   useEffect(scrollToBottom, [messages.length]);
+  useEffect(() => {
+    latestMessagesRef.current = messages;
+  }, [messages]);
 
   // Hydrate from local first, then Supabase if available
   useEffect(() => {
@@ -149,12 +153,17 @@ export default function ChatScreen() {
     hasHydratedRef.current = false;
 
     const hydrate = async () => {
+      let nextMessages =
+        latestMessagesRef.current.length > 0 ? latestMessagesRef.current : null;
+      let foundLocalMessages = false;
+
       // Local cache
       try {
         const raw = await AsyncStorage.getItem(storageKey);
         if (raw && isActive) {
           const localMessages: Message[] = JSON.parse(raw);
           setMessages(localMessages);
+          foundLocalMessages = localMessages.length > 0;
         }
       } catch {
         // ignore local errors
@@ -162,14 +171,18 @@ export default function ChatScreen() {
 
       if (!sessionId || !session?.user) {
         if (isActive) {
-          setMessages([
-            {
-              id: "assistant_welcome",
-              text: "Hi! I'm here with you. What would you like to reflect on today?",
-              from: "assistant",
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          if (!foundLocalMessages && !nextMessages?.length) {
+            nextMessages = [
+              {
+                id: "assistant_welcome",
+                text: "Hi! I'm here with you. What would you like to reflect on today?",
+                from: "assistant",
+                createdAt: new Date().toISOString(),
+              },
+            ];
+          }
+          if (nextMessages) setMessages(nextMessages);
+          hasHydratedRef.current = true;
         }
         return;
       }
@@ -181,39 +194,47 @@ export default function ChatScreen() {
           (sessionRow?.reflection_chat as ReflectionChatMessage[]) ?? [];
 
         if (isActive && history.length > 0) {
-          setMessages(
-            history.map((m) => ({
-              id: m.id,
-              text: m.text,
-              from: m.from,
-              createdAt: m.created_at,
-            }))
-          );
-        } else if (isActive) {
-          setMessages([
-            {
-              id: "assistant_welcome",
-              text: "Hi! I'm here with you. What would you like to reflect on today?",
-              from: "assistant",
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          nextMessages = history.map((m) => ({
+            id: m.id,
+            text: m.text,
+            from: m.from,
+            createdAt: m.created_at,
+          }));
+          foundLocalMessages = true;
+        } else if (isActive && !foundLocalMessages) {
+          nextMessages =
+            nextMessages && nextMessages.length > 0
+              ? nextMessages
+              : [
+                  {
+                    id: "assistant_welcome",
+                    text: "Hi! I'm here with you. What would you like to reflect on today?",
+                    from: "assistant",
+                    createdAt: new Date().toISOString(),
+                  },
+                ];
         }
       } catch (err) {
         console.error("Failed to load reflection chat", err);
-        if (isActive) {
-          setMessages([
-            {
-              id: "assistant_welcome",
-              text: "Hi! I'm here with you. What would you like to reflect on today?",
-              from: "assistant",
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+        if (isActive && !foundLocalMessages) {
+          nextMessages =
+            nextMessages && nextMessages.length > 0
+              ? nextMessages
+              : [
+                  {
+                    id: "assistant_welcome",
+                    text: "Hi! I'm here with you. What would you like to reflect on today?",
+                    from: "assistant",
+                    createdAt: new Date().toISOString(),
+                  },
+                ];
         }
       } finally {
-        if (isActive) setLoadingHistory(false);
-        hasHydratedRef.current = true;
+        if (isActive) {
+          if (nextMessages) setMessages(nextMessages);
+          setLoadingHistory(false);
+          hasHydratedRef.current = true;
+        }
       }
     };
 
@@ -280,7 +301,14 @@ export default function ChatScreen() {
     ) {
       persistChat(messages);
     }
-  }, [messages, storageKey, sessionId, session?.user, loadingHistory, persistChat]);
+  }, [
+    messages,
+    storageKey,
+    sessionId,
+    session?.user,
+    loadingHistory,
+    persistChat,
+  ]);
 
   /* ------------------------------------------------------
      SEND MESSAGE
@@ -373,6 +401,7 @@ export default function ChatScreen() {
             data={messages}
             renderItem={renderMessage}
             keyExtractor={(m) => m.id}
+            style={{ flex: 1 }}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -411,10 +440,7 @@ export default function ChatScreen() {
               style={styles.sendAccessory}
               hitSlop={8}
             >
-              <Image
-                source={require("../assets/icons/send.png")}
-                style={styles.sendIcon}
-              />
+              <Icon name={"send"} style={styles.sendIcon} />
             </Pressable>
             <InputField
               placeholder={
@@ -422,7 +448,6 @@ export default function ChatScreen() {
               }
               value={input}
               onChangeText={setInput}
-              noBorder
               style={styles.textInput}
               returnKeyType="send"
               onSubmitEditing={handleSend}
@@ -470,6 +495,7 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
+    flexGrow: 1,
     padding: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
   },
@@ -478,9 +504,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: 0,
-    backgroundColor: theme.solidColors.white,
+    paddingVertical: theme.spacing.md,
   },
 
   textboxWrapper: {
@@ -490,9 +514,8 @@ const styles = StyleSheet.create({
   },
 
   textInput: {
-    backgroundColor: theme.solidColors.white,
+    position: "relative",
     borderWidth: 2,
-    borderColor: theme.colors.accentDark,
     borderRadius: theme.radii.md,
     paddingLeft: theme.spacing.md,
     paddingRight: 35,
@@ -505,25 +528,18 @@ const styles = StyleSheet.create({
   sendAccessory: {
     position: "absolute",
     right: theme.spacing.sm,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
+    top: theme.input.height / 2 - 22 / 2,
     zIndex: 2,
   },
 
   sendIcon: {
     width: 22,
-    height: 22,
     tintColor: theme.colors.accentDark,
   },
 
   micWrapper: {
     marginLeft: theme.spacing.md,
     height: theme.input.height,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 12,
   },
 
   micIcon: {
