@@ -22,8 +22,8 @@ import { theme } from "@/design/theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const teddyBear = require("@/assets/theo/working.png");
-const HEADER_HEIGHT = 145;
-const TAB_OVERLAP = 40;
+const HEADER_HEIGHT = 145; // size of main header (fixed) including its padding
+const TAB_OVERLAP = 40; // size of the portion of the "session" circle in the tab bar that exceeds the actual tab bar
 
 // const QUOTES = [
 //   `"You are braver than you believe, stronger than you seem, and smarter than you think." - Christopher Robin`,
@@ -53,10 +53,10 @@ export default function HomeScreen() {
   //   return QUOTES[idx];
   // }, []);
 
-  const usableHeight = Math.max(0, screenHeight - HEADER_HEIGHT - TAB_OVERLAP);
+  const usableHeight = Math.max(0, screenHeight - HEADER_HEIGHT - TAB_OVERLAP); // subract out header + overlap for height content can occupy
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <MainHeader />
 
       <View
