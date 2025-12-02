@@ -15,15 +15,27 @@ type SessionTask = {
   id: string;
   text: string;
   minutes: number;
+  status?: string | null;
 };
 
 export default function SessionSummaryScreen() {
-  const { goal, tasks } = useLocalSearchParams<{
+  const { goal, tasks, status, sessionStatus } = useLocalSearchParams<{
     goal?: string;
     tasks?: string;
+    status?: string;
+    sessionStatus?: string;
   }>();
   const goalText = goal ?? "";
   const [showLoader, setShowLoader] = useState(false);
+
+  const normalizedStatusParam = useMemo(() => {
+    const raw =
+      Array.isArray(sessionStatus) && sessionStatus.length > 0
+        ? sessionStatus[0]
+        : sessionStatus ??
+          (Array.isArray(status) && status.length > 0 ? status[0] : status);
+    return raw ? raw.toString().trim().toLowerCase() : null;
+  }, [sessionStatus, status]);
 
   const parsedTasks: SessionTask[] = useMemo(() => {
     if (!tasks) return [];
@@ -40,6 +52,10 @@ export default function SessionSummaryScreen() {
             ? {
                 id: t.id?.toString() ?? `task-${idx}`,
                 text,
+                status:
+                  typeof t.status === "string"
+                    ? t.status.toLowerCase()
+                    : null,
                 minutes: Number.isFinite(minutes)
                   ? Math.max(0, Math.round(minutes))
                   : 0,
@@ -58,6 +74,18 @@ export default function SessionSummaryScreen() {
   );
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
+  const allTasksSkipped =
+    parsedTasks.length > 0 &&
+    parsedTasks.every((t) => t.status === "skipped");
+  const sessionSkipped =
+    normalizedStatusParam === "skipped" || allTasksSkipped;
+  const sessionEnded =
+    normalizedStatusParam === "ended" ||
+    normalizedStatusParam === "complete" ||
+    normalizedStatusParam === "completed" ||
+    (!normalizedStatusParam && !sessionSkipped);
+  const statusLabel =
+    sessionSkipped || !sessionEnded ? "Not completed" : "Complete";
 
   const handleBackHome = () => {
     setShowLoader(true);
@@ -96,7 +124,14 @@ export default function SessionSummaryScreen() {
 
         <View style={styles.row}>
           <Text style={styles.label}>Status:</Text>
-          <Text style={[styles.value, styles.statusValue]}>Complete</Text>
+          <Text
+            style={[
+              styles.value,
+              sessionSkipped ? styles.statusValueSkipped : styles.statusValue,
+            ]}
+          >
+            {statusLabel}
+          </Text>
         </View>
 
         <View style={styles.row}>
@@ -136,10 +171,6 @@ export default function SessionSummaryScreen() {
         </View>
 
         <Spacer size="lg" />
-
-        <Text style={styles.sectionHeading}>Reflections:</Text>
-        <Spacer size="sm" />
-        <Text style={styles.value}>AI Summary:</Text>
 
         <Spacer size="xl" />
       </ScrollView>
@@ -189,6 +220,9 @@ const styles = StyleSheet.create({
   },
   statusValue: {
     color: theme.colors.accent,
+  },
+  statusValueSkipped: {
+    color: theme.colors.danger,
   },
   sectionHeading: {
     fontFamily: theme.typography.families.handwritten,
