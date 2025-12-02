@@ -149,6 +149,8 @@ export default function ChatScreen() {
 
   const listRef = useRef<FlatList>(null);
   const sendingRef = useRef(false);
+  const pendingSaveRef = useRef<ReflectionChatMessage[] | null>(null);
+  const savingRef = useRef(false);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -274,22 +276,37 @@ export default function ChatScreen() {
   const persistChat = useCallback(
     async (nextMessages: Message[]) => {
       if (!sessionId || !session?.user) return;
+
+      // Always keep the latest snapshot and serialize saves to avoid out-of-order overwrites.
+      pendingSaveRef.current = nextMessages.map((m) => ({
+        id: m.id,
+        text: m.text,
+        from: m.from,
+        isVoice: m.isVoice ?? false,
+        displayText: m.displayText ?? (m.isVoice ? "Voice message" : null),
+        created_at: m.createdAt ?? new Date().toISOString(),
+      }));
+
+      if (savingRef.current) return;
+
+      savingRef.current = true;
       setPersisting(true);
+
       try {
-        const payload: ReflectionChatMessage[] = nextMessages.map((m) => ({
-          id: m.id,
-          text: m.text,
-          from: m.from,
-          isVoice: m.isVoice ?? false,
-          displayText: m.displayText ?? (m.isVoice ? "Voice message" : undefined),
-          created_at: m.createdAt ?? new Date().toISOString(),
-        }));
-        await saveReflectionChat(sessionId, payload);
-      } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Failed to save reflection.";
-        setError(msg);
+        while (pendingSaveRef.current) {
+          const payload = pendingSaveRef.current;
+          pendingSaveRef.current = null;
+          if (!payload) continue;
+          try {
+            await saveReflectionChat(sessionId, payload);
+          } catch (err) {
+            const msg =
+              err instanceof Error ? err.message : "Failed to save reflection.";
+            setError(msg);
+          }
+        }
       } finally {
+        savingRef.current = false;
         setPersisting(false);
       }
     },
@@ -308,7 +325,14 @@ export default function ChatScreen() {
     ) {
       persistChat(messages);
     }
-  }, [messages, storageKey, sessionId, session?.user, loadingHistory, persistChat]);
+  }, [
+    messages,
+    storageKey,
+    sessionId,
+    session?.user,
+    loadingHistory,
+    persistChat,
+  ]);
 
   /* ------------------------------------------------------
      SEND MESSAGE (text + voice)
@@ -345,7 +369,10 @@ export default function ChatScreen() {
       setAssistantTyping(true);
 
       try {
-        const replyText = await generateReflectionReply(baseHistory, goal ?? "");
+        const replyText = await generateReflectionReply(
+          baseHistory,
+          goal ?? ""
+        );
         const reply: Message = {
           id: `assistant_${Date.now()}`,
           text: replyText,
@@ -511,7 +538,10 @@ export default function ChatScreen() {
             />
           </View>
 
-          <Pressable onPress={() => setShowRecorder(true)} style={styles.micWrapper}>
+          <Pressable
+            onPress={() => setShowRecorder(true)}
+            style={styles.micWrapper}
+          >
             <Image
               source={require("../assets/icons/mic.png")}
               style={styles.micIcon}
@@ -524,7 +554,7 @@ export default function ChatScreen() {
         onClose={() => setShowRecorder(false)}
         onTranscriptReady={handleVoiceSubmit}
         confirmLabel="Send to chat"
-        title="Share a quick reflection"
+        title="Share your thoughts"
       />
     </SafeAreaView>
   );
@@ -657,4 +687,3 @@ const styles = StyleSheet.create({
     marginHorizontal: 3,
   },
 });
-

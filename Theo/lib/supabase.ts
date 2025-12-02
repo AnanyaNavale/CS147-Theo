@@ -520,6 +520,8 @@ export async function saveReflectionChat(
     text: m.text,
     from: m.from,
     created_at: m.created_at ?? new Date().toISOString(),
+    isVoice: m.isVoice ?? false,
+    displayText: m.displayText ?? (m.isVoice ? "Voice message" : null),
   })) as unknown as Json[];
 
   const { error } = await supabase
