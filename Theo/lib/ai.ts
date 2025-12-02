@@ -525,9 +525,8 @@ Goal/context: ${goal || "None provided"}
     const fallback = await callGeminiForTasks(apiKey, {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: attempt === 0 ? 0.35 : 0.45,
+        temperature: 0.45,
         maxOutputTokens: 2048,
-        responseMimeType: attempt === 0 ? "application/json" : undefined,
       },
     });
     console.log("[Gemini][tasks] fallback response", {
