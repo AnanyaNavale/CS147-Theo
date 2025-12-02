@@ -378,7 +378,10 @@ function extractTasksFromParts(
   parts: Array<Record<string, any>>
 ): AiTask[] | null {
   for (const part of parts) {
-    const rawArgs = part?.functionCall?.args;
+    const rawArgs =
+      part?.functionCall?.args ??
+      part?.functionCall?.arguments ??
+      (part as any)?.functionCall?.serializedArguments;
     if (!rawArgs) continue;
 
     let args: any = rawArgs;
@@ -390,11 +393,23 @@ function extractTasksFromParts(
       }
     }
 
-    if (Array.isArray(args)) return args as AiTask[];
-    if (Array.isArray(args?.tasks)) return args.tasks as AiTask[];
+    if (Array.isArray(args)) {
+      const normalized = toAiTasks(args);
+      if (normalized.length) return normalized;
+    }
 
-    const nested = digForTasks(args);
-    if (nested) return nested;
+    if (args && typeof args === "object") {
+      const paired = fromTaskTimeArrays(args);
+      if (paired?.length) return paired;
+
+      if (Array.isArray((args as any)?.tasks)) {
+        const mapped = toAiTasks((args as any).tasks);
+        if (mapped.length) return mapped;
+      }
+
+      const nested = digForTasks(args);
+      if (nested) return nested;
+    }
   }
   return null;
 }
@@ -417,7 +432,9 @@ function normalizeTasks(tasks: AiTask[]): AiTask[] {
       const rawMinutes =
         typeof (t as any)?.minutes === "string"
           ? parseInt((t as any).minutes, 10)
-          : Number((t as any)?.minutes ?? (t as any)?.time ?? (t as any)?.duration);
+          : Number(
+              (t as any)?.minutes ?? (t as any)?.time ?? (t as any)?.duration
+            );
       const minutes =
         Number.isFinite(rawMinutes) && rawMinutes > 0
           ? rawMinutes
@@ -439,65 +456,91 @@ export async function generateTasksWithAI(goal: string): Promise<AiTask[]> {
   }
 
   const prompt = `
-Generate 3-8 atomic tasks for a study/work session that incrementally complete the user goal. Try to infer what the goal is if there are typos.
-Return a JSON object with two arrays of equal length:
+Generate 3-8 atomic tasks for a study/work session that incrementally complete the user goal. Infer the goal even if it has typos.
+Respond ONLY with JSON using two arrays of equal length:
 {
   "tasks": ["Task name 1", "Task name 2"],
   "minutes": [20, 25]
 }
+- Tasks must be granular and actionable.
+- Minutes are whole numbers between 10 and 30.
+- No markdown, no prose, no code fences.
 Goal/context: ${goal || "None provided"}
-Tasks must be granular and actionable. Keep minutes between 10 and 30.
-Do NOT include markdown or code fences; only return the JSON object.
 `;
 
-  const parseOrNull = (text: string) => {
-    if (!text) return null;
+  const responseSchema = {
+    type: "object",
+    properties: {
+      tasks: {
+        type: "array",
+        items: { type: "string" },
+        minItems: 3,
+        maxItems: 8,
+      },
+      minutes: {
+        type: "array",
+        items: { type: "integer" },
+        minItems: 3,
+        maxItems: 8,
+      },
+    },
+    required: ["tasks", "minutes"],
+  };
+
+  const parseOrNull = (raw: string) => {
+    if (!raw) return null;
     try {
-      return parseTasksFromText(text);
+      return parseTasksFromText(raw);
     } catch {
       return null;
     }
   };
 
-  let parsed: AiTask[] | null = null;
-  let blockReason: string | undefined;
-  let finishReason: string | undefined;
+  const primary = await callGeminiForTasks(apiKey, {
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.35,
+      maxOutputTokens: 512,
+      responseMimeType: "application/json",
+      responseSchema,
+    },
+  });
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await callGeminiForTasks(apiKey, {
+  console.log("[Gemini][tasks] structured response", {
+    finishReason: primary.finishReason,
+    blockReason: primary.blockReason,
+    preview: primary.text.slice(0, 120),
+  });
+
+  let parsed = parseOrNull(primary.text);
+
+  if (!parsed || parsed.length === 0) {
+    console.warn(
+      "[Gemini][tasks] structured parse failed; retrying with relaxed output",
+      {
+        finishReason: primary.finishReason,
+        blockReason: primary.blockReason,
+      }
+    );
+    const fallback = await callGeminiForTasks(apiKey, {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: attempt === 0 ? 0.35 : 0.45,
+        temperature: 0.45,
         maxOutputTokens: 2048,
-        responseMimeType: attempt === 0 ? "application/json" : undefined,
       },
     });
-
-    finishReason = res.finishReason;
-    blockReason = res.blockReason;
-
-    const attemptParsed =
-      parseOrNull(res.text) ?? extractTasksFromParts(res.parts ?? []);
-
-    console.log("[Gemini][tasks] parsed text", {
-      length: res.text.length,
-      preview: res.text.slice(0, 160),
-      attempt,
-      finishReason,
+    console.log("[Gemini][tasks] fallback response", {
+      finishReason: fallback.finishReason,
+      blockReason: fallback.blockReason,
+      preview: fallback.text.slice(0, 120),
     });
-
-    if (attemptParsed && attemptParsed.length > 0) {
-      parsed = attemptParsed;
-      if (finishReason === "STOP") break;
-    } else if (finishReason === "STOP") {
-      break;
-    }
+    parsed = parseOrNull(fallback.text);
   }
 
   if (!parsed || parsed.length === 0) {
     const details =
-      blockReason ||
-      "AI response was empty or unparseable. Check API key/quota and try again.";
+      primary.blockReason ||
+      "AI response was empty. Check API key/quota and try again.";
     throw new Error(details);
   }
 
@@ -617,9 +660,7 @@ ${recent
       hasText: Boolean(primary.text),
     });
 
-    const wordCount = (primary.text ?? "")
-      .split(/\s+/)
-      .filter(Boolean).length;
+    const wordCount = (primary.text ?? "").split(/\s+/).filter(Boolean).length;
     const looksIncomplete = primary.text
       ? !/[.!?]"?$/.test(primary.text.trim())
       : true;

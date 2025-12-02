@@ -17,10 +17,14 @@ import { theme } from "@/design/theme";
 const teddy = require("../../../assets/theo/done.png");
 
 export default function EndSessionScreen() {
-  const { goal, tasks } = useLocalSearchParams<{
+  const { goal, tasks, sessionId } = useLocalSearchParams<{
     goal?: string;
     tasks?: string;
+    sessionId?: string | null;
   }>();
+  const sessionIdParam = Array.isArray(sessionId) ? sessionId[0] : sessionId;
+  const sessionIdValue =
+    sessionIdParam && sessionIdParam !== "null" ? sessionIdParam : null;
   const goalText = goal ?? "";
   const parsedTasks = useMemo(() => {
     if (!tasks) return [];
@@ -38,7 +42,11 @@ export default function EndSessionScreen() {
   const viewSummary = () => {
     router.push({
       pathname: "./session-summary",
-      params: { goal: goalText, tasks: JSON.stringify(parsedTasks) },
+      params: {
+        goal: goalText,
+        tasks: JSON.stringify(parsedTasks),
+        sessionId: sessionIdValue,
+      },
     });
   };
 
