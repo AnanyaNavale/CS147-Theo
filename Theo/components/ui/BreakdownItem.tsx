@@ -40,7 +40,8 @@ const styles = StyleSheet.create({
   timeBox: {
     width: 100,
     backgroundColor: theme.colors.accentDark,
-    borderRadius: theme.radii.md,
+    borderTopLeftRadius: theme.radii.md,
+    borderBottomLeftRadius: theme.radii.md,
     alignItems: "center",
     paddingVertical: theme.spacing.md,
     zIndex: 2,
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.accentDark,
     borderTopRightRadius: theme.radii.md,
     borderBottomRightRadius: theme.radii.md,
-    marginLeft: -theme.spacing.lg, // overlap the time box to cover its rounded edge
+    // marginLeft: -theme.spacing.lg, // overlap the time box to cover its rounded edge
     paddingVertical: theme.spacing.md - 5,
     paddingHorizontal: theme.spacing.xl,
   },
