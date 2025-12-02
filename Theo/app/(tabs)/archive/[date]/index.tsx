@@ -108,14 +108,13 @@ export default function SingleDayScreen() {
           />
         </TouchableOpacity>
         <View style={styles.dateContainer}>
-          <SvgStrokeText text={displayDate} textStyle={{ fontSize: fonts.sizes.header2 }} textStyle={{ fontSize: fonts.sizes.header2 }} />
+          <SvgStrokeText text={displayDate} textStyle={{ fontSize: fonts.sizes.header2 }} />
         </View>
       </View>
 
       <View style={styles.shadowBottom} />
 
       <View
-        style={styles.topContentWrapper}
         style={styles.topContentWrapper}
       >
         <SectionList
@@ -229,10 +228,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.background,
     justifyContent: "space-between",
   },
-  topContentWrapper: {
-    flex: 1, // fills all space above bottom navigator
-    marginBottom: 90,
-  },
   header: {
     height: 130,
     flexDirection: "row",
@@ -243,8 +238,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    borderColor: 'red',
-    borderWidth: 1,
     borderColor: 'red',
     borderWidth: 1,
   },
@@ -281,11 +274,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   bottomNavigator: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 80,
     position: "absolute",
     bottom: 0,
     left: 0,
