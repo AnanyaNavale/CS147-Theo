@@ -292,6 +292,9 @@ export default function SessionBreakdownScreen() {
     );
   };
 
+  const deleteTargetText =
+    deleteTargetId && tasks.find((task) => task.id === deleteTargetId)?.text;
+
   return (
     <SafeAreaView style={styles.safe}>
       {/* TOP BAR WITH BACK + STEP PROGRESS + MENU */}
@@ -619,7 +622,9 @@ export default function SessionBreakdownScreen() {
         message={
           deleteMode === "all"
             ? "This will remove every task in your list."
-            : "This cannot be undone."
+            : `Task: ${
+                deleteTargetText ?? "this task"
+              } \n \nThis cannot be undone.`
         }
         confirmLabel="Delete"
         cancelLabel="Cancel"
