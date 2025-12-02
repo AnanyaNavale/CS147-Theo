@@ -54,6 +54,9 @@ export const colors = {
 
     // Separator
     separator: "#A9A9A9",
+
+    // List
+    listPlaceholder: "#7D7D7D",
   },
   dark: {
     // Screen
