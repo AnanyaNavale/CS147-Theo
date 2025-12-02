@@ -12,7 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppModal, Button } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
@@ -50,17 +49,9 @@ export default function FinalizeSessionScreen() {
     }
   }, [tasks]);
 
-  const [showSettings, setShowSettings] = useState(false);
-  const [reflection, setReflection] = useState(false);
-  const [collab, setCollab] = useState(false);
-  const [friendsOnly, setFriendsOnly] = useState(false);
-  const [saveDefault, setSaveDefault] = useState(false);
-
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-
-  const handleSelectSettings = () => setShowSettings(true);
 
   const handleSavePlan = async () => {
     if (savingPlan) return;
@@ -120,10 +111,6 @@ export default function FinalizeSessionScreen() {
     });
   };
 
-  const promptText = showSettings
-    ? "Select session settings"
-    : "Ready to get started?";
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -143,7 +130,7 @@ export default function FinalizeSessionScreen() {
         <Spacer size="xxl" />
 
         <SvgStrokeText
-          text={promptText}
+          text="Ready to get started?"
           containerStyle={{ alignSelf: "center" }}
         />
 
@@ -159,101 +146,57 @@ export default function FinalizeSessionScreen() {
           </View>
         )}
 
-        {!showSettings ? (
-          <>
-            <Spacer size="xl" />
-            <BasicButton
-              text="Select session settings"
-              onPress={handleSelectSettings}
-              style={styles.button}
-            />
+        <Spacer size="xl" />
+        <BasicButton
+          text="Start session"
+          onPress={handleStartSession}
+          style={styles.button}
+        />
 
-            <Spacer size="md" />
+        <Spacer size="md" />
 
-            <BasicButton
-              text={savingPlan ? "Saving..." : "Save plan to archive"}
-              disabled={savingPlan}
-              onPress={handleSavePlan}
-              variant="secondary"
-              style={styles.button}
-            />
+        <BasicButton
+          text={savingPlan ? "Saving..." : "Save plan to archive"}
+          disabled={savingPlan}
+          onPress={handleSavePlan}
+          variant="secondary"
+          style={styles.button}
+        />
 
-            {saveError && (
-              <Text color="danger" style={{ textAlign: "center" }}>
-                {saveError}
-              </Text>
-            )}
+        {saveError && (
+          <Text color="danger" style={{ textAlign: "center" }}>
+            {saveError}
+          </Text>
+        )}
 
-            {showConfirmationModal && (
-              <AppModal
-                visible={showConfirmationModal}
-                onClose={() => setShowConfirmationModal(false)}
-                variant="custom"
-                showClose={false}
-                title="Plan saved!"
-                message="Your plan is now available in your archive."
-                children={
-                  <View style={{ alignItems: "center" }}>
-                    <Button
-                      label="Visit archive"
-                      variant="brown"
-                      onPress={() => {
-                        const today = new Date();
-                        const yyyy = today.getFullYear();
-                        const mm = String(today.getMonth() + 1).padStart(
-                          2,
-                          "0"
-                        ); // months are 0-based
-                        const dd = String(today.getDate()).padStart(2, "0");
-                        const todayStr = `${yyyy}-${mm}-${dd}`;
+        {showConfirmationModal && (
+          <AppModal
+            visible={showConfirmationModal}
+            onClose={() => setShowConfirmationModal(false)}
+            variant="custom"
+            showClose={false}
+            title="Plan saved!"
+            message="Your plan is now available in your archive."
+            children={
+              <View style={{ alignItems: "center" }}>
+                <Button
+                  label="Visit archive"
+                  variant="brown"
+                  onPress={() => {
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
+                    const dd = String(today.getDate()).padStart(2, "0");
+                    const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                        setShowConfirmationModal(false);
+                    setShowConfirmationModal(false);
 
-                        router.push(`../archive/${todayStr}/index`);
-                      }}
-                    />
-                  </View>
-                }
-              />
-            )}
-          </>
-        ) : (
-          <>
-            <Spacer size="lg" />
-
-            <View style={styles.checkboxList}>
-              <Checkbox
-                checked={reflection}
-                onChange={setReflection}
-                label="I would like periodic reflection reminders."
-              />
-              <Checkbox
-                checked={collab}
-                onChange={setCollab}
-                label="Let me know if anyone requests to collaborate."
-              />
-              <Checkbox
-                checked={friendsOnly}
-                onChange={setFriendsOnly}
-                label="Friends only, please!"
-                containerStyle={{ marginLeft: theme.spacing.xl }}
-              />
-              <Spacer></Spacer>
-              <Checkbox
-                checked={saveDefault}
-                onChange={setSaveDefault}
-                label="Save as default settings for future sessions"
-              />
-            </View>
-
-            <Spacer size="lg" />
-
-            <BasicButton
-              text="Start your session"
-              onPress={handleStartSession}
-              style={styles.button}
-            />
-          </>
+                    router.push(`../archive/${todayStr}/index`);
+                  }}
+                />
+              </View>
+            }
+          />
         )}
       </ScrollView>
 
@@ -314,11 +257,6 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.serif,
     fontSize: theme.typography.sizes.lg,
     color: theme.colors.text,
-  },
-  checkboxList: {
-    gap: theme.spacing.sm,
-    width: "90%",
-    alignSelf: "center",
   },
   teddy: {
     position: "absolute",
