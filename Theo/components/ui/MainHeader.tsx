@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   LayoutChangeEvent,
@@ -8,7 +8,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ViewStyle,
 } from "react-native";
 
 import { colors } from "@/assets/themes/colors";
@@ -169,7 +168,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   menuButton: {
-    transform: [{ translateY: -4 }],
+    transform: [{ translateY: -4 }, { translateX: -4 }],
   },
   menuOverlay: {
     position: "absolute",
