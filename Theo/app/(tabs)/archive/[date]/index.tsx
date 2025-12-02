@@ -13,7 +13,7 @@ import SvgStrokeText from "@/components/SvgStrokeText";
 
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
-import { fetchSessionsForDayWithSettingsSorted } from "@/lib/supabase";
+import { fetchSessionsForDaySorted } from "@/lib/supabase";
 
 import SessionBox from "@/components/ArchiveSessionBox";
 import { Feather } from "@expo/vector-icons";
@@ -27,7 +27,8 @@ export default function SingleDayScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const [year, month, day] = date.split("-").map(Number);
 
-  const { supabase } = useSupabase();
+  const { session } = useSupabase();
+  const userId = session?.user?.id;
   const router = useRouter();
 
   const [sessions, setSessions] = useState<any[]>([]);
@@ -63,12 +64,12 @@ export default function SingleDayScreen() {
   });
 
   useEffect(() => {
-    if (!date) return;
+    if (!date || !userId) return; // ⬅️ important
 
     const loadData = async () => {
       setLoading(true);
       try {
-        const data = await fetchSessionsForDayWithSettingsSorted(date, null);
+        const data = await fetchSessionsForDaySorted(date, userId);
         setSessions(data ?? []);
       } catch (err) {
         console.error("Error fetching sessions:", err);
@@ -78,18 +79,20 @@ export default function SingleDayScreen() {
     };
 
     loadData();
-  }, [date]);
+  }, [date, userId]);
 
   const sections = [
-    {
-      title: "Sessions",
-      data: sessions.filter((s) => s.has_settings === true),
-    },
-    {
-      title: "Plans",
-      data: sessions.filter((s) => s.has_settings === false),
-    },
-  ];
+  {
+    title: "Sessions",
+    data: sessions.filter(
+      (s) => s.status !== "planned" // active, incomplete, complete
+    ),
+  },
+  {
+    title: "Plans",
+    data: sessions.filter((s) => s.status === "planned"),
+  },
+];
 
   return (
     <View style={styles.container}>
@@ -122,9 +125,9 @@ export default function SingleDayScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <SessionBox
-              title={item.title}
+              title={item.goal}
               time={item.total_time}
-              has_settings={item.has_settings}
+              // has_settings={item.has_settings}
               status={item.status}
               onPress={() =>
                 router.push({

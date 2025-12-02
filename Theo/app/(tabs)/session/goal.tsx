@@ -75,6 +75,12 @@ export default function GoalScreen() {
               steps={["Setup", "Customize", "Finalize"]}
               activeCount={2}
               onPressMenu={() => {}}
+              helpMessagept1={
+                "Here, you may enter a goal for your plan or work session. There are text and voice input options for your convenience.\n"
+              }
+              helpMessagept2={
+                "If you would like to skip this step and move to the Task Manager to enter tasks, you may select the 'Skip' option at the bottom of the screen."
+              }
             />
           </View>
 
@@ -123,7 +129,11 @@ export default function GoalScreen() {
                       },
                     ]}
                   >
-                    <Icon name="mic" size={micSize} tint={theme.colors.accentDark} />
+                    <Icon
+                      name="mic"
+                      size={micSize}
+                      tint={theme.colors.accentDark}
+                    />
                   </TouchableOpacity>
                 }
               />

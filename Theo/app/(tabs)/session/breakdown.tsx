@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import {
   Image,
   StyleSheet,
+  // Text
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -189,53 +190,63 @@ export default function SessionBreakdownScreen() {
     }
   }
 
-  async function confirmContinue() {
-    let sessionId: string | undefined = undefined;
+  // async function confirmContinue() {
+  //   let sessionId: string | undefined = undefined;
 
-    if (authSession?.user) {
-      setPersisting(true);
-      setPersistError(null);
-      try {
-        const session = await createSession(
-          authSession.user.id,
-          !!goalInput,
-          goalInput || null,
-          tasks.length > 0
-        );
-        sessionId = session.id;
+  //   if (authSession?.user) {
+  //     setPersisting(true);
+  //     setPersistError(null);
+  //     try {
+  //       const session = await createSession(
+  //         authSession.user.id,
+  //         !!goalInput,
+  //         goalInput || null,
+  //         tasks.length > 0
+  //       );
+  //       sessionId = session.id;
 
-        if (tasks.length > 0) {
-          const ordered = tasks.map((t, idx) => ({
-            session_id: session.id,
-            task_name: t.text,
-            order_index: idx + 1,
-            time_allotted: t.minutes,
-            is_completed: false,
-          }));
+  //       if (tasks.length > 0) {
+  //         const ordered = tasks.map((t, idx) => ({
+  //           session_id: session.id,
+  //           task_name: t.text,
+  //           order_index: idx + 1,
+  //           time_allotted: t.minutes,
+  //           is_completed: false,
+  //         }));
 
-          for (const payload of ordered) {
-            await createTask(payload as any);
-          }
-        }
-      } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Failed to save tasks.";
-        setPersistError(msg);
-      } finally {
-        setPersisting(false);
-      }
-    }
+  //         for (const payload of ordered) {
+  //           await createTask(payload as any);
+  //         }
+  //       }
+  //     } catch (err) {
+  //       const msg =
+  //         err instanceof Error ? err.message : "Failed to save tasks.";
+  //       setPersistError(msg);
+  //     } finally {
+  //       setPersisting(false);
+  //     }
+  //   }
 
-    const nextRoute = {
+  //   const nextRoute = {
+  //     pathname: "./finalize-session",
+  //     params: {
+  //       tasks: JSON.stringify(tasks),
+  //       goal: goalInput,
+  //       sessionId,
+  //     },
+  //   } as const;
+
+  //   router.push(nextRoute);
+  // }
+  
+  function confirmContinue() {
+    router.push({
       pathname: "./finalize-session",
       params: {
         tasks: JSON.stringify(tasks),
         goal: goalInput,
-        sessionId,
       },
-    } as const;
-
-    router.push(nextRoute);
+    });
   }
 
   const renderItem = ({
@@ -292,6 +303,34 @@ export default function SessionBreakdownScreen() {
     );
   };
 
+  let helpMessages;
+
+  if (tasks.length === 0) {
+    if (!goal) {
+      // Case 1: no tasks + no goal
+      helpMessages = {
+        helpMessagept1:
+          "Here, you may begin working in the Task Manager with manual input of tasks. Select 'Create your tasks' to manually add task descriptions and timings.",
+      };
+    } else {
+      // Case 2: no tasks + has goal
+      helpMessages = {
+        helpMessagept1:
+          "Here, you may select whether you would like to begin working in the Task Manager with manual input of tasks, or request AI help in generating tasks based on your goal.\n",
+        helpMessagept2:
+          "Select 'Create your tasks' to manually add task descriptions and timings. You may also select 'Create tasks with AI' to get AI suggestions based on your goal.",
+      };
+    }
+  } else {
+    // Case 3: has tasks
+    helpMessages = {
+      helpMessagept1:
+        "Here, you may continue adding tasks to your work session or plan. Use the buttons in the lower bar to add tasks, regenerate tasks using AI, or delete all tasks.\n",
+      helpMessagept2:
+        "Swipe left on tasks to make individual edits to their description and timing or delete the selected task. Drag tasks to reorder them.\n\nWhen you are satisfied with your session, select 'Continue' to proceed.",
+    };
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       {/* TOP BAR WITH BACK + STEP PROGRESS + MENU */}
@@ -301,6 +340,7 @@ export default function SessionBreakdownScreen() {
           activeCount={2}
           style={styles.headerProgress}
           onPressMenu={() => {}}
+          {...helpMessages}
         />
       </View>
 
@@ -328,7 +368,7 @@ export default function SessionBreakdownScreen() {
         </View>
       </View>
 
-      <Spacer size="xxl" />
+      <Spacer size="md" />
       {tasks.length === 0 && (
         <>
           {goalInput ? (
@@ -374,28 +414,35 @@ export default function SessionBreakdownScreen() {
 
             <Spacer size="lg" />
 
-            <BasicButton
-              text="Create tasks with AI"
-              iconName="ai"
-              iconSize={24}
-              onPress={generateAiTasks}
-              variant="secondary"
-              style={styles.primaryActionButton}
-            />
-            {aiError && (
-              <Text color="danger" style={styles.aiStatus}>
-                {aiError}
-              </Text>
-            )}
-            {persistError && (
-              <Text color="danger" style={styles.aiStatus}>
-                {persistError}
-              </Text>
-            )}
-            {(isGenerating || persisting) && (
-              <Text color="mutedText" style={styles.aiStatus}>
-                {isGenerating ? "Generating tasks..." : "Saving tasks..."}
-              </Text>
+            {goal && (
+              <>
+                <BasicButton
+                  text="Create tasks with AI"
+                  iconName="ai"
+                  iconSize={24}
+                  onPress={generateAiTasks}
+                  variant="secondary"
+                  style={styles.primaryActionButton}
+                />
+
+                {aiError && (
+                  <Text color="danger" style={styles.aiStatus}>
+                    {aiError}
+                  </Text>
+                )}
+
+                {persistError && (
+                  <Text color="danger" style={styles.aiStatus}>
+                    {persistError}
+                  </Text>
+                )}
+
+                {(isGenerating || persisting) && (
+                  <Text color="accentDark" style={styles.aiStatus}>
+                    {isGenerating ? "Generating tasks..." : "Saving tasks..."}
+                  </Text>
+                )}
+              </>
             )}
           </>
         ) : (
@@ -424,7 +471,7 @@ export default function SessionBreakdownScreen() {
       {tasks.length > 0 && !isGenerating && (
         <ArrowAction
           label={persisting ? "Saving..." : "Continue"}
-          onPress={persisting ? undefined : confirmContinue}
+          onPress={persisting ? () => {} : confirmContinue}
         />
       )}
 
@@ -715,7 +762,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
     alignItems: "center",
-    justifyContent: "center",
     marginRight: theme.spacing.md,
   },
 
@@ -728,7 +774,7 @@ const styles = StyleSheet.create({
 
   bottomBar: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
     backgroundColor: theme.colors.background,
     shadowColor: theme.colors.accentDark,
     shadowOpacity: 0.12,

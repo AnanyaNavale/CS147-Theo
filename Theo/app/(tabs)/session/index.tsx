@@ -29,6 +29,12 @@ export default function StartSessionScreen() {
           style={styles.headerProgress}
           onPressMenu={() => {}}
           firstPage={true}
+          helpMessagept1={
+            "This is the first step of your session setup.\nHere, you may choose from one of three options:\n"
+          }
+          helpMessagept2={
+            "(1) Create a new session: This allows you to input a goal or set of tasks you would like to complete.\n\n(2) Copy a recent session: This allows you to select from your 10 most recent completed sessions to duplicate its goals and/or tasks.\n\n(3) Complete a session: This allows you to select a plan from your archive to convert into a session."
+          }
         />
       </View>
 
@@ -37,7 +43,10 @@ export default function StartSessionScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <SvgStrokeText text={"How would you like to\nget started?"} containerStyle={{ alignSelf: 'center' }}/>
+        <SvgStrokeText
+          text={"How would you like to\nget started?"}
+          containerStyle={{ alignSelf: "center" }}
+        />
 
         <Spacer size="xxl" />
 
@@ -97,7 +106,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    //paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.lg,
     paddingBottom: theme.spacing.xxl * 1.5,
   },
