@@ -101,8 +101,7 @@ export default function FinalizeSessionScreen() {
       console.log("Plan saved:", newPlan);
       setShowConfirmationModal(true);
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to save plan.";
+      const msg = err instanceof Error ? err.message : "Failed to save plan.";
       setSaveError(msg);
       console.error("Error saving plan:", err);
     } finally {
@@ -194,14 +193,17 @@ export default function FinalizeSessionScreen() {
                 title="Plan saved!"
                 message="Your plan is now available in your archive."
                 children={
-                  <View style={{ alignItems: 'center' }}>
+                  <View style={{ alignItems: "center" }}>
                     <Button
                       label="Visit archive"
                       variant="brown"
                       onPress={() => {
                         const today = new Date();
                         const yyyy = today.getFullYear();
-                        const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
+                        const mm = String(today.getMonth() + 1).padStart(
+                          2,
+                          "0"
+                        ); // months are 0-based
                         const dd = String(today.getDate()).padStart(2, "0");
                         const todayStr = `${yyyy}-${mm}-${dd}`;
 
@@ -285,7 +287,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.xl,
   },
   goalRow: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     gap: theme.spacing.xs,
