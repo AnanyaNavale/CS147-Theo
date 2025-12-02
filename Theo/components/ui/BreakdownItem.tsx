@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.accentDark,
     borderTopRightRadius: theme.radii.md,
     borderBottomRightRadius: theme.radii.md,
-    // marginLeft: -theme.spacing.lg, // overlap the time box to cover its rounded edge
     paddingVertical: theme.spacing.md - 5,
-    paddingHorizontal: theme.spacing.xl,
+    paddingRight: theme.spacing.xl,
+    paddingLeft: theme.spacing.md,
   },
 
   taskText: {

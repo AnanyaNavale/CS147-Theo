@@ -81,7 +81,11 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
           )}
         </View>
 
-        {error && <Text style={[styles.error, errorStyle]}>{error}</Text>}
+        {error && (
+          <Text style={[styles.error, errorStyle, small && styles.smallError]}>
+            {error}
+          </Text>
+        )}
       </View>
     );
   }
@@ -160,10 +164,13 @@ const styles = StyleSheet.create({
 
   error: {
     position: "absolute",
-    marginTop: theme.spacing.xxl,
+    marginTop: theme.spacing.xxl + theme.spacing.lg,
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.danger,
     fontFamily: theme.typography.families.regular,
+  },
+  smallError: {
+    marginTop: theme.spacing.xxl,
   },
   rightAccessory: {
     position: "absolute",
