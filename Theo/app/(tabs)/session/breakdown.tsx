@@ -511,7 +511,6 @@ export default function SessionBreakdownScreen() {
           onChangeText={setEditMinutes}
           placeholder="00 : 00"
           row
-          inputStyle={{ width: 100 }}
         />
 
         <Spacer size="md" />
@@ -564,7 +563,6 @@ export default function SessionBreakdownScreen() {
           onChangeText={setNewMinutes}
           placeholder="00 : 00"
           row
-          inputStyle={{ width: 100 }}
         />
 
         <Spacer size="md" />

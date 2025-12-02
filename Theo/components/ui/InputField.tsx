@@ -60,7 +60,7 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
       >
         {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
 
-        <View style={styles.inputWrapper}>
+        <View style={[row ? styles.inputWrapperRow : styles.inputWrapper]}>
           <TextInput
             ref={ref}
             style={[
@@ -97,11 +97,16 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
   inputWrapper: {
     width: "100%",
     justifyContent: "center",
   },
+  inputWrapperRow: {
+    width: "auto",
+  },
+
   label: {
     fontSize: theme.typography.sizes.lg,
     fontFamily: theme.typography.families.regular,
@@ -110,7 +115,7 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    width: "100%",
+    //width: "100%",
     height: theme.input.height,
     paddingHorizontal: theme.input.paddingHorizontal,
     fontSize: theme.typography.sizes.md,
@@ -135,8 +140,8 @@ const styles = StyleSheet.create({
 
   rowInput: {
     marginLeft: theme.spacing.sm,
-    width: "auto",
-    paddingRight: theme.spacing.md,
+    width: "100%",
+    paddingRight: theme.spacing.sm,
   },
   centeredInput: {
     textAlign: "center",
