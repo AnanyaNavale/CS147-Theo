@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionDatesForMonth } from "@/lib/supabase";
+import { fetchSessionDatesForMonth, getCurrentSession } from "@/lib/supabase";
 
 // import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from "@/components/Themed";
@@ -70,32 +70,41 @@ export default function ArchiveScreen() {
   const [loading, setLoading] = useState(false);
 
   const { supabase, session: authSession } = useSupabase();
-  // const opacity = useRef(new Animated.Value(1)).current;
-  // const prevMonth = useRef(currentMonth);
   const router = useRouter();
+  // const session = await getCurrentSession();
+  // const userId = session?.user?.id;
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
+
   useEffect(() => {
-    // console.log("authSession inside useEffect:", authSession);
-    // if (!authSession) return;
     const fetchMonthSessionsData = async () => {
       setLoading(true);
       try {
+        const userId = authSession?.user?.id; // ✅ use value from top-level hook
 
-        const data = await fetchSessionDatesForMonth(currentMonth, currentYear);
+        if (!userId) {
+          setMonthSessions({});
+          return;
+        }
 
-        const marked: { [date: string]: any } = {};
+        const data = await fetchSessionDatesForMonth(
+          currentMonth,
+          currentYear,
+          userId
+        );
+        console.log(data);
 
-        // Mark month session dates
-        data.forEach((dateString) => {
-          const day = dateString.split("T")[0]; // strip time
+        const marked: Record<string, any> = {};
+
+        data.forEach((utcDateString) => {
+          const localDate = new Date(utcDateString);
+          const day = localDate.toISOString().slice(0, 10); // OR format using local time
           marked[day] = {
             customStyles: {
               container: {
                 borderColor: colors.light.markedDates,
                 borderWidth: 2,
                 borderRadius: 50,
-                // paddingBottom: 5,
                 justifyContent: "center",
                 alignItems: "center",
               },
@@ -108,17 +117,14 @@ export default function ArchiveScreen() {
         });
 
         setMonthSessions(marked);
-
       } catch (error) {
         console.error("Error fetching month sessions:", error);
       } finally {
         setLoading(false);
       }
-
     };
 
     fetchMonthSessionsData();
-
   }, [authSession, currentMonth, currentYear]);
 
   const today = new Date().toLocaleDateString("en-CA"); // outputs YYYY-MM-DD
