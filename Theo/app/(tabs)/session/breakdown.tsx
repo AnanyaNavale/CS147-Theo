@@ -725,6 +725,7 @@ const styles = StyleSheet.create({
   },
   goalInput: {
     textAlignVertical: "center",
+    paddingRight: theme.spacing.md,
   },
 
   taskHeader: {
