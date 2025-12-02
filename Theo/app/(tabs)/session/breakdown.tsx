@@ -375,7 +375,10 @@ export default function SessionBreakdownScreen() {
             fontSize: fonts.sizes.header2,
           }}
           stroke={colors.light.header2}
-          containerStyle={{ alignSelf: "flex-start" }}
+          containerStyle={{
+            //alignSelf: "flex-start",
+            marginLeft: theme.spacing.sm + 4,
+          }}
         />
       )}
 
