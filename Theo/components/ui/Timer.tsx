@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Text } from "../ui/Text";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { theme } from "../../design/theme";
+import { Text } from "../ui/Text";
+import { Icon } from "./Icon";
 
 type TimerProps = {
   secondsLeft: number;
-  taskDuration: number; // NEW: full original task time in seconds
+  taskDuration: number;
   onToggle?: () => void;
 };
 
 type DisplayMode = "countdown" | "working" | "minutes";
 
 export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
-  const [mode, setMode] = useState<DisplayMode>("countdown");
+  const modes: DisplayMode[] = ["countdown", "working", "minutes"];
+  const [modeIndex, setModeIndex] = useState(0);
+  const mode = modes[modeIndex];
   const [dots, setDots] = useState("");
 
   /* animate dots only in working mode */
@@ -37,14 +40,11 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
     return `${m} minute${m === 1 ? "" : "s"}`;
   };
 
-  const cycleMode = () => {
-    setMode((prev) =>
-      prev === "countdown"
-        ? "working"
-        : prev === "working"
-        ? "minutes"
-        : "countdown"
-    );
+  const cycleMode = (direction: 1 | -1) => {
+    setModeIndex((prev) => {
+      const next = (prev + direction + modes.length) % modes.length;
+      return next;
+    });
     onToggle?.();
   };
 
@@ -60,8 +60,16 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
   };
 
   return (
-    <Pressable onPress={cycleMode} style={{ width: "100%" }}>
-      <View style={styles.shell}>
+    <View style={styles.carousel}>
+      <TouchableOpacity
+        onPress={() => cycleMode(-1)}
+        hitSlop={10}
+        style={styles.carouselButton}
+      >
+        <Icon name="carousel-left" size={18} tint={theme.colors.accentDark} />
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.shell} onPress={() => cycleMode(1)}>
         <Text
           variant="h2"
           weight="bold"
@@ -70,12 +78,30 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
         >
           {getLabel()}
         </Text>
-      </View>
-    </Pressable>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => cycleMode(1)}
+        hitSlop={10}
+        style={styles.carouselButton}
+      >
+        <Icon name="carousel-right" size={18} tint={theme.colors.accentDark} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  carousel: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.spacing.sm,
+    alignSelf: "center",
+  },
+  carouselButton: {
+    padding: theme.spacing.xs,
+  },
   shell: {
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,
