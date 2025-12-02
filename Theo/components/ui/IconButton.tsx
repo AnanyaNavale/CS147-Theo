@@ -9,7 +9,6 @@ import {
   ViewStyle,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { theme } from "@/design/theme";
 
 export type FAIconName = React.ComponentProps<typeof FontAwesome>["name"];
@@ -30,21 +29,13 @@ export function IconButton({
   style,
   variant = "gold",
 }: IconButtonProps) {
-  const gradient =
-    variant === "gold"
-      ? theme.colors.gradients.gold
-      : theme.colors.gradients.danger;
-
-  const textColor = "#fff";
+  const backgroundColor =
+    variant === "gold" ? theme.colors.accent : theme.colors.danger;
+  const textColor = theme.solidColors.white;
 
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={style}>
-      <LinearGradient
-        colors={gradient}
-        start={[0, 0]}
-        end={[1, 1]}
-        style={styles.button}
-      >
+      <View style={[styles.button, { backgroundColor }]}>
         <Text style={[styles.label, { color: textColor }]}>{label}</Text>
 
         <FontAwesome
@@ -53,7 +44,7 @@ export function IconButton({
           color={textColor}
           style={{ marginLeft: 10 }}
         />
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 }

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +13,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system";
 
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -41,36 +42,37 @@ export default function ProfileScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const loadProfile = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const profile = await fetchUserProfile(user.id);
+      setDisplayName(
+        profile?.display_name ??
+          (user.user_metadata?.display_name as string | undefined) ??
+          ""
+      );
+      setEmail(user.email ?? "");
+      setAvatarUrl(
+        profile?.avatar_url ??
+          (user.user_metadata?.avatar_url as string | undefined) ??
+          null
+      );
+    } catch (err) {
+      console.error(err);
+      setError("Couldn't load your profile right now.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (!user) {
       router.replace("/auth/login");
       return;
     }
-
-    const load = async () => {
-      try {
-        const profile = await fetchUserProfile(user.id);
-        setDisplayName(
-          profile?.display_name ??
-            (user.user_metadata?.display_name as string | undefined) ??
-            ""
-        );
-        setEmail(user.email ?? "");
-        setAvatarUrl(
-          profile?.avatar_url ??
-            (user.user_metadata?.avatar_url as string | undefined) ??
-            null
-        );
-      } catch (err) {
-        console.error(err);
-        setError("Couldn't load your profile right now.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, [user, router]);
+    loadProfile();
+  }, [user, router, loadProfile]);
 
   const handleSave = async () => {
     if (!user || saving) return;
@@ -124,9 +126,15 @@ export default function ProfileScreen() {
       return;
     }
 
+    const mediaTypeImages =
+      // Expo SDK compatibility: MediaType may not exist on older versions
+      (ImagePicker as any).MediaType?.Images ||
+      ImagePicker.MediaTypeOptions.Images;
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: mediaTypeImages,
       allowsEditing: true,
+      aspect: [1, 1], // keep selection square for circular crop
       quality: 0.8,
     });
 
@@ -145,12 +153,33 @@ export default function ProfileScreen() {
       const fileName = `avatar-${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      const response = await fetch(manip.uri);
-      const blob = await response.blob();
+      let fileBlob: Blob | null = null;
+      try {
+        const response = await fetch(manip.uri);
+        fileBlob = await response.blob();
+      } catch {
+        fileBlob = null;
+      }
+
+      // Fallback: read via FileSystem if blob was unavailable or empty
+      if (!fileBlob || (fileBlob as any).size === 0) {
+        const base64 = await FileSystem.readAsStringAsync(manip.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const byteArray = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+        fileBlob = new Blob([byteArray], { type: "image/jpeg" });
+      }
+
+      if (!fileBlob || (fileBlob as any).size === 0) {
+        throw new Error("Image data was empty after processing. Please try again.");
+      }
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+        .upload(filePath, fileBlob as any, {
+          upsert: true,
+          contentType: "image/jpeg",
+        });
       if (uploadError) throw uploadError;
 
       const {
@@ -158,7 +187,14 @@ export default function ProfileScreen() {
       } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
-      setMessage("Photo updated. Save to apply.");
+      // Persist to profile immediately and reload to reflect any server-side transforms
+      await ensureUserProfile({
+        id: user.id,
+        displayName: displayName || null,
+        avatarUrl: publicUrl,
+      });
+      await loadProfile();
+      setMessage("Photo updated.");
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to upload image.";
@@ -199,10 +235,9 @@ export default function ProfileScreen() {
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
               ) : (
-                <Image
-                  source={require("../assets/images/profile_sample.webp")}
-                  style={styles.avatarImage}
-                />
+                <View style={[styles.avatarImage, styles.avatarFallback]}>
+                  <Feather name="user" size={68} color={theme.solidColors.white} />
+                </View>
               )}
               {uploading && (
                 <View style={styles.avatarOverlay}>
@@ -236,14 +271,14 @@ export default function ProfileScreen() {
           />
 
           {error && (
-            <Text color="danger" style={styles.infoText}>
-              {error}
-            </Text>
+            <View style={[styles.banner, styles.errorBanner]}>
+              <Text style={styles.bannerText}>{error}</Text>
+            </View>
           )}
           {message && (
-            <Text color="accentDark" style={styles.infoText}>
-              {message}
-            </Text>
+            <View style={[styles.banner, styles.infoBanner]}>
+              <Text style={styles.bannerText}>{message}</Text>
+            </View>
           )}
 
           <Button
@@ -276,6 +311,23 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.sm,
   },
+  banner: {
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    borderRadius: theme.radii.sm,
+    alignSelf: "center",
+    marginTop: theme.spacing.xs,
+  },
+  bannerText: {
+    color: theme.solidColors.white,
+    fontFamily: theme.typography.families.regular,
+  },
+  infoBanner: {
+    backgroundColor: theme.colors.text,
+  },
+  errorBanner: {
+    backgroundColor: theme.colors.danger,
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -285,9 +337,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   avatarButton: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 168,
+    height: 168,
+    borderRadius: 84,
     overflow: "hidden",
     ...theme.shadow.medium,
   },
@@ -295,6 +347,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+  },
+  avatarFallback: {
+    backgroundColor: theme.colors.accentDark,
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarOverlay: {
     position: "absolute",

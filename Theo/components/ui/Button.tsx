@@ -1,4 +1,3 @@
-import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   StyleProp,
@@ -31,19 +30,6 @@ type ButtonProps = {
   disabled?: boolean;
 };
 
-// Which variants use a gradient background
-const GRADIENT_VARIANTS: ButtonVariant[] = ["gold", "brown", "danger"];
-
-// Safely map only gradient variants
-const gradientMap: Record<
-  "gold" | "brown" | "danger",
-  readonly [string, string]
-> = {
-  gold: theme.colors.gradients.gold,
-  brown: theme.colors.gradients.brown,
-  danger: theme.colors.gradients.danger,
-};
-
 const sizeStyles = {
   sm: {
     paddingV: theme.spacing.xs,
@@ -72,7 +58,7 @@ export function Button({
   disabled = false,
 }: ButtonProps) {
   const sizeTokens = sizeStyles[size];
-  const isGradient = GRADIENT_VARIANTS.includes(variant);
+  const isGradient = false;
 
   return (
     <TouchableOpacity
@@ -81,65 +67,34 @@ export function Button({
       disabled={disabled}
       style={disabled ? styles.disabledTouchable : undefined}
     >
-      {isGradient ? (
-        <LinearGradient
-          colors={gradientMap[variant as "gold" | "brown" | "danger"]}
-          start={[0, 0]}
-          end={[1, 1]}
+      <View
+        style={[
+          styles.base,
+          {
+            paddingVertical: sizeTokens.paddingV,
+            paddingHorizontal: sizeTokens.paddingH,
+            borderRadius: theme.radii.md,
+            borderWidth: getBorderWidth(variant),
+            borderColor: getBorderColor(variant),
+            backgroundColor: getBackground(variant),
+            opacity: disabled ? 0.6 : 1,
+          },
+          style,
+        ]}
+      >
+        <Text
           style={[
-            styles.base,
+            styles.label,
             {
-              paddingVertical: sizeTokens.paddingV,
-              paddingHorizontal: sizeTokens.paddingH,
-              borderRadius: theme.radii.md,
+              fontSize: sizeTokens.fontSize,
+              color: getLabelColor(variant),
             },
-            style,
+            labelStyle,
           ]}
         >
-          <Text
-            style={[
-              styles.label,
-              {
-                color: "#fff",
-                fontSize: sizeTokens.fontSize,
-                fontFamily: theme.typography.families.regular,
-              },
-              labelStyle,
-            ]}
-          >
-            {label}
-          </Text>
-        </LinearGradient>
-      ) : (
-        <View
-          style={[
-            styles.base,
-            {
-              paddingVertical: sizeTokens.paddingV,
-              paddingHorizontal: sizeTokens.paddingH,
-              borderRadius: theme.radii.md,
-              borderWidth: getBorderWidth(variant),
-              borderColor: getBorderColor(variant),
-              backgroundColor: getBackground(variant),
-              opacity: disabled ? 0.6 : 1,
-            },
-            style,
-          ]}
-        >
-          <Text
-            style={[
-              styles.label,
-              {
-                fontSize: sizeTokens.fontSize,
-                color: getLabelColor(variant),
-              },
-              labelStyle,
-            ]}
-          >
-            {label}
-          </Text>
-        </View>
-      )}
+          {label}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }

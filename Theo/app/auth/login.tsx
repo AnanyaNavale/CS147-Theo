@@ -122,8 +122,8 @@ export default function LoginScreen() {
             size="lg"
             variant="brown"
             disabled={isSubmitting}
-            style={styles.primaryButton}
-            labelStyle={styles.primaryButtonLabel}
+            style={styles.sessionButton}
+            labelStyle={styles.sessionButtonLabel}
           />
 
           <View style={styles.linkRow}>
@@ -190,16 +190,16 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.sm,
   },
-  primaryButton: {
+  sessionButton: {
     width: "100%",
-    marginTop: theme.spacing.sm,
+    marginTop: theme.spacing.lg,
     borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
+    paddingVertical: theme.spacing.sm,
     ...theme.shadow.medium,
   },
-  primaryButtonLabel: {
-    fontFamily: theme.typography.families.bold,
-    letterSpacing: 0.2,
+  sessionButtonLabel: {
+    fontFamily: theme.typography.families.medium,
+    letterSpacing: 0.4,
   },
   linkRow: {
     alignItems: "center",
