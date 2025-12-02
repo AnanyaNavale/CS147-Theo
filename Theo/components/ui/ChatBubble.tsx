@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
 
   // GENERAL TEXT STYLE
   text: {
-    fontFamily: theme.typography.families.handwritten,
+    fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     lineHeight: theme.typography.sizes.md * 1.4,
   },

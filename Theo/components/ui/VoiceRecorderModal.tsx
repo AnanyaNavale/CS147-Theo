@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -79,6 +80,11 @@ export function VoiceRecorderModal({
   }, [visible]);
 
   const startRecording = async () => {
+    if (Platform.OS === "web") {
+      setError("Voice recording isn't supported on web. Please use the app.");
+      return;
+    }
+
     setError(null);
     setTranscript("");
     setDurationMs(0);
@@ -95,8 +101,32 @@ export function VoiceRecorderModal({
         playsInSilentModeIOS: true,
       });
 
-      const rec = new Audio.Recording();
-      await rec.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      const RecordingCtor: any = (Audio as any).Recording;
+      if (!RecordingCtor) {
+        throw new Error("Recording is not available on this platform.");
+      }
+
+      let rec: Audio.Recording | null = null;
+      try {
+        rec = new RecordingCtor();
+        await rec.prepareToRecordAsync(
+          Audio.RecordingOptionsPresets.HIGH_QUALITY
+        );
+      } catch (ctorErr) {
+        console.warn(
+          "Recording constructor failed, trying createAsync fallback",
+          ctorErr
+        );
+        const created = await Audio.Recording.createAsync(
+          Audio.RecordingOptionsPresets.HIGH_QUALITY
+        );
+        rec = created.recording;
+      }
+
+      if (!rec) {
+        throw new Error("Could not start recording.");
+      }
+
       rec.setOnRecordingStatusUpdate((update) => {
         if (update.isRecording) {
           setDurationMs(update.durationMillis ?? 0);

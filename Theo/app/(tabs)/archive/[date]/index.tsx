@@ -2,16 +2,17 @@ import {
   Dimensions,
   FlatList,
   SectionList, StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { View, Text } from "@/components/Themed";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import SvgStrokeText from "@/components/SvgStrokeText";
 
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
-// import type { WorkSession, SessionSetting } from "@/types/database.types";
 import { fetchSessionsForDayWithSettingsSorted } from "@/lib/supabase";
 
 import SessionBox from "@/components/ArchiveSessionBox";
@@ -19,8 +20,6 @@ import { Feather } from "@expo/vector-icons";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 
-
-// import { Feather } from "@expo/vector-icons";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -62,8 +61,6 @@ export default function SingleDayScreen() {
     day: "2-digit",
     year: "2-digit",
   });
-  // console.log("Previous:", displayPrevious);
-  // console.log("Next:", displayNext);
 
   useEffect(() => {
     if (!date) return;
@@ -148,7 +145,12 @@ export default function SingleDayScreen() {
           )}
           renderSectionFooter={({ section }) =>
             section.data.length === 0 ? (
-              <View style={{ alignItems: "center" }}>
+              <View
+                style={{
+                  alignItems: "center",
+                  backgroundColor: colors.light.background,
+                }}
+              >
                 <Text
                   style={{
                     fontFamily: fonts.typeface.body,
@@ -178,17 +180,7 @@ export default function SingleDayScreen() {
       <View style={styles.bottomNavigator}>
         <TouchableOpacity
           style={{ flexDirection: "row" }}
-          onPress={
-            () =>
-              // router.navigate(
-              //   {
-              //     pathname: "/(tabs)/archive/[date]",
-              //     params: { date: previousDate.toISOString().split("T")[0] },
-              //   },
-              //   {
-              //     animation: "slide_from_left",
-              //   }
-              // )
+          onPress={() =>
             router.push({
               pathname: "/(tabs)/archive/[date]",
               params: { date: previousDate.toISOString().split("T")[0] }, // "YYYY-MM-DD"
@@ -275,8 +267,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   bottomNavigator: {
-    borderColor: "red",
-    // borderWidth: 1,
     height: "11%",
     width: "100%",
     backgroundColor: colors.light.background,
@@ -287,8 +277,8 @@ const styles = StyleSheet.create({
     elevation: 5,
     paddingHorizontal: 20,
     paddingTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   shadowTop: {
     height: 4,

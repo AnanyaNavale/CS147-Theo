@@ -10,6 +10,7 @@ import {
   Platform,
   Pressable,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -29,6 +30,9 @@ import {
 import { useSupabase } from "@/providers/SupabaseProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useRouter } from "expo-router";
+import { colors } from "@/assets/themes/colors";
+import { Feather } from "@expo/vector-icons";
+import SvgStrokeText from "@/components/SvgStrokeText";
 
 /* ------------------------------------------------------
    MESSAGE TYPE
@@ -470,20 +474,24 @@ export default function ChatScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         //keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
-        <View style={styles.headerRow}>
-          <Pressable
+        <View style={styles.header}>
+          <TouchableOpacity
             hitSlop={12}
             onPress={() => {
               if (navigation.canGoBack()) navigation.back();
               else router.push("../(tabs)/session");
             }}
+            style={styles.backButton}
           >
-            <Icon name="arrow-left" size={26} tint={theme.colors.accentDark} />
-          </Pressable>
-          <Text style={styles.header} variant="h2">
-            Converse with Theo
-          </Text>
-          <View style={{ width: 26 }} />
+            <Feather
+              name={"arrow-left"}
+              size={36}
+              color={colors.light.iconsStandalone}
+            />
+          </TouchableOpacity>
+          <View style={styles.dateContainer}>
+            <SvgStrokeText text="Converse with Theo" />
+          </View>
         </View>
         <Pressable
           style={{ flex: 1 }}
@@ -596,16 +604,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.solidColors.white,
   },
-  headerRow: {
+
+  header: {
+    height: 70,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl * 1.25,
-    paddingBottom: theme.spacing.sm,
+    position: "relative",
+    justifyContent: "center",
+    backgroundColor: colors.light.background,
   },
-  header: {
-    textAlign: "center",
+  backButton: {
+    position: "absolute",
+    left: 16,
+    top: 22,
+    zIndex: 2,
+    backgroundColor: colors.light.background,
+  },
+  dateContainer: {
+    position: "absolute",
+    top: 25,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 1,
+    width: "100%",
+    backgroundColor: colors.light.background,
   },
 
   listContent: {
