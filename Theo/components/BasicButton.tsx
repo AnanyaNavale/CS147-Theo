@@ -1,7 +1,7 @@
 import React from "react";
 import {
   DimensionValue,
-  Pressable,
+  TouchableOpacity,
   Text,
   StyleSheet,
   ViewStyle,
@@ -24,7 +24,7 @@ export type BasicButtonProps = {
   iconName?: IconName;
   iconSize?: number;
   iconTint?: string;
-} & React.ComponentProps<typeof Pressable>;
+} & React.ComponentProps<typeof TouchableOpacity>;
 
 export const BasicButton = React.forwardRef<View, BasicButtonProps>(
   (
@@ -68,7 +68,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
     const { backgroundColor: bg, shadowColor: sc } = getColors(variant);
 
     return (
-      <Pressable
+      <TouchableOpacity
         ref={ref}
         style={[
           styles.base,
@@ -86,7 +86,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
           <Icon name={iconName} size={iconSize} tint={iconTint} style={styles.icon} />
         )}
         <Text style={[styles.text, textStyle]}>{text}</Text>
-      </Pressable>
+      </TouchableOpacity>
     );
   }
 );

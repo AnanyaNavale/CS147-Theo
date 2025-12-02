@@ -6,25 +6,24 @@ import { useEffect, useRef, useState } from "react";
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionsForDayWithSettingsSorted } from "@/lib/supabase";
+import { fetchSessionsForDaySorted } from "@/lib/supabase";
 
 interface SessionBoxProps {
   title: string;
   time: string;
-  has_settings: boolean;
   status: string;
   onPress?: () => void;
 }
 
-export default function SessionBox({ title, time, has_settings, status, onPress }: SessionBoxProps) {
+export default function SessionBox({ title, time, status, onPress }: SessionBoxProps) {
   const timeDisplay = formatMinutes(Number(time));
 
   return (
     <TouchableOpacity
-      style={[styles.container, getBoxStyle(has_settings, status)]}
+      style={[styles.container, getBoxStyle(status)]}
       onPress={onPress}
     >
-      <View style={[styles.timeContainer, getTimeStyle(has_settings, status)]}>
+      <View style={[styles.timeContainer, getTimeStyle(status)]}>
         <Text style={styles.time}>{timeDisplay}</Text>
       </View>
       <View style={styles.titleContainer}>
@@ -47,16 +46,17 @@ function formatMinutes(totalMinutes: number) {
   return `${minutes} min.`;
 }
 
-function getBoxStyle(has_settings: boolean, status: string) {
-  if (has_settings && status === "completed")
+function getBoxStyle(status: string) {
+  if (status === "complete")
     return styles.containerCompleted;
-  if (has_settings) return styles.containerSession;
+  if (status !== "complete" && status !== "planned") return styles.containerSession;
   return styles.containerPlan;
 }
 
-function getTimeStyle(has_settings: boolean, status: string) {
-  if (has_settings && status === "completed") return styles.timeContainerCompleted;
-  if (has_settings) return styles.timeContainerSession;
+function getTimeStyle(status: string) {
+  if (status === "complete") return styles.timeContainerCompleted;
+  if (status !== "incomplete" && status !== "planned")
+    return styles.timeContainerSession;
   return styles.timeContainerPlan;
 }
 

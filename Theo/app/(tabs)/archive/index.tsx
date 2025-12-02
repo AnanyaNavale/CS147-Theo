@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionDatesForMonth } from "@/lib/supabase";
+import { fetchSessionDatesForMonth, getCurrentSession } from "@/lib/supabase";
 
 // import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from "@/components/Themed";
@@ -70,25 +70,36 @@ export default function ArchiveScreen() {
   const [loading, setLoading] = useState(false);
 
   const { supabase, session: authSession } = useSupabase();
-  // const opacity = useRef(new Animated.Value(1)).current;
-  // const prevMonth = useRef(currentMonth);
   const router = useRouter();
+  // const session = await getCurrentSession();
+  // const userId = session?.user?.id;
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
+
   useEffect(() => {
     const fetchMonthSessionsData = async () => {
       setLoading(true);
       try {
-        const sessionDates = await fetchSessionDatesForMonth(
+        const userId = authSession?.user?.id; // ✅ use value from top-level hook
+
+        if (!userId) {
+          setMonthSessions({});
+          return;
+        }
+
+        const data = await fetchSessionDatesForMonth(
           currentMonth,
-          currentYear
+          currentYear,
+          userId
         );
+        console.log(data);
 
-        const marked: { [date: string]: any } = {};
+        const marked: Record<string, any> = {};
 
-        sessionDates.forEach((dateString) => {
-          // dateString is already YYYY-MM-DD in UTC, no local conversion
-          marked[dateString] = {
+        data.forEach((utcDateString) => {
+          const localDate = new Date(utcDateString);
+          const day = localDate.toISOString().slice(0, 10); // OR format using local time
+          marked[day] = {
             customStyles: {
               container: {
                 borderColor: colors.light.markedDates,

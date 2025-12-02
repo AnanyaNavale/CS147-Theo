@@ -15,9 +15,8 @@ export interface Database {
           id: string; // bigint identity in DB; use string for transport
           created_at: string;
           completed_at: string | null;
-          user_id: string | null;
+          user_id: string;
           title: string;
-          has_settings: boolean;
           total_time: number;
           status: "planned" | "active" | "incomplete" | "complete";
           has_goal: boolean;
@@ -30,9 +29,8 @@ export interface Database {
           id?: string;
           created_at?: string;
           completed_at?: string | null;
-          user_id?: string | null;
+          user_id: string;
           title?: string;
-          has_settings?: boolean;
           total_time?: number;
           status?: "planned" | "active" | "incomplete" | "complete";
           has_goal?: boolean;
@@ -47,7 +45,6 @@ export interface Database {
           completed_at?: string | null;
           user_id?: string | null;
           title?: string;
-          has_settings?: boolean;
           total_time?: number;
           status?: "planned" | "active" | "incomplete" | "complete";
           has_goal?: boolean;
@@ -102,43 +99,43 @@ export interface Database {
       };
 
       // ------------------ SESSION SETTINGS TABLE ------------------
-      session_settings: {
-        Row: {
-          id: string;
-          session_id: string;
-          reflection_reminders: boolean;
-          collab_requests: boolean;
-          collab_friends: boolean;
-          user_id: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id?: string | null;
-          session_id: string;
-          reflection_reminders?: boolean;
-          collab_requests?: boolean;
-          collab_friends?: boolean;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string | null;
-          session_id?: string;
-          reflection_reminders?: boolean;
-          collab_requests?: boolean;
-          collab_friends?: boolean;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "session_settings_session_id_fkey";
-            columns: ["session_id"];
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
+      // session_settings: {
+      //   Row: {
+      //     id: string;
+      //     session_id: string;
+      //     reflection_reminders: boolean;
+      //     collab_requests: boolean;
+      //     collab_friends: boolean;
+      //     user_id: string | null;
+      //     created_at: string;
+      //   };
+      //   Insert: {
+      //     id?: string;
+      //     user_id?: string | null;
+      //     session_id: string;
+      //     reflection_reminders?: boolean;
+      //     collab_requests?: boolean;
+      //     collab_friends?: boolean;
+      //     created_at?: string;
+      //   };
+      //   Update: {
+      //     id?: string;
+      //     user_id?: string | null;
+      //     session_id?: string;
+      //     reflection_reminders?: boolean;
+      //     collab_requests?: boolean;
+      //     collab_friends?: boolean;
+      //     created_at?: string;
+      //   };
+      //   Relationships: [
+      //     {
+      //       foreignKeyName: "session_settings_session_id_fkey";
+      //       columns: ["session_id"];
+      //       referencedRelation: "sessions";
+      //       referencedColumns: ["id"];
+      //     }
+      //   ];
+      // };
 
       // ------------------ USERS TABLE ------------------
       user_profiles: {
@@ -188,6 +185,6 @@ export interface Database {
 
 export type WorkSession = Database["public"]["Tables"]["sessions"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
-export type SessionSetting =
-  Database["public"]["Tables"]["session_settings"]["Row"];
+// export type SessionSetting =
+//   Database["public"]["Tables"]["session_settings"]["Row"];
 export type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];

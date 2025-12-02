@@ -4,10 +4,12 @@ import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 import { colors } from "@/assets/themes/colors";
-import { AppModal } from "@/components/ui/AppModal";
+import { AppModal, Button } from "@/components";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { fonts } from "@/assets/themes/typography";
+// import { Button } from "react-native/Libraries/Components/Button";
 
 type StepProgressIndicatorProps = {
   steps: string[];
@@ -21,6 +23,8 @@ type StepProgressIndicatorProps = {
   onPressMenu?: () => void;
   tint?: string;
   iconSize?: number;
+  helpMessagept1?: string;
+  helpMessagept2?: string;
 };
 
 export function StepProgressIndicator({
@@ -34,6 +38,8 @@ export function StepProgressIndicator({
   onPressMenu,
   tint = theme.colors.accentDark,
   iconSize = 26,
+  helpMessagept1,
+  helpMessagept2,
 }: StepProgressIndicatorProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -207,7 +213,8 @@ export function StepProgressIndicator({
         variant="custom"
         title="Help"
       >
-        <Text style={styles.modalBody}>Help content coming soon.</Text>
+        <Text style={{ fontSize: fonts.sizes.body }}>{helpMessagept1}</Text>
+        <Text style={{ fontSize: fonts.sizes.body }}>{helpMessagept2}</Text>
       </AppModal>
 
       {/* Report modal */}
@@ -215,7 +222,7 @@ export function StepProgressIndicator({
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}
         variant="custom"
-        title="Report a problem"
+        title="Report a Problem"
       >
         <Text style={styles.modalBody}>
           Reporting will be available shortly.
