@@ -49,9 +49,23 @@ export default function FinalizeSessionScreen() {
     }
   }, [tasks]);
 
+  const totalMinutes = useMemo(
+    () => parsedTasks.reduce((sum, task) => sum + task.minutes, 0),
+    [parsedTasks]
+  );
+  const taskCount = parsedTasks.length;
+  const sessionSummary = useMemo(() => {
+    const lines = [];
+    if (goalText) lines.push(`Goal: ${goalText}`);
+    if (taskCount > 0) lines.push(`Tasks: ${taskCount}`);
+    if (totalMinutes > 0) lines.push(`Total time: ${totalMinutes} min`);
+    return lines.join("\n");
+  }, [goalText, taskCount, totalMinutes]);
+
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showStartConfirm, setShowStartConfirm] = useState(false);
 
   const handleSavePlan = async () => {
     if (savingPlan) return;
@@ -101,6 +115,11 @@ export default function FinalizeSessionScreen() {
   };
 
   const handleStartSession = () => {
+    setShowStartConfirm(true);
+  };
+
+  const confirmStartSession = () => {
+    setShowStartConfirm(false);
     router.push({
       pathname: "./in-session",
       params: {
@@ -198,6 +217,18 @@ export default function FinalizeSessionScreen() {
             }
           />
         )}
+
+        <AppModal
+          visible={showStartConfirm}
+          onClose={() => setShowStartConfirm(false)}
+          variant="alert"
+          title="Start this session?"
+          message={sessionSummary}
+          confirmLabel="Start"
+          cancelLabel="Cancel"
+          onConfirm={confirmStartSession}
+          confirmVariant="gold"
+        />
       </ScrollView>
 
       <Image
