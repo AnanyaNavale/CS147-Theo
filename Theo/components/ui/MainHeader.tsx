@@ -1,5 +1,5 @@
+import React, { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
-import React, { useState } from "react";
 import {
   Image,
   LayoutChangeEvent,
@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ViewStyle,
 } from "react-native";
 
 import { colors } from "@/assets/themes/colors";
@@ -37,10 +38,20 @@ function TabBarIcon({
   );
 }
 
-export default function MainHeader() {
+type MainHeaderProps = {
+  avatarUrl?: string | null;
+};
+
+export default function MainHeader({ avatarUrl }: MainHeaderProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuHeight, setMenuHeight] = useState(0);
+  const [avatarFailed, setAvatarFailed] = useState(false);
+
+  useEffect(() => {
+    // Reset failure flag when a new avatar URL arrives
+    setAvatarFailed(false);
+  }, [avatarUrl]);
 
   const handleLogout = async () => {
     setMenuOpen(false);
@@ -70,7 +81,10 @@ export default function MainHeader() {
   return (
     <View onLayout={handleLayout}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => setMenuOpen((prev) => !prev)}>
+        <TouchableOpacity
+          onPress={() => setMenuOpen((prev) => !prev)}
+          style={styles.menuButton}
+        >
           <TabBarIcon name="menu" color="#8A5E3C" size={36} />
         </TouchableOpacity>
 
@@ -81,7 +95,16 @@ export default function MainHeader() {
 
         <TouchableOpacity onPress={() => router.push("../profile")}>
           <View style={styles.userIcon}>
-            <TabBarIcon name="user" color="white" size={36} />
+            {avatarUrl && !avatarFailed ? (
+              <Image
+                key={avatarUrl}
+                source={{ uri: avatarUrl }}
+                style={styles.avatarImage}
+                onError={() => setAvatarFailed(true)}
+              />
+            ) : (
+              <TabBarIcon name="user" color="white" size={32} />
+            )}
           </View>
         </TouchableOpacity>
       </View>
@@ -138,6 +161,15 @@ const styles = StyleSheet.create({
     height: 45,
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  menuButton: {
+    transform: [{ translateY: -4 }],
   },
   menuOverlay: {
     position: "absolute",

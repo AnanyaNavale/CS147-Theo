@@ -1,5 +1,6 @@
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const DEFAULT_TASK_MINUTES = 20;
 
 export type AiTask = { text: string; minutes: number };
 export type ReflectionTurn = { from: "user" | "assistant"; text: string };
@@ -116,22 +117,22 @@ function repairJsonArray(raw: string): string | null {
   return fixed;
 }
 
-function normalizeTasks(tasks: AiTask[]): AiTask[] {
-  return tasks
-    .map((t: any) => {
-      const rawText =
-        t?.text ?? t?.task ?? t?.title ?? t?.description ?? t?.name;
-      const text = typeof rawText === "string" ? rawText.trim() : "";
-      const rawMinutes =
-        typeof t?.minutes === "string"
-          ? parseInt(t.minutes, 10)
-          : Number(t?.minutes ?? t?.time ?? t?.duration);
-      const minutes =
-        Number.isFinite(rawMinutes) && rawMinutes > 0 ? rawMinutes : 30;
-      return { text, minutes };
-    })
-    .filter((t) => t.text.length > 0 && t.minutes > 0);
-}
+// function normalizeTasks(tasks: AiTask[]): AiTask[] {
+//   return tasks
+//     .map((t: any) => {
+//       const rawText =
+//         t?.text ?? t?.task ?? t?.title ?? t?.description ?? t?.name;
+//       const text = typeof rawText === "string" ? rawText.trim() : "";
+//       const rawMinutes =
+//         typeof t?.minutes === "string"
+//           ? parseInt(t.minutes, 10)
+//           : Number(t?.minutes ?? t?.time ?? t?.duration);
+//       const minutes =
+//         Number.isFinite(rawMinutes) && rawMinutes > 0 ? rawMinutes : 30;
+//       return { text, minutes };
+//     })
+//     .filter((t) => t.text.length > 0 && t.minutes > 0);
+// }
 
 function fallbackTasks(goal: string): AiTask[] {
   const goalSnippet = goal?.slice(0, 40) || "your goal";
@@ -170,6 +171,45 @@ function fromTaskTimeArrays(obj: any): AiTask[] | null {
   return mapped.length ? mapped : null;
 }
 
+function toAiTasks(arr: any[]): AiTask[] {
+  return arr
+    .map((item) => {
+      if (typeof item === "string" || typeof item === "number") {
+        const text = String(item).trim();
+        return text
+          ? { text, minutes: DEFAULT_TASK_MINUTES }
+          : null;
+      }
+
+      if (item && typeof item === "object") {
+        const rawText =
+          (item as any)?.text ??
+          (item as any)?.task ??
+          (item as any)?.title ??
+          (item as any)?.description ??
+          (item as any)?.name;
+        const text = typeof rawText === "string" ? rawText.trim() : "";
+        const rawMinutes =
+          typeof (item as any)?.minutes === "string"
+            ? parseInt((item as any).minutes, 10)
+            : Number(
+                (item as any)?.minutes ??
+                  (item as any)?.time ??
+                  (item as any)?.duration ??
+                  (item as any)?.estimate
+              );
+        const minutes =
+          Number.isFinite(rawMinutes) && rawMinutes > 0
+            ? rawMinutes
+            : DEFAULT_TASK_MINUTES;
+        return text ? { text, minutes } : null;
+      }
+
+      return null;
+    })
+    .filter(Boolean) as AiTask[];
+}
+
 function parseTasksFromText(text: string): AiTask[] {
   const cleaned = text.replace(/```(\w+)?/g, "").trim();
 
@@ -186,7 +226,8 @@ function parseTasksFromText(text: string): AiTask[] {
       try {
         const parsed = JSON.parse(attempt);
         if (Array.isArray(parsed)) {
-          return parsed;
+          const mapped = toAiTasks(parsed);
+          if (mapped.length) return mapped;
         }
       } catch {
         // keep trying other candidates
@@ -199,6 +240,21 @@ function parseTasksFromText(text: string): AiTask[] {
   // Try direct parse if the whole content is JSON
   const direct = tryParseArray(cleaned);
   if (direct) return direct;
+
+  // Try parsing as an object and extract tasks/minutes
+  try {
+    const obj = JSON.parse(cleaned);
+    if (obj && typeof obj === "object") {
+      const mapped = fromTaskTimeArrays(obj);
+      if (mapped) return mapped;
+      if (Array.isArray((obj as any)?.tasks)) {
+        const mappedTasks = toAiTasks((obj as any).tasks);
+        if (mappedTasks.length) return mappedTasks;
+      }
+    }
+  } catch {
+    // ignore and keep trying salvage paths
+  }
 
   // Extract the first array-looking section, even if it's truncated.
   const start = cleaned.indexOf("[");
@@ -213,6 +269,12 @@ function parseTasksFromText(text: string): AiTask[] {
         : lastBrace >= 0
         ? `${tail.slice(0, lastBrace + 1)}]`
         : tail;
+
+    const repaired = repairJsonArray(candidate);
+    if (repaired) {
+      const parsed = tryParseArray(repaired);
+      if (parsed) return parsed;
+    }
 
     const parsed = tryParseArray(candidate);
     if (parsed) return parsed;
@@ -236,6 +298,42 @@ function parseTasksFromText(text: string): AiTask[] {
       count: salvaged.length,
     });
     return salvaged;
+  }
+
+  // Last-ditch: grab any quoted strings inside a tasks array.
+  const taskKeyIndex = cleaned.indexOf('"tasks"');
+  const quotedSection =
+    taskKeyIndex >= 0 ? cleaned.slice(taskKeyIndex) : cleaned;
+  const quotedTasks = Array.from(
+    quotedSection.matchAll(/"([^"]+)"\s*(,|\])/g)
+  ).map((m) => m[1]);
+  if (quotedTasks.length > 0) {
+    console.warn("[Gemini][tasks] salvaged quoted tasks", {
+      count: quotedTasks.length,
+    });
+    return toAiTasks(quotedTasks);
+  }
+
+  // Salvage lines that start with a quote even if the closing quote/bracket is missing.
+  const looseLines = quotedSection
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('"'));
+  const looseTasks = looseLines
+    .map((line) => {
+      const content = line.slice(1); // drop leading quote
+      const endQuote = content.indexOf('"');
+      const text =
+        endQuote >= 0 ? content.slice(0, endQuote) : content.replace(/,?$/, "");
+      return text.trim();
+    })
+    .filter((t) => t.length > 0);
+
+  if (looseTasks.length > 0) {
+    console.warn("[Gemini][tasks] salvaged loose quoted tasks", {
+      count: looseTasks.length,
+    });
+    return toAiTasks(looseTasks);
   }
 
   console.warn("[Gemini][tasks] parse failed", {
@@ -274,7 +372,9 @@ function digForTasks(node: unknown): AiTask[] | null {
   return null;
 }
 
-function extractTasksFromParts(parts: Array<Record<string, any>>): AiTask[] | null {
+function extractTasksFromParts(
+  parts: Array<Record<string, any>>
+): AiTask[] | null {
   for (const part of parts) {
     const rawArgs = part?.functionCall?.args;
     if (!rawArgs) continue;
@@ -299,11 +399,35 @@ function extractTasksFromParts(parts: Array<Record<string, any>>): AiTask[] | nu
 
 function normalizeTasks(tasks: AiTask[]): AiTask[] {
   return tasks
+    .map((t) => {
+      if (typeof (t as any) === "string") {
+        const text = (t as unknown as string).trim();
+        return text ? { text, minutes: DEFAULT_TASK_MINUTES } : null;
+      }
+
+      const rawText =
+        (t as any)?.text ??
+        (t as any)?.task ??
+        (t as any)?.title ??
+        (t as any)?.description ??
+        (t as any)?.name;
+      const text = typeof rawText === "string" ? rawText.trim() : "";
+      const rawMinutes =
+        typeof (t as any)?.minutes === "string"
+          ? parseInt((t as any).minutes, 10)
+          : Number((t as any)?.minutes ?? (t as any)?.time ?? (t as any)?.duration);
+      const minutes =
+        Number.isFinite(rawMinutes) && rawMinutes > 0
+          ? rawMinutes
+          : DEFAULT_TASK_MINUTES;
+
+      return text ? { text, minutes } : null;
+    })
+    .filter((t): t is AiTask => Boolean(t))
     .map((t) => ({
-      text: typeof t.text === "string" ? t.text : "",
-      minutes: Number(t.minutes) || 0,
-    }))
-    .filter((t) => t.text.length > 0 && t.minutes > 0);
+      text: t.text,
+      minutes: Math.max(5, Math.round(t.minutes)),
+    }));
 }
 
 export async function generateTasksWithAI(goal: string): Promise<AiTask[]> {
@@ -345,8 +469,9 @@ Do NOT include markdown or code fences; only return the JSON object.
 
     const data = await response.json();
     const parts =
-      (data?.candidates?.[0]?.content?.parts as Array<Record<string, any>> | undefined) ??
-      [];
+      (data?.candidates?.[0]?.content?.parts as
+        | Array<Record<string, any>>
+        | undefined) ?? [];
     const text =
       parts
         .map((p) => (typeof p.text === "string" ? p.text : ""))
@@ -384,10 +509,13 @@ Do NOT include markdown or code fences; only return the JSON object.
     }
   };
 
-  let parsed = parseOrNull(primary.text) ?? extractTasksFromParts(primary.parts);
+  let parsed =
+    parseOrNull(primary.text) ?? extractTasksFromParts(primary.parts);
 
   if (!parsed || parsed.length === 0) {
-    console.warn("[Gemini][tasks] empty or unparseable response; retrying with plain text");
+    console.warn(
+      "[Gemini][tasks] empty or unparseable response; retrying with plain text"
+    );
     const fallback = await callGemini({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -399,16 +527,16 @@ Do NOT include markdown or code fences; only return the JSON object.
       length: fallback.text.length,
       preview: fallback.text.slice(0, 160),
     });
-    parsed = parseOrNull(fallback.text) ?? extractTasksFromParts(fallback.parts);
+    parsed =
+      parseOrNull(fallback.text) ?? extractTasksFromParts(fallback.parts);
   }
 
   if (!parsed || parsed.length === 0) {
     const block = primary?.data?.promptFeedback?.blockReason;
-    const safety =
-      primary?.data?.promptFeedback?.safetyRatings
-        ?.map((s: any) => s?.category)
-        .filter(Boolean)
-        .join(", ");
+    const safety = primary?.data?.promptFeedback?.safetyRatings
+      ?.map((s: any) => s?.category)
+      .filter(Boolean)
+      .join(", ");
     const details = block
       ? `Blocked: ${block}${safety ? ` (${safety})` : ""}`
       : "AI response was empty. Check API key/quota and try again.";
@@ -535,20 +663,32 @@ ${recent
       hasText: Boolean(primary.text),
     });
 
+    const wordCount = (primary.text ?? "")
+      .split(/\s+/)
+      .filter(Boolean).length;
+    const looksIncomplete = primary.text
+      ? !/[.!?]"?$/.test(primary.text.trim())
+      : true;
     const truncated =
-      (primary.finishReason === "MAX_TOKENS" && (primary.text?.length ?? 0) < 40) ||
-      ((primary.text ?? "").split(/\s+/).filter(Boolean).length <= 3);
+      primary.finishReason === "MAX_TOKENS" ||
+      wordCount <= 4 ||
+      ((primary.text?.length ?? 0) < 24 && looksIncomplete) ||
+      (looksIncomplete && wordCount < 30);
 
     if (primary.text && !truncated) {
       return primary.text;
     }
 
     if (truncated) {
-      console.warn("[Gemini][reflection] truncation detected, retrying with minimal prompt", {
-        finishReason: primary.finishReason,
-        textLen: primary.text?.length,
-        wordCount: primary.text?.split(/\s+/).filter(Boolean).length,
-      });
+      console.warn(
+        "[Gemini][reflection] truncation detected, retrying with minimal prompt",
+        {
+          finishReason: primary.finishReason,
+          textLen: primary.text?.length,
+          wordCount,
+          looksIncomplete,
+        }
+      );
     }
 
     // Fallback: minimal prompt, very small token budget to dodge MAX_TOKENS

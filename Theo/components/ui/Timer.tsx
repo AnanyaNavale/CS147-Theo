@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Text } from "../ui/Text";
 import { theme } from "../../design/theme";
 
@@ -62,31 +61,30 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
 
   return (
     <Pressable onPress={cycleMode} style={{ width: "100%" }}>
-      <LinearGradient
-        colors={theme.colors.gradients.gold}
-        start={[0, 0]}
-        end={[1, 1]}
-        style={styles.gradient}
-      >
+      <View style={styles.shell}>
         <Text
           variant="h2"
           weight="bold"
-          color="white"
+          color="accentDark"
           style={{ textAlign: "center" }}
         >
           {getLabel()}
         </Text>
-      </LinearGradient>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
+  shell: {
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,
     borderRadius: theme.radii.md,
     minWidth: 180,
     alignSelf: "center",
+    backgroundColor: theme.solidColors.white,
+    borderWidth: 2,
+    borderColor: theme.colors.accentDark,
+    ...theme.shadow.soft,
   },
 });

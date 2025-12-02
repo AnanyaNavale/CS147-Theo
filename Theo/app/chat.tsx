@@ -2,8 +2,7 @@ import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
-  View,
-  StyleSheet,
+  Animated,
   FlatList,
   Image,
   Keyboard,
@@ -14,12 +13,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { InputField } from "@/components";
 import { ChatBubble } from "@/components/ui/ChatBubble";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
+import { theme } from "@/design/theme";
 import { generateReflectionReply } from "@/lib/ai";
 import {
   ReflectionChatMessage,

@@ -1,5 +1,4 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -46,12 +45,9 @@ export default function SessionCompleteScreen() {
         <Text style={styles.goal}>{goal}</Text>
 
         <TouchableOpacity activeOpacity={0.9} onPress={handleAllDone}>
-          <LinearGradient
-            colors={theme.colors.gradients.brown}
-            style={styles.doneButton}
-          >
+          <View style={styles.doneButton}>
             <Text style={styles.doneText}>All done!</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
 
         <Text style={styles.praise}>Give yourself a pat{"\n"}on the back.</Text>
@@ -121,6 +117,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     ...theme.shadow.soft,
+    backgroundColor: theme.colors.accentDark,
   },
   doneText: {
     fontFamily: theme.typography.families.handwritten,
