@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -34,8 +35,16 @@ export default function GoalScreen() {
   const hasGoal = goal.trim().length > 0;
   const primaryLabel = hasGoal ? "Next" : "Skip";
 
-  const teddySize = isCompact ? 180 : 220;
-  const micSize = isCompact ? 30 : 36;
+  const baseTeddySize = isCompact ? 170 : 220;
+  const arrowFootprint = 160; // approx width of ArrowAction (text + icon)
+  const horizontalMargin = theme.spacing.md * 2;
+  const maxTeddyWidth = Math.max(
+    140,
+    width - arrowFootprint - horizontalMargin
+  );
+  const maxTeddyHeight = Math.max(140, height * 0.35);
+  const teddySize = Math.min(baseTeddySize, maxTeddyWidth, maxTeddyHeight);
+  const micSize = isCompact ? 20 : 26;
   const [showRecorder, setShowRecorder] = useState(false);
 
   const handleContinue = () => {
@@ -61,35 +70,35 @@ export default function GoalScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-        <View style={styles.headerRow}>
-          <StepProgressIndicator
-            steps={["Setup", "Customize", "Finalize"]}
-            activeCount={2}
-            onPressMenu={() => {}}
-          />
-        </View>
+          <View style={styles.headerRow}>
+            <StepProgressIndicator
+              steps={["Setup", "Customize", "Finalize"]}
+              activeCount={2}
+              onPressMenu={() => {}}
+            />
+          </View>
 
-        <Spacer size="xxl" />
+          <Spacer size="xxl" />
 
-        <View>
-          <SvgStrokeText
-            text={"Would you like to set\na goal for your work?"}
-            containerStyle={{ alignSelf: "center" }}
-          />
+          <View>
+            <SvgStrokeText
+              text={"Would you like to set\na goal for your work?"}
+              containerStyle={{ alignSelf: "center" }}
+            />
 
-          <Spacer size="lg" />
+            <Spacer size="lg" />
 
-          <SvgStrokeText
-            text={"GOAL: "}
-            stroke={colors.light.header2}
-            textStyle={{
-              color: colors.light.header2,
-              fontSize: fonts.sizes.header2,
-            }}
-            containerStyle={{ alignSelf: "center" }}
-          />
+            <SvgStrokeText
+              text={"GOAL: "}
+              stroke={colors.light.header2}
+              textStyle={{
+                color: colors.light.header2,
+                fontSize: fonts.sizes.header2,
+              }}
+              containerStyle={{ alignSelf: "center" }}
+            />
 
-          <Spacer size="md" />
+            <Spacer size="md" />
 
           <View style={styles.inputContainer}>
             <InputField
@@ -119,9 +128,6 @@ export default function GoalScreen() {
               }
             />
           </View>
-          <Spacer size="xxl" />
-          <Spacer size="xxl" />
-        </View>
         </ScrollView>
       </KeyboardAvoidingView>
 

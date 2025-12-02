@@ -72,8 +72,7 @@ export function Button({
   disabled = false,
 }: ButtonProps) {
   const sizeTokens = sizeStyles[size];
-  // const isGradient = GRADIENT_VARIANTS.includes(variant);
-  const isGradient = false;
+  const isGradient = GRADIENT_VARIANTS.includes(variant);
 
   return (
     <TouchableOpacity

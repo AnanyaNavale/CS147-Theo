@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
   rowInput: {
     marginLeft: theme.spacing.sm,
     width: "auto",
+    paddingRight: theme.spacing.md,
   },
   centeredInput: {
     textAlign: "center",

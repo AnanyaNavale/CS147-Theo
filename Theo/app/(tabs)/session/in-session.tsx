@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppModal } from "@/components/ui/AppModal";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -18,7 +19,6 @@ import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { Timer } from "@/components/ui/Timer";
 
-import { colors } from "@/assets/themes/colors";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
@@ -43,7 +43,11 @@ export default function SessionScreen() {
   /* ---------------------------------------------------------
    * GET PASSED-IN GOAL + TASKS
    * --------------------------------------------------------- */
-  const { goal, tasks: tasksParam, sessionId } = useLocalSearchParams<{
+  const {
+    goal,
+    tasks: tasksParam,
+    sessionId,
+  } = useLocalSearchParams<{
     goal?: string;
     tasks?: string;
     sessionId?: string;
@@ -794,7 +798,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.lg,
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: colors.light.background,
+    backgroundColor: theme.colors.background,
   },
   menuAnchor: {
     position: "absolute",

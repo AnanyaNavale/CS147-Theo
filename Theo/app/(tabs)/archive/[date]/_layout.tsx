@@ -13,10 +13,16 @@ export default function DateStackLayout() {
     return (
       <Stack>
         <Stack.Screen
-          name="[date]/[session]" // single session page
+          name="index" // single session page
           options={{
             headerShown: false,
-            // header: () => null,
+            // tabBarStyle: { display: "none" },
+          }}
+        />
+        <Stack.Screen
+          name="[session]" // single session page
+          options={{
+            headerShown: false,
           }}
         />
       </Stack>

@@ -4,6 +4,172 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GE
 export type AiTask = { text: string; minutes: number };
 export type ReflectionTurn = { from: "user" | "assistant"; text: string };
 
+type GeminiTaskCallResult = {
+  text: string;
+  finishReason?: string;
+  blockReason?: string;
+};
+
+async function callGeminiForTasks(
+  apiKey: string,
+  body: Record<string, unknown>
+): Promise<GeminiTaskCallResult> {
+  const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const fallback = await response.text().catch(() => "");
+    let message = `AI request failed (${response.status}).`;
+    try {
+      const parsed = JSON.parse(fallback);
+      message = parsed?.error?.message ?? message;
+    } catch {
+      if (fallback) message = `${message} ${fallback}`;
+    }
+    throw new Error(message.trim());
+  }
+
+  const data = await response.json();
+  const candidates: any[] = Array.isArray(data?.candidates)
+    ? (data.candidates as any[])
+    : [];
+
+  if (!candidates.length) {
+    console.warn("[Gemini][tasks] no candidates returned", data);
+  }
+
+  let text = "";
+  for (const cand of candidates) {
+    const parts =
+      (cand?.content?.parts as Array<{ text?: string }> | undefined) ?? [];
+    const joined =
+      parts
+        .map((p) => (typeof p.text === "string" ? p.text : ""))
+        .join("")
+        .trim() || "";
+    if (joined) {
+      text = joined;
+      break;
+    }
+
+    // JSON mode can return a functionCall instead of text; salvage it.
+    const firstCall = parts.find((p: any) => p?.functionCall);
+    const callArgs =
+      (firstCall as any)?.functionCall?.args ??
+      (firstCall as any)?.functionCall?.arguments;
+    if (callArgs) {
+      text =
+        typeof callArgs === "string"
+          ? callArgs
+          : JSON.stringify(callArgs, null, 2);
+      if (text) break;
+    }
+  }
+
+  // Last-resort: stringify the content so salvage can try to parse objects.
+  if (!text && data?.candidates?.[0]?.content) {
+    try {
+      text = JSON.stringify(data.candidates[0].content);
+    } catch {
+      // ignore
+    }
+  }
+
+  if (!text) {
+    console.warn("[Gemini][tasks] empty text after processing", data);
+  }
+
+  const block = data?.promptFeedback?.blockReason;
+  const safety = data?.promptFeedback?.safetyRatings
+    ?.map((s: any) => s?.category)
+    .filter(Boolean)
+    .join(", ");
+
+  return {
+    text,
+    finishReason: data?.candidates?.[0]?.finishReason,
+    blockReason: block ? `${block}${safety ? ` (${safety})` : ""}` : undefined,
+  };
+}
+
+function repairJsonArray(raw: string): string | null {
+  // Attempt to close truncated JSON like missing } or ] from the model.
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("[")) return null;
+
+  let fixed = trimmed.replace(/,\s*$/, ""); // drop trailing comma if present
+  const openBraces = (fixed.match(/{/g) ?? []).length;
+  const closeBraces = (fixed.match(/}/g) ?? []).length;
+  if (openBraces > closeBraces) {
+    fixed += "}".repeat(openBraces - closeBraces);
+  }
+
+  const openBrackets = (fixed.match(/\[/g) ?? []).length;
+  const closeBrackets = (fixed.match(/]/g) ?? []).length;
+  if (openBrackets > closeBrackets) {
+    fixed += "]".repeat(openBrackets - closeBrackets);
+  }
+
+  return fixed;
+}
+
+function normalizeTasks(tasks: AiTask[]): AiTask[] {
+  return tasks
+    .map((t: any) => {
+      const rawText =
+        t?.text ?? t?.task ?? t?.title ?? t?.description ?? t?.name;
+      const text = typeof rawText === "string" ? rawText.trim() : "";
+      const rawMinutes =
+        typeof t?.minutes === "string"
+          ? parseInt(t.minutes, 10)
+          : Number(t?.minutes ?? t?.time ?? t?.duration);
+      const minutes =
+        Number.isFinite(rawMinutes) && rawMinutes > 0 ? rawMinutes : 30;
+      return { text, minutes };
+    })
+    .filter((t) => t.text.length > 0 && t.minutes > 0);
+}
+
+function fallbackTasks(goal: string): AiTask[] {
+  const goalSnippet = goal?.slice(0, 40) || "your goal";
+  return [
+    { text: `Outline steps for ${goalSnippet}`, minutes: 15 },
+    { text: `Work on the core task for ${goalSnippet}`, minutes: 30 },
+    { text: `Review and write notes`, minutes: 15 },
+  ];
+}
+
+function fromTaskTimeArrays(obj: any): AiTask[] | null {
+  const tasksArray =
+    obj?.tasks ?? obj?.task ?? obj?.items ?? obj?.list ?? obj?.data;
+  const minutesArray =
+    obj?.minutes ?? obj?.times ?? obj?.durations ?? obj?.estimates;
+
+  if (!Array.isArray(tasksArray) || !Array.isArray(minutesArray)) return null;
+
+  const len = Math.min(tasksArray.length, minutesArray.length);
+  if (len === 0) return null;
+
+  const mapped: AiTask[] = [];
+  for (let i = 0; i < len; i++) {
+    const text =
+      typeof tasksArray[i] === "string"
+        ? tasksArray[i].trim()
+        : String(tasksArray[i] ?? "");
+    const minsRaw =
+      typeof minutesArray[i] === "string"
+        ? parseInt(minutesArray[i] as string, 10)
+        : Number(minutesArray[i]);
+    const minutes = Number.isFinite(minsRaw) && minsRaw > 0 ? minsRaw : 0;
+    if (text && minutes) mapped.push({ text, minutes });
+  }
+
+  return mapped.length ? mapped : null;
+}
+
 function parseTasksFromText(text: string): AiTask[] {
   const cleaned = text.replace(/```(\w+)?/g, "").trim();
 
@@ -147,15 +313,15 @@ export async function generateTasksWithAI(goal: string): Promise<AiTask[]> {
   }
 
   const prompt = `
-Generate 3-6 focused tasks for a study/work session.
-Return strict JSON of the form:
-[
-  {"text": "Task name", "minutes": 25},
-  ...
-]
-
+Generate 3-8 atomic tasks for a study/work session that incrementally complete the user goal. Try to infer what the goal is if there are typos.
+Return a JSON object with two arrays of equal length:
+{
+  "tasks": ["Task name 1", "Task name 2"],
+  "minutes": [20, 25]
+}
 Goal/context: ${goal || "None provided"}
-Prefer short, actionable tasks. Keep minutes between 10 and 45.
+Tasks must be granular and actionable. Keep minutes between 10 and 30.
+Do NOT include markdown or code fences; only return the JSON object.
 `;
 
   const callGemini = async (body: Record<string, unknown>) => {
@@ -264,7 +430,8 @@ export async function generateReflectionReply(
     throw new Error("Missing EXPO_PUBLIC_GEMINI_API_KEY for reflections.");
   }
 
-  const safeFallback = "I'm here and listening - tell me more about how that felt.";
+  const safeFallback =
+    "I'm here and listening - tell me more about how that felt.";
   const recent = history.slice(-4);
   const lastUser =
     [...recent].reverse().find((t) => t.from === "user")?.text ?? "";
@@ -282,8 +449,7 @@ Goal: ${goal || "None provided"}
 Chat so far:
 ${recent
   .map(
-    (turn) =>
-      `${turn.from === "user" ? "User" : "Theo"}: ${turn.text.trim()}`
+    (turn) => `${turn.from === "user" ? "User" : "Theo"}: ${turn.text.trim()}`
   )
   .join("\n")}
 `;
@@ -312,16 +478,23 @@ ${recent
           if (fallback) message = `${message} ${fallback}`;
         }
         console.warn("Gemini reflection request failed", message);
-        return { text: "", finishReason: "HTTP_ERROR", promptFeedback: message };
+        return {
+          text: "",
+          finishReason: "HTTP_ERROR",
+          promptFeedback: message,
+        };
       }
 
       const data = await response.json();
       const parts =
-        (data?.candidates?.[0]?.content?.parts as Array<{ text?: string }> | undefined) ??
-        [];
+        (data?.candidates?.[0]?.content?.parts as
+          | Array<{ text?: string }>
+          | undefined) ?? [];
       const text =
-        parts.map((p) => (typeof p.text === "string" ? p.text : "")).join("").trim() ||
-        "";
+        parts
+          .map((p) => (typeof p.text === "string" ? p.text : ""))
+          .join("")
+          .trim() || "";
 
       return {
         text,
@@ -345,8 +518,14 @@ ${recent
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_NONE",
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_NONE",
+        },
       ],
     });
 
@@ -373,7 +552,9 @@ ${recent
     }
 
     // Fallback: minimal prompt, very small token budget to dodge MAX_TOKENS
-    const minimalPrompt = `Respond supportively in one short sentence to: "${lastUser || "I'm thinking about my session."}"`;
+    const minimalPrompt = `Respond supportively in one short sentence to: "${
+      lastUser || "I'm thinking about my session."
+    }"`;
     const fallback = await callGemini({
       contents: [{ role: "user", parts: [{ text: minimalPrompt }] }],
       generationConfig: {
@@ -383,8 +564,14 @@ ${recent
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_NONE",
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_NONE",
+        },
       ],
     });
 
