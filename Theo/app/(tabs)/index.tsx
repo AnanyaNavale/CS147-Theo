@@ -78,7 +78,7 @@ export default function HomeScreen() {
               containerStyle={styles.dateText}
               textAnchor="start"
             />
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               {hasIncomplete ? (
                 <MaterialCommunityIcons
                   name="bell-badge"
@@ -92,7 +92,7 @@ export default function HomeScreen() {
                   color={colors.light.notificationInactive}
                 />
               )}
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           <SvgStrokeText
             text={`Hi, ${userName}`}
