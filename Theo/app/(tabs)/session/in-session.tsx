@@ -137,6 +137,8 @@ export default function SessionScreen() {
   const [editedTaskName, setEditedTaskName] = useState("");
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [showStartBreakConfirm, setShowStartBreakConfirm] = useState(false);
+  const [showEndBreakConfirm, setShowEndBreakConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const sessionEndLoggedRef = useRef(false);
 
@@ -610,20 +612,22 @@ export default function SessionScreen() {
             taskDuration={currentTask?.time ?? 0}
           />
         ) : (
-          <View style={styles.breakBox}>
-            <Text variant="h2" weight="bold" color="white">
-              Break time
+          <>
+            <View style={styles.breakBox}>
+              <Text variant="h2" weight="bold" color="accentDark">
+                Break time!
+              </Text>
+            </View>
+            <Spacer size="md" />
+            <Text
+              variant="body"
+              color="accentDark"
+              style={{ textDecorationLine: "underline" }}
+              onPress={() => setShowEndBreakConfirm(true)}
+            >
+              End break
             </Text>
-
-            <Spacer size="sm" />
-
-            <Button
-              size="sm"
-              label="End break"
-              variant="gold"
-              onPress={handleEndBreak}
-            />
-          </View>
+          </>
         )}
       </Animated.View>
 
@@ -657,7 +661,7 @@ export default function SessionScreen() {
         </Pressable>
 
         {!isBreak && currentTask && (
-          <Pressable onPress={handleStartBreak}>
+          <Pressable onPress={() => setShowStartBreakConfirm(true)}>
             <Icon name="break" size={48} />
           </Pressable>
         )}
@@ -673,6 +677,35 @@ export default function SessionScreen() {
         cancelLabel="Cancel"
         confirmLabel="End"
         onConfirm={confirmStop}
+      />
+
+      <AppModal
+        visible={showStartBreakConfirm}
+        onClose={() => setShowStartBreakConfirm(false)}
+        variant="alert"
+        title="Start a break?"
+        message="Pause the current task and take a break."
+        cancelLabel="Cancel"
+        confirmLabel="Start"
+        onConfirm={() => {
+          setShowStartBreakConfirm(false);
+          handleStartBreak();
+        }}
+        confirmVariant="gold"
+      />
+
+      <AppModal
+        visible={showEndBreakConfirm}
+        onClose={() => setShowEndBreakConfirm(false)}
+        variant="alert"
+        title="End break?"
+        message="Resume your task and end the break."
+        cancelLabel="Cancel"
+        confirmLabel="End"
+        onConfirm={() => {
+          setShowEndBreakConfirm(false);
+          handleEndBreak();
+        }}
       />
 
       <AppModal
@@ -891,11 +924,14 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   breakBox: {
-    backgroundColor: theme.colors.accentDark,
-    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.solidColors.white,
+    paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.md,
     borderRadius: theme.radii.md,
     alignItems: "center",
     minWidth: 250,
+    borderWidth: 2,
+    borderColor: theme.colors.accentDark,
+    ...theme.shadow.soft,
   },
 });
