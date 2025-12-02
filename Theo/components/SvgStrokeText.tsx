@@ -44,7 +44,7 @@ export default function SvgStrokeText({
     {/* <View style={[containerStyle, { alignSelf: 'center' }]}> */}
       <Svg width={width} height={height}>
         <SvgText
-          x="50%"
+          x={textAnchor === "start" ? 0 : textAnchor === "end" ? width : "50%"}
           y={fontSize}
           textAnchor={textAnchor}
           fontSize={fontSize}
@@ -54,7 +54,11 @@ export default function SvgStrokeText({
           strokeWidth={strokeWidth}
         >
           {lines.map((line, index) => (
-            <TSpan key={index} x="50%" dy={index === 0 ? 0 : lineHeight}>
+            <TSpan
+              key={index}
+              x={textAnchor === "start" ? 0 : textAnchor === "end" ? width : "50%"}
+              dy={index === 0 ? 0 : lineHeight}
+            >
               {line}
             </TSpan>
           ))}

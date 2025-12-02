@@ -3,11 +3,11 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
+import { colors } from "@/assets/themes/colors";
 import { AppModal } from "@/components/ui/AppModal";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { colors } from "@/assets/themes/colors";
 
 type StepProgressIndicatorProps = {
   steps: string[];
@@ -89,11 +89,7 @@ export function StepProgressIndicator({
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Icon
-              name="x"
-              size={36}
-              tint={colors.light.iconsStandalone}
-            />
+            <Icon name="x" size={36} tint={colors.light.iconsStandalone} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -182,7 +178,7 @@ export function StepProgressIndicator({
           />
           <View style={styles.menuDivider} />
           <MenuItem
-            label="Report a problem"
+            label="Report a problem   "
             icon="report"
             onPress={handleMenuAction(() => setShowReportModal(true))}
           />

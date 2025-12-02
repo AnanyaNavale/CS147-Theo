@@ -1,18 +1,18 @@
+import { Audio } from "expo-av";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Modal,
   View,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Audio } from "expo-av";
 
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
@@ -34,14 +34,22 @@ export default function GoalScreen() {
 
   const [goal, setGoal] = useState("");
   const [showTaskPrompt, setShowTaskPrompt] = useState(false);
-  const { width } = useWindowDimensions();
-  const isCompact = width < 360;
+  const { width, height } = useWindowDimensions();
+  const isCompact = width < 360 || height < 720;
 
   const hasGoal = goal.trim().length > 0;
   const primaryLabel = hasGoal ? "Next" : "Skip";
 
-  const teddySize = isCompact ? 180 : 220;
-  const micSize = isCompact ? 30 : 36;
+  const baseTeddySize = isCompact ? 170 : 220;
+  const arrowFootprint = 160; // approx width of ArrowAction (text + icon)
+  const horizontalMargin = theme.spacing.md * 2;
+  const maxTeddyWidth = Math.max(
+    140,
+    width - arrowFootprint - horizontalMargin
+  );
+  const maxTeddyHeight = Math.max(140, height * 0.35);
+  const teddySize = Math.min(baseTeddySize, maxTeddyWidth, maxTeddyHeight);
+  const micSize = isCompact ? 20 : 26;
   const [showRecorder, setShowRecorder] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [recordError, setRecordError] = useState<string | null>(null);
@@ -77,70 +85,74 @@ export default function GoalScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-        <View style={styles.headerRow}>
-          <StepProgressIndicator
-            steps={["Setup", "Customize", "Finalize"]}
-            activeCount={2}
-            onPressMenu={() => {}}
-          />
-        </View>
-
-        <Spacer size="xxl" />
-
-        <View>
-          <SvgStrokeText
-            text={"Would you like to set\na goal for your work?"}
-            containerStyle={{ alignSelf: "center" }}
-          />
-
-          <Spacer size="lg" />
-
-          <SvgStrokeText
-            text={"GOAL: "}
-            stroke={colors.light.header2}
-            textStyle={{
-              color: colors.light.header2,
-              fontSize: fonts.sizes.header2,
-            }}
-            containerStyle={{ alignSelf: "center" }}
-          />
-
-          <Spacer size="md" />
-
-          <View style={styles.inputContainer}>
-            <InputField
-              value={goal}
-              onChangeText={setGoal}
-              placeholder="Tap to input your goal"
-              textAlignVertical="center"
-              width="100%"
-              style={[styles.goalInput]}
-              inputStyle={{ paddingRight: theme.spacing.xl * 2 }}
-              rightAccessory={
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowRecorder(true);
-                    setRecordError(null);
-                    setAudioUri(null);
-                    setRecordingStatus("idle");
-                  }}
-                  activeOpacity={0.9}
-                  style={[
-                    styles.micWrapper,
-                    {
-                      width: micSize,
-                      height: micSize,
-                    },
-                  ]}
-                >
-                  <Icon name="mic" size={micSize} tint={theme.colors.accentDark} />
-                </TouchableOpacity>
-              }
+          <View style={styles.headerRow}>
+            <StepProgressIndicator
+              steps={["Setup", "Customize", "Finalize"]}
+              activeCount={2}
+              onPressMenu={() => {}}
             />
           </View>
+
           <Spacer size="xxl" />
-          <Spacer size="xxl" />
-        </View>
+
+          <View>
+            <SvgStrokeText
+              text={"Would you like to set\na goal for your work?"}
+              containerStyle={{ alignSelf: "center" }}
+            />
+
+            <Spacer size="lg" />
+
+            <SvgStrokeText
+              text={"GOAL: "}
+              stroke={colors.light.header2}
+              textStyle={{
+                color: colors.light.header2,
+                fontSize: fonts.sizes.header2,
+              }}
+              containerStyle={{ alignSelf: "center" }}
+            />
+
+            <Spacer size="md" />
+
+            <View style={styles.inputContainer}>
+              <InputField
+                value={goal}
+                onChangeText={setGoal}
+                placeholder="Tap to input your goal"
+                textAlignVertical="center"
+                width="100%"
+                style={[styles.goalInput]}
+                inputStyle={{ paddingRight: theme.spacing.xl * 2 }}
+                rightAccessory={
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowRecorder(true);
+                      setRecordError(null);
+                      setAudioUri(null);
+                      setRecordingStatus("idle");
+                    }}
+                    activeOpacity={0.9}
+                    style={[
+                      styles.micWrapper,
+                      {
+                        width: micSize,
+                        height: micSize,
+                      },
+                    ]}
+                  >
+                    <Icon
+                      name="mic"
+                      size={micSize}
+                      tint={theme.colors.accentDark}
+                    />
+                  </TouchableOpacity>
+                }
+              />
+            </View>
+            <Spacer size="xxl" />
+            <Spacer size="xxl" />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -313,41 +325,41 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
   },
 });
-  const startRecording = async () => {
-    setRecordError(null);
-    setAudioUri(null);
-    setRequestingPerms(true);
-    try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (!perm.granted) {
-        setRecordError("Microphone permission is required.");
-        return;
-      }
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-      const rec = new Audio.Recording();
-      await rec.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      await rec.startAsync();
-      setRecording(rec);
-      setRecordingStatus("recording");
-    } catch (err) {
-      setRecordError("Could not start recording.");
-    } finally {
-      setRequestingPerms(false);
+const startRecording = async () => {
+  setRecordError(null);
+  setAudioUri(null);
+  setRequestingPerms(true);
+  try {
+    const perm = await Audio.requestPermissionsAsync();
+    if (!perm.granted) {
+      setRecordError("Microphone permission is required.");
+      return;
     }
-  };
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+      playsInSilentModeIOS: true,
+    });
+    const rec = new Audio.Recording();
+    await rec.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+    await rec.startAsync();
+    setRecording(rec);
+    setRecordingStatus("recording");
+  } catch (err) {
+    setRecordError("Could not start recording.");
+  } finally {
+    setRequestingPerms(false);
+  }
+};
 
-  const stopRecording = async () => {
-    try {
-      await recording?.stopAndUnloadAsync();
-      const uri = recording?.getURI() || null;
-      setAudioUri(uri);
-    } catch (err) {
-      setRecordError("Could not stop recording.");
-    } finally {
-      setRecording(null);
-      setRecordingStatus("stopped");
-    }
-  };
+const stopRecording = async () => {
+  try {
+    await recording?.stopAndUnloadAsync();
+    const uri = recording?.getURI() || null;
+    setAudioUri(uri);
+  } catch (err) {
+    setRecordError("Could not stop recording.");
+  } finally {
+    setRecording(null);
+    setRecordingStatus("stopped");
+  }
+};

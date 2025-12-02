@@ -1,15 +1,16 @@
 import { theme } from "@/design/theme";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
 
 export type BreakdownItemProps = {
   minutes: number;
   text: string;
+  onDelete?: () => void;
 };
 
-export function BreakdownItem({ minutes, text }: BreakdownItemProps) {
+export function BreakdownItem({ minutes, text, onDelete }: BreakdownItemProps) {
   return (
     <View style={styles.row}>
       <View style={styles.timeBox}>
@@ -18,9 +19,9 @@ export function BreakdownItem({ minutes, text }: BreakdownItemProps) {
 
       <View style={styles.taskBox}>
         <Text style={styles.taskText}>{text}</Text>
-        <View style={styles.grip}>
-          <Icon name="drag" size={30} tint={theme.colors.border} />
-        </View>
+        <TouchableOpacity onPress={onDelete} style={styles.grip}>
+          <Icon name="trash" size={24} tint={theme.colors.border} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -32,18 +33,17 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 100,
     borderRadius: theme.radii.lg,
-    marginBottom: theme.spacing.sm,
+    //marginBottom: theme.spacing.sm,
     ...theme.shadow.soft,
   },
 
   timeBox: {
     width: 100,
     backgroundColor: theme.colors.accentDark,
-    borderTopLeftRadius: theme.radii.lg,
-    borderBottomLeftRadius: theme.radii.lg,
-    // justifyContent: "center",
+    borderRadius: theme.radii.md,
     alignItems: "center",
     paddingVertical: theme.spacing.md,
+    zIndex: 2,
   },
 
   timeText: {
@@ -56,12 +56,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.solidColors.white,
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
-    borderTopRightRadius: theme.radii.lg,
-    borderBottomRightRadius: theme.radii.lg,
+    borderTopRightRadius: theme.radii.md,
+    borderBottomRightRadius: theme.radii.md,
+    marginLeft: -theme.spacing.lg, // overlap the time box to cover its rounded edge
     paddingVertical: theme.spacing.md - 5,
-    paddingHorizontal: theme.spacing.md,
-    paddingRight: theme.spacing.xl,
-    //justifyContent: "center",
+    paddingHorizontal: theme.spacing.xl,
   },
 
   taskText: {
@@ -72,7 +71,7 @@ const styles = StyleSheet.create({
 
   grip: {
     position: "absolute",
-    right: theme.spacing.xs,
+    right: theme.spacing.sm,
     top: 0,
     bottom: 0,
     justifyContent: "center",

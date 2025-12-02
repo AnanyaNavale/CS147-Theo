@@ -1,12 +1,19 @@
-import React, { useState } from "react";
 import { Feather } from "@expo/vector-icons";
-import { Image, LayoutChangeEvent, Pressable, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import React, { useState } from "react";
+import {
+  Image,
+  LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import { colors } from "@/assets/themes/colors";
-import { Spacer } from "@/components/ui/Spacer";
 import { theme } from "@/design/theme";
-import { useRouter } from "expo-router";
 import { signOut } from "@/lib/supabase";
+import { useRouter } from "expo-router";
 
 const logo = require("@/assets/images/logo.png");
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -119,7 +126,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    paddingHorizontal: 30,
+    paddingHorizontal: theme.spacing.lg,
     paddingVertical: 15,
   },
   userIcon: {

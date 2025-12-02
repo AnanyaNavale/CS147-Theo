@@ -15,6 +15,7 @@ export function PawLoader({
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
+    useRef(new Animated.Value(0)).current,
   ];
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export function PawLoader({
         <Animated.View style={[styles.toe, styles.toe2, scale(anims[1])]} />
         <Animated.View style={[styles.toe, styles.toe3, scale(anims[2])]} />
         <Animated.View style={[styles.toe, styles.toe4, scale(anims[3])]} />
+        <Animated.View style={[styles.toe, styles.toe5, scale(anims[4])]} />
 
         {/* Main pad */}
         <View style={styles.mainPad} />
@@ -95,17 +97,18 @@ const styles = StyleSheet.create({
 
   toe: {
     position: "absolute",
-    width: "15%",
-    height: "15%",
+    width: "14%",
+    height: "14%",
     borderRadius: 999,
     backgroundColor: brown,
   },
 
   // Relative to pawContainer, not screen
-  toe1: { top: "10%", left: "20%" },
+  toe1: { top: "12%", left: "15%" },
   toe2: { top: "3%", left: "40%" },
   toe3: { top: "10%", right: "20%" },
   toe4: { top: "22%", right: "6%" },
+  toe5: { top: "40%", right: "0%" },
 
   message: {
     marginTop: theme.spacing.md,

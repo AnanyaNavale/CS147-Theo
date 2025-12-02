@@ -1,7 +1,7 @@
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import quotes from "success-motivational-quotes";
 
 // Simple hash function to turn date string into a number
@@ -27,9 +27,9 @@ const QuoteOfTheDay: React.FC = () => {
   if (workQuotes.length === 0) {
     workQuotes = quotes.getAllQuotes();
   }
-//   const categories = Array.from(new Set(allQuotes.map((q) => q.category)));
+  //   const categories = Array.from(new Set(allQuotes.map((q) => q.category)));
 
-//   console.log(categories);
+  //   console.log(categories);
   const index = getDayIndex(new Date(), workQuotes.length);
   const todayQuote = workQuotes[index];
 
@@ -49,10 +49,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   quoteText: {
-    width: "75%",
+    //width: "75%",
     fontSize: 18,
     fontFamily: fonts.typeface.bodyItalic,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     textAlign: "center",
     marginBottom: 10,
     color: colors.light.quote,

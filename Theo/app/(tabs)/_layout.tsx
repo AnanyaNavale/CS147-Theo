@@ -1,16 +1,18 @@
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs, usePathname, useRouter } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import { useColorScheme } from "@/components/useColorScheme";
-import { fonts } from "@/assets/themes/typography";
 import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
+import { useColorScheme } from "@/components/useColorScheme";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
-type MaterialCommunityIconsName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+type MaterialCommunityIconsName = React.ComponentProps<
+  typeof MaterialCommunityIcons
+>["name"];
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 type FontAwesomeName = React.ComponentProps<typeof FontAwesome>["name"];
@@ -24,13 +26,7 @@ function TabBarIcon({
   color: string;
   size?: number;
 }) {
-  return (
-    <MaterialCommunityIcons
-      name={name}
-      color={color}
-      size={size}
-    />
-  );
+  return <MaterialCommunityIcons name={name} color={color} size={size} />;
 }
 
 export default function TabLayout() {
@@ -175,8 +171,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.navBar,
     width: 70,
     aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 45,
   },
   tabBarLabel: {
