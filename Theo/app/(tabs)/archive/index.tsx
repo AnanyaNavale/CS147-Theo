@@ -76,26 +76,24 @@ export default function ArchiveScreen() {
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
   useEffect(() => {
-    // console.log("authSession inside useEffect:", authSession);
-    // if (!authSession) return;
     const fetchMonthSessionsData = async () => {
       setLoading(true);
       try {
-
-        const data = await fetchSessionDatesForMonth(currentMonth, currentYear);
+        const sessionDates = await fetchSessionDatesForMonth(
+          currentMonth,
+          currentYear
+        );
 
         const marked: { [date: string]: any } = {};
 
-        // Mark month session dates
-        data.forEach((dateString) => {
-          const day = dateString.split("T")[0]; // strip time
-          marked[day] = {
+        sessionDates.forEach((dateString) => {
+          // dateString is already YYYY-MM-DD in UTC, no local conversion
+          marked[dateString] = {
             customStyles: {
               container: {
                 borderColor: colors.light.markedDates,
                 borderWidth: 2,
                 borderRadius: 50,
-                // paddingBottom: 5,
                 justifyContent: "center",
                 alignItems: "center",
               },
@@ -108,17 +106,14 @@ export default function ArchiveScreen() {
         });
 
         setMonthSessions(marked);
-
       } catch (error) {
         console.error("Error fetching month sessions:", error);
       } finally {
         setLoading(false);
       }
-
     };
 
     fetchMonthSessionsData();
-
   }, [authSession, currentMonth, currentYear]);
 
   const today = new Date().toLocaleDateString("en-CA"); // outputs YYYY-MM-DD

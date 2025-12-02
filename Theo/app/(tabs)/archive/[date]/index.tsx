@@ -105,17 +105,15 @@ export default function SingleDayScreen() {
           />
         </TouchableOpacity>
         <View style={styles.dateContainer}>
-          <SvgStrokeText text={displayDate} />
+          <SvgStrokeText text={displayDate} textStyle={{ fontSize: fonts.sizes.header2 }} textStyle={{ fontSize: fonts.sizes.header2 }} />
         </View>
       </View>
 
       <View style={styles.shadowBottom} />
 
       <View
-        style={{
-          height: "73%",
-          marginBottom: "2%",
-        }}
+        style={styles.topContentWrapper}
+        style={styles.topContentWrapper}
       >
         <SectionList
           sections={sections}
@@ -219,20 +217,33 @@ export default function SingleDayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: colors.light.background,
+    justifyContent: "space-between",
+  },
+  topContentWrapper: {
+    flex: 1, // fills all space above bottom navigator
+    marginBottom: 90,
+    backgroundColor: colors.light.background,
+    justifyContent: "space-between",
+  },
+  topContentWrapper: {
+    flex: 1, // fills all space above bottom navigator
+    marginBottom: 90,
   },
   header: {
     height: 130,
     flexDirection: "row",
-    alignItems: "center",
     position: "relative",
-    justifyContent: "flex-end",
     backgroundColor: colors.light.background,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 }, // subtle bottom shadow
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderColor: 'red',
+    borderWidth: 1,
+    borderColor: 'red',
+    borderWidth: 1,
   },
   backButton: {
     position: "absolute",
@@ -267,7 +278,16 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   bottomNavigator: {
-    height: "11%",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
     width: "100%",
     backgroundColor: colors.light.background,
     shadowColor: "#000",

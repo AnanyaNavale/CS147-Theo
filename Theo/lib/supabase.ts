@@ -357,24 +357,19 @@ export async function fetchSessions(userId: string): Promise<WorkSession[]> {
  * Used for ARCHIVE.
  */
 export async function fetchSessionDatesForMonth(
-  month: number, // 1-12
+  month: number,
   year: number,
   userId?: string
 ): Promise<string[]> {
-  // Construct the start and end ISO dates for the month
-  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
-  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(
-    new Date(year, month, 0).getDate()
-  ).padStart(2, "0")}`;
-
-  // console.log("DEBUG: startDate =", startDate, "endDate =", endDate);
+  const firstDayUTC = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
+  const lastDayUTC = new Date(Date.UTC(year, month, 0, 23, 59, 59));
 
   const { data, error } = await supabase
     .from("sessions")
-    .select("created_at", { count: "exact" })
+    .select("created_at")
     // .eq("user_id", userId)
-    .gte("created_at", startDate)
-    .lte("created_at", endDate)
+    .gte("created_at", firstDayUTC.toISOString())
+    .lte("created_at", lastDayUTC.toISOString())
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -383,9 +378,16 @@ export async function fetchSessionDatesForMonth(
 
   if (!data) return [];
 
-  // Use a Set to ensure unique dates (YYYY-MM-DD)
   const uniqueDates = Array.from(
-    new Set(data.map((row) => row.created_at.slice(0, 10)))
+    new Set(
+      data.map((row) => {
+        const d = new Date(row.created_at);
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(d.getUTCDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      })
+    )
   );
 
   return uniqueDates;
