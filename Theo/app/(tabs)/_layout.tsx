@@ -38,7 +38,6 @@ export default function TabLayout() {
   const router = useRouter();
   const image = require("@/assets/images/logo.png");
   const pathname = usePathname();
-  console.log(pathname);
 
   // Hide on entire session stack
   const inSessionStack = pathname.startsWith("/session");
