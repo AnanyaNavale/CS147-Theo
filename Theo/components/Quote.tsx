@@ -16,16 +16,43 @@ function getDayIndex(date: Date, total: number) {
 }
 
 const FIXED_CATEGORY = "Work";
+const LOCAL_QUOTES = [
+  {
+    body: "Success is the sum of small efforts repeated day in and day out.",
+    by: "Robert Collier",
+    category: "Work",
+  },
+  {
+    body: "The future depends on what you do today.",
+    by: "Mahatma Gandhi",
+    category: "Work",
+  },
+  {
+    body: "It always seems impossible until it is done.",
+    by: "Nelson Mandela",
+    category: "Work",
+  },
+  {
+    body: "Quality means doing it right when no one is looking.",
+    by: "Henry Ford",
+    category: "Work",
+  },
+  {
+    body: "Discipline is the bridge between goals and accomplishment.",
+    by: "Jim Rohn",
+    category: "Work",
+  },
+];
 
 const QuoteOfTheDay: React.FC = () => {
+  const quotePool = LOCAL_QUOTES;
+
   // Filter quotes by "Work" category
-  let workQuotes = quotes
-    .getAllQuotes()
-    .filter((q) => q.category === FIXED_CATEGORY);
+  let workQuotes = quotePool.filter((q) => q.category === FIXED_CATEGORY);
 
   // Fallback if no quotes in this category
   if (workQuotes.length === 0) {
-    workQuotes = quotes.getAllQuotes();
+    workQuotes = quotePool;
   }
   //   const categories = Array.from(new Set(allQuotes.map((q) => q.category)));
 

@@ -1,6 +1,5 @@
-import { Audio } from "expo-av";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -19,23 +18,19 @@ import { fonts } from "@/assets/themes/typography";
 import { InputField } from "@/components";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { ArrowAction } from "@/components/ui/ArrowAction";
-import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
+import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
 import { theme } from "@/design/theme";
 
 const teddy = require("../../../assets/theo/waving.png");
 
 export default function GoalScreen() {
-  const { breakdown } = useLocalSearchParams<{ breakdown?: string }>();
-
-  const wantsBreakdown = breakdown === "1";
-
   const [goal, setGoal] = useState("");
-  const [showTaskPrompt, setShowTaskPrompt] = useState(false);
-  const { width, height } = useWindowDimensions();
-  const isCompact = width < 360 || height < 720;
+  const showTaskPrompt = false;
+  const { width } = useWindowDimensions();
+  const isCompact = width < 360;
 
   const hasGoal = goal.trim().length > 0;
   const primaryLabel = hasGoal ? "Next" : "Skip";
@@ -51,21 +46,6 @@ export default function GoalScreen() {
   const teddySize = Math.min(baseTeddySize, maxTeddyWidth, maxTeddyHeight);
   const micSize = isCompact ? 20 : 26;
   const [showRecorder, setShowRecorder] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [recordError, setRecordError] = useState<string | null>(null);
-  const [audioUri, setAudioUri] = useState<string | null>(null);
-  const [recordingStatus, setRecordingStatus] = useState<
-    "idle" | "recording" | "stopped"
-  >("idle");
-  const [requestingPerms, setRequestingPerms] = useState(false);
-
-  const goalInputPadding = useMemo(
-    () => ({
-      paddingHorizontal: theme.spacing.lg,
-      paddingVertical: theme.spacing.md,
-    }),
-    []
-  );
 
   const handleContinue = () => {
     router.push({
@@ -73,6 +53,11 @@ export default function GoalScreen() {
       params: { goal: goal.trim() },
     });
     return;
+  };
+
+  const handleTranscriptReady = (text: string) => {
+    setGoal(text);
+    setShowRecorder(false);
   };
 
   return (
@@ -115,43 +100,33 @@ export default function GoalScreen() {
 
             <Spacer size="md" />
 
-            <View style={styles.inputContainer}>
-              <InputField
-                value={goal}
-                onChangeText={setGoal}
-                placeholder="Tap to input your goal"
-                textAlignVertical="center"
-                width="100%"
-                style={[styles.goalInput]}
-                inputStyle={{ paddingRight: theme.spacing.xl * 2 }}
-                rightAccessory={
-                  <TouchableOpacity
-                    onPress={() => {
-                      setShowRecorder(true);
-                      setRecordError(null);
-                      setAudioUri(null);
-                      setRecordingStatus("idle");
-                    }}
-                    activeOpacity={0.9}
-                    style={[
-                      styles.micWrapper,
-                      {
-                        width: micSize,
-                        height: micSize,
-                      },
-                    ]}
-                  >
-                    <Icon
-                      name="mic"
-                      size={micSize}
-                      tint={theme.colors.accentDark}
-                    />
-                  </TouchableOpacity>
-                }
-              />
-            </View>
-            <Spacer size="xxl" />
-            <Spacer size="xxl" />
+          <View style={styles.inputContainer}>
+            <InputField
+              value={goal}
+              onChangeText={setGoal}
+              placeholder="Tap to input your goal"
+              textAlignVertical="center"
+              width="100%"
+              style={[styles.goalInput]}
+              inputStyle={{ paddingRight: theme.spacing.xl * 2 }}
+              rightAccessory={
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowRecorder(true);
+                  }}
+                  activeOpacity={0.9}
+                  style={[
+                    styles.micWrapper,
+                    {
+                      width: micSize,
+                      height: micSize,
+                    },
+                  ]}
+                >
+                  <Icon name="mic" size={micSize} tint={theme.colors.accentDark} />
+                </TouchableOpacity>
+              }
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -165,64 +140,13 @@ export default function GoalScreen() {
         <ArrowAction label={primaryLabel} onPress={handleContinue} />
       )}
 
-      <Modal
+      <VoiceRecorderModal
         visible={showRecorder}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowRecorder(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.recorderCard}>
-            <Text variant="h2" style={styles.modalTitle}>
-              Voice note
-            </Text>
-            {recordError && (
-              <Text color="danger" style={styles.modalMessage}>
-                {recordError}
-              </Text>
-            )}
-            {audioUri && (
-              <Text color="accentDark" style={styles.modalMessage}>
-                Recorded clip ready.
-              </Text>
-            )}
-
-            <View style={styles.recorderRow}>
-              <Button
-                label={
-                  recordingStatus === "recording"
-                    ? "Stop recording"
-                    : "Start recording"
-                }
-                variant="brown"
-                size="md"
-                onPress={async () => {
-                  if (recordingStatus === "recording") {
-                    await stopRecording();
-                  } else {
-                    await startRecording();
-                  }
-                }}
-                disabled={requestingPerms}
-              />
-            </View>
-
-            <Spacer />
-
-            <Button
-              label="Close"
-              variant="outlineBrown"
-              onPress={() => {
-                if (recordingStatus === "recording") {
-                  recording?.stopAndUnloadAsync().catch(() => {});
-                }
-                setRecording(null);
-                setShowRecorder(false);
-              }}
-            />
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowRecorder(false)}
+        onTranscriptReady={handleTranscriptReady}
+        confirmLabel="Use this goal"
+        title={undefined}
+      />
     </SafeAreaView>
   );
 }
@@ -298,68 +222,4 @@ const styles = StyleSheet.create({
     position: "relative",
     paddingHorizontal: theme.spacing.lg,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  recorderCard: {
-    width: "80%",
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.radii.lg,
-    padding: theme.spacing.lg,
-    ...theme.shadow.medium,
-  },
-  modalTitle: {
-    textAlign: "center",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-  },
-  modalMessage: {
-    textAlign: "center",
-    marginTop: theme.spacing.xs,
-  },
-  recorderRow: {
-    alignItems: "center",
-    marginTop: theme.spacing.md,
-  },
 });
-const startRecording = async () => {
-  setRecordError(null);
-  setAudioUri(null);
-  setRequestingPerms(true);
-  try {
-    const perm = await Audio.requestPermissionsAsync();
-    if (!perm.granted) {
-      setRecordError("Microphone permission is required.");
-      return;
-    }
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-    });
-    const rec = new Audio.Recording();
-    await rec.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-    await rec.startAsync();
-    setRecording(rec);
-    setRecordingStatus("recording");
-  } catch (err) {
-    setRecordError("Could not start recording.");
-  } finally {
-    setRequestingPerms(false);
-  }
-};
-
-const stopRecording = async () => {
-  try {
-    await recording?.stopAndUnloadAsync();
-    const uri = recording?.getURI() || null;
-    setAudioUri(uri);
-  } catch (err) {
-    setRecordError("Could not stop recording.");
-  } finally {
-    setRecording(null);
-    setRecordingStatus("stopped");
-  }
-};

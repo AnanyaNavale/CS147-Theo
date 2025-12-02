@@ -22,7 +22,7 @@ import { Timer } from "@/components/ui/Timer";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
-import { saveReflectionChat } from "@/lib/supabase";
+import { updateSession } from "@/lib/supabase";
 
 type Task = {
   id: string;
@@ -138,6 +138,7 @@ export default function SessionScreen() {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const sessionEndLoggedRef = useRef(false);
 
   /* ANIMATION VALUES */
   const contentOpacity = useRef(new Animated.Value(1)).current;
@@ -150,28 +151,28 @@ export default function SessionScreen() {
     );
   };
 
-  const goToEndSession = () => {
-    const clearChatHistory = async () => {
-      try {
-        const key = `reflection-chat-${sessionId || "local"}`;
-        await AsyncStorage.removeItem(key);
-        if (sessionId) {
-          await saveReflectionChat(sessionId, []);
-        }
-      } catch (err) {
-        console.error("Failed to clear reflection chat", err);
-      }
-    };
-
-    clearChatHistory().finally(() => {
-      router.push({
-        pathname: "./end-session",
-        params: {
-          goal: sessionGoal,
-          tasks: JSON.stringify(sessionTasks),
-          sessionId: sessionId ?? null,
-        },
+  const markSessionCompleted = async () => {
+    if (!sessionId || sessionEndLoggedRef.current) return;
+    sessionEndLoggedRef.current = true;
+    try {
+      await updateSession(sessionId, {
+        completed_at: new Date().toISOString(),
+        status: "complete",
       });
+    } catch (err) {
+      console.error("Failed to mark session complete", err);
+    }
+  };
+
+  const goToEndSession = () => {
+    markSessionCompleted();
+    router.push({
+      pathname: "./end-session",
+      params: {
+        goal: sessionGoal,
+        tasks: JSON.stringify(sessionTasks),
+        sessionId: sessionId ?? null,
+      },
     });
   };
 

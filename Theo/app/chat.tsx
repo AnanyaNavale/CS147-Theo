@@ -1,7 +1,9 @@
 import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Animated,
+  Alert,
+  View,
+  StyleSheet,
   FlatList,
   Image,
   Keyboard,
@@ -17,7 +19,7 @@ import { InputField } from "@/components";
 import { ChatBubble } from "@/components/ui/ChatBubble";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
 import { generateReflectionReply } from "@/lib/ai";
 import {
   ReflectionChatMessage,
@@ -37,6 +39,8 @@ export type Message = {
   text: string;
   from: "user" | "assistant";
   createdAt?: string;
+  isVoice?: boolean;
+  displayText?: string;
 };
 
 /* ------------------------------------------------------
@@ -83,7 +87,13 @@ function TypingBubble() {
 /* ------------------------------------------------------
    SINGLE MESSAGE ANIMATION
 ------------------------------------------------------- */
-function AnimatedMessage({ message }: { message: Message }) {
+function AnimatedMessage({
+  message,
+  content,
+}: {
+  message: Message;
+  content?: React.ReactNode;
+}) {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(12)).current;
 
@@ -104,7 +114,11 @@ function AnimatedMessage({ message }: { message: Message }) {
 
   return (
     <Animated.View style={{ opacity, transform: [{ translateY }] }}>
-      <ChatBubble text={message.text} from={message.from} />
+      <ChatBubble
+        text={message.displayText ?? message.text}
+        from={message.from}
+        content={content}
+      />
     </Animated.View>
   );
 }
@@ -129,12 +143,15 @@ export default function ChatScreen() {
   const [persisting, setPersisting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
   const hasHydratedRef = useRef(false);
   const latestMessagesRef = useRef<Message[]>([]);
   const storageKey = `reflection-chat-${sessionId || "local"}`;
 
   const listRef = useRef<FlatList>(null);
   const sendingRef = useRef(false);
+  const pendingSaveRef = useRef<ReflectionChatMessage[] | null>(null);
+  const savingRef = useRef(false);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -162,8 +179,13 @@ export default function ChatScreen() {
         const raw = await AsyncStorage.getItem(storageKey);
         if (raw && isActive) {
           const localMessages: Message[] = JSON.parse(raw);
-          setMessages(localMessages);
-          foundLocalMessages = localMessages.length > 0;
+          setMessages(
+            localMessages.map((m) => ({
+              ...m,
+              displayText:
+                m.displayText ?? (m.isVoice ? "Voice message" : m.text),
+            }))
+          );
         }
       } catch {
         // ignore local errors
@@ -194,25 +216,28 @@ export default function ChatScreen() {
           (sessionRow?.reflection_chat as ReflectionChatMessage[]) ?? [];
 
         if (isActive && history.length > 0) {
-          nextMessages = history.map((m) => ({
-            id: m.id,
-            text: m.text,
-            from: m.from,
-            createdAt: m.created_at,
-          }));
-          foundLocalMessages = true;
-        } else if (isActive && !foundLocalMessages) {
-          nextMessages =
-            nextMessages && nextMessages.length > 0
-              ? nextMessages
-              : [
-                  {
-                    id: "assistant_welcome",
-                    text: "Hi! I'm here with you. What would you like to reflect on today?",
-                    from: "assistant",
-                    createdAt: new Date().toISOString(),
-                  },
-                ];
+          setMessages(
+            history.map((m) => ({
+              id: m.id,
+              text: m.text,
+              from: m.from,
+              createdAt: m.created_at,
+              isVoice: m.isVoice ?? false,
+              displayText:
+                m.displayText ??
+                ((m as any)?.display_text as string | undefined) ??
+                (m.isVoice ? "Voice message" : m.text),
+            }))
+          );
+        } else if (isActive) {
+          setMessages([
+            {
+              id: "assistant_welcome",
+              text: "Hi! I'm here with you. What would you like to reflect on today?",
+              from: "assistant",
+              createdAt: new Date().toISOString(),
+            },
+          ]);
         }
       } catch (err) {
         console.error("Failed to load reflection chat", err);
@@ -269,20 +294,37 @@ export default function ChatScreen() {
   const persistChat = useCallback(
     async (nextMessages: Message[]) => {
       if (!sessionId || !session?.user) return;
+
+      // Always keep the latest snapshot and serialize saves to avoid out-of-order overwrites.
+      pendingSaveRef.current = nextMessages.map((m) => ({
+        id: m.id,
+        text: m.text,
+        from: m.from,
+        isVoice: m.isVoice ?? false,
+        displayText: m.displayText ?? (m.isVoice ? "Voice message" : null),
+        created_at: m.createdAt ?? new Date().toISOString(),
+      }));
+
+      if (savingRef.current) return;
+
+      savingRef.current = true;
       setPersisting(true);
+
       try {
-        const payload: ReflectionChatMessage[] = nextMessages.map((m) => ({
-          id: m.id,
-          text: m.text,
-          from: m.from,
-          created_at: m.createdAt ?? new Date().toISOString(),
-        }));
-        await saveReflectionChat(sessionId, payload);
-      } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Failed to save reflection.";
-        setError(msg);
+        while (pendingSaveRef.current) {
+          const payload = pendingSaveRef.current;
+          pendingSaveRef.current = null;
+          if (!payload) continue;
+          try {
+            await saveReflectionChat(sessionId, payload);
+          } catch (err) {
+            const msg =
+              err instanceof Error ? err.message : "Failed to save reflection.";
+            setError(msg);
+          }
+        }
       } finally {
+        savingRef.current = false;
         setPersisting(false);
       }
     },
@@ -311,68 +353,114 @@ export default function ChatScreen() {
   ]);
 
   /* ------------------------------------------------------
-     SEND MESSAGE
+     SEND MESSAGE (text + voice)
   ------------------------------------------------------- */
-  const handleSend = useCallback(async () => {
-    if (!input.trim() || sendingRef.current) return;
-    sendingRef.current = true;
-    setError(null);
+  const sendMessage = useCallback(
+    async (
+      text: string,
+      options?: { isVoice?: boolean; displayText?: string }
+    ) => {
+      const trimmed = text.trim();
+      if (!trimmed || sendingRef.current) return;
+      sendingRef.current = true;
+      setError(null);
 
-    const userMessage: Message = {
-      id: `${Date.now()}_u`,
-      text: input.trim(),
-      from: "user",
-      createdAt: new Date().toISOString(),
-    };
-
-    const baseHistory = [...messages, userMessage];
-    setMessages(baseHistory);
-    setInput("");
-    Keyboard.dismiss();
-
-    setAssistantTyping(true);
-
-    try {
-      const replyText = await generateReflectionReply(baseHistory, goal ?? "");
-      const reply: Message = {
-        id: `assistant_${Date.now()}`,
-        text: replyText,
-        from: "assistant",
-        createdAt: new Date().toISOString(),
+      const now = new Date().toISOString();
+      const userMessage: Message = {
+        id: `${Date.now()}_${options?.isVoice ? "voice" : "u"}`,
+        text: trimmed,
+        from: "user",
+        createdAt: now,
+        isVoice: options?.isVoice ?? false,
+        displayText:
+          options?.displayText ??
+          (options?.isVoice ? "Voice message" : undefined),
       };
 
-      const nextMessages = [...baseHistory, reply];
-      setMessages(nextMessages);
-      setAssistantTyping(false);
-    } catch (err) {
-      setAssistantTyping(false);
-      const fallbackMessage: Message = {
-        id: `${Date.now()}_error`,
-        text:
-          err instanceof Error
-            ? err.message
-            : "Hmm… something went wrong. Can you try again?",
-        from: "assistant",
-        createdAt: new Date().toISOString(),
-      };
-      const nextMessages = [...baseHistory, fallbackMessage];
-      setMessages(nextMessages);
-    } finally {
-      sendingRef.current = false;
-    }
-  }, [input, messages, goal]);
+      const baseHistory = [...messages, userMessage];
+      setMessages(baseHistory);
+      if (!options?.isVoice) {
+        setInput("");
+      }
+      Keyboard.dismiss();
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <AnimatedMessage message={item} />
+      setAssistantTyping(true);
+
+      try {
+        const replyText = await generateReflectionReply(
+          baseHistory,
+          goal ?? ""
+        );
+        const reply: Message = {
+          id: `assistant_${Date.now()}`,
+          text: replyText,
+          from: "assistant",
+          createdAt: new Date().toISOString(),
+        };
+
+        const nextMessages = [...baseHistory, reply];
+        setMessages(nextMessages);
+        setAssistantTyping(false);
+      } catch (err) {
+        setAssistantTyping(false);
+        const fallbackMessage: Message = {
+          id: `${Date.now()}_error`,
+          text:
+            err instanceof Error
+              ? err.message
+              : "Something went wrong. Can you try again?",
+          from: "assistant",
+          createdAt: new Date().toISOString(),
+        };
+        const nextMessages = [...baseHistory, fallbackMessage];
+        setMessages(nextMessages);
+      } finally {
+        sendingRef.current = false;
+      }
+    },
+    [messages, goal]
   );
 
-  const hasUserMessage = messages.some((m) => m.from === "user");
+  const handleSend = useCallback(() => {
+    sendMessage(input);
+  }, [input, sendMessage]);
 
-  const goBackToSession = () => {
-    if (navigation.canGoBack()) navigation.back();
-    else router.push("../(tabs)/session");
+  const handleVoiceSubmit = useCallback(
+    (transcript: string) => {
+      sendMessage(transcript, { isVoice: true, displayText: "Voice message" });
+      setShowRecorder(false);
+    },
+    [sendMessage]
+  );
+
+  const renderVoiceContent = (message: Message) => {
+    if (!message.isVoice || message.from !== "user") return null;
+    return (
+      <Pressable
+        style={styles.voiceButton}
+        onPress={() => {
+          Alert.alert("Voice message", message.text);
+        }}
+      >
+        <View style={styles.voiceButtonRow}>
+          <Icon
+            name="mic"
+            size={18}
+            tint={theme.solidColors.white}
+            style={{ marginRight: theme.spacing.xs }}
+          />
+          <Text style={styles.voiceButtonLabel}>Voice message</Text>
+        </View>
+        <Text style={styles.voiceTranscriptPreview} numberOfLines={3}>
+          {message.text}
+        </Text>
+      </Pressable>
+    );
   };
 
+  const renderMessage = ({ item }: { item: Message }) => (
+    <AnimatedMessage message={item} content={renderVoiceContent(item)} />
+  );
   /* ------------------------------------------------------
      UI
   ------------------------------------------------------- */
@@ -475,7 +563,10 @@ export default function ChatScreen() {
             />
           </View>
 
-          <Pressable onPress={() => {}} style={styles.micWrapper}>
+          <Pressable
+            onPress={() => setShowRecorder(true)}
+            style={styles.micWrapper}
+          >
             <Image
               source={require("../assets/icons/mic.png")}
               style={styles.micIcon}
@@ -483,6 +574,13 @@ export default function ChatScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+      <VoiceRecorderModal
+        visible={showRecorder}
+        onClose={() => setShowRecorder(false)}
+        onTranscriptReady={handleVoiceSubmit}
+        confirmLabel="Send to chat"
+        title="Share your thoughts"
+      />
     </SafeAreaView>
   );
 }
@@ -568,6 +666,28 @@ const styles = StyleSheet.create({
     tintColor: theme.colors.accentDark,
     height: 36,
     width: 36,
+  },
+  voiceButton: {
+    backgroundColor: theme.colors.accentDark,
+    borderRadius: theme.radii.md,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+  },
+  voiceButtonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: theme.spacing.xs,
+  },
+  voiceButtonLabel: {
+    color: theme.solidColors.white,
+    fontFamily: theme.typography.families.medium,
+    fontSize: theme.typography.sizes.md,
+  },
+  voiceTranscriptPreview: {
+    color: theme.solidColors.white,
+    opacity: 0.9,
+    fontFamily: theme.typography.families.regular,
+    lineHeight: theme.typography.sizes.md * 1.3,
   },
 
   typingBubble: {

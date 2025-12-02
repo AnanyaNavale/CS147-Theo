@@ -173,120 +173,137 @@ function fromTaskTimeArrays(obj: any): AiTask[] | null {
 function parseTasksFromText(text: string): AiTask[] {
   const cleaned = text.replace(/```(\w+)?/g, "").trim();
 
-  const parsePlainTextLines = (source: string): AiTask[] => {
-    const lines = source
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean);
+  const tryParseArray = (candidate: string): AiTask[] | null => {
+    const sanitized = candidate.replace(/,\s*([}\]])/g, "$1").trim();
+    const attempts = [sanitized];
 
-    const tasks: AiTask[] = [];
-    for (const line of lines) {
-      // Strip bullets / numbering
-      const withoutPrefix = line.replace(/^[-*•\d\).\s]+/, "").trim();
-      // Extract minutes from patterns like "25 min", "20mins", "15 minutes", "30m"
-      const minMatch = withoutPrefix.match(
-        /(\d{1,3})\s*(?:minutes?|mins?|min|m)\b/i
-      );
-      const minutes = minMatch ? Number(minMatch[1]) : 0;
-      const textPart = minMatch
-        ? withoutPrefix
-            .replace(minMatch[0], "")
-            .replace(/[-–—:]+$/, "")
-            .trim()
-        : withoutPrefix;
-      if (textPart && minutes > 0) {
-        tasks.push({ text: textPart, minutes });
+    if (sanitized.startsWith("[") && !sanitized.endsWith("]")) {
+      const trimmed = sanitized.replace(/,\s*$/, "");
+      attempts.push(`${trimmed}]`);
+    }
+
+    for (const attempt of attempts) {
+      try {
+        const parsed = JSON.parse(attempt);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch {
+        // keep trying other candidates
       }
     }
-    return tasks;
-  };
 
-  const salvageObjects = (source: string): AiTask[] | null => {
-    const objectSnippets = source.match(/\{[^{}]*\}/g) ?? [];
-    const salvaged = objectSnippets
-      .map((snippet) => {
-        try {
-          return JSON.parse(snippet);
-        } catch {
-          return null;
-        }
-      })
-      .filter(
-        (obj): obj is AiTask =>
-          !!obj &&
-          (typeof (obj as any).text === "string" ||
-            typeof (obj as any).task === "string")
-      )
-      .map((obj: any) => ({
-        text:
-          typeof obj.text === "string"
-            ? obj.text.trim()
-            : typeof obj.task === "string"
-            ? obj.task.trim()
-            : "",
-        minutes:
-          Number(obj.minutes ?? obj.time ?? obj.duration) ||
-          (typeof obj.minutes === "string" ? parseInt(obj.minutes, 10) : 0),
-      }))
-      .filter((t) => t.text.length > 0 && t.minutes > 0);
-
-    return salvaged.length ? salvaged : null;
+    return null;
   };
 
   // Try direct parse if the whole content is JSON
-  try {
-    const direct = JSON.parse(cleaned);
-    if (Array.isArray(direct)) return direct;
-    if (direct && typeof direct === "object") {
-      const combined = fromTaskTimeArrays(direct);
-      if (combined) return combined;
+  const direct = tryParseArray(cleaned);
+  if (direct) return direct;
 
-      const maybeArray =
-        (direct as any).tasks ||
-        (direct as any).items ||
-        (direct as any).list ||
-        (direct as any).data;
-      if (Array.isArray(maybeArray)) return maybeArray;
-    }
-  } catch {
-    // ignore and try to extract an array below
+  // Extract the first array-looking section, even if it's truncated.
+  const start = cleaned.indexOf("[");
+  if (start >= 0) {
+    const tail = cleaned.slice(start);
+    const lastBracket = tail.lastIndexOf("]");
+    const lastBrace = tail.lastIndexOf("}");
+
+    const candidate =
+      lastBracket >= 0
+        ? tail.slice(0, lastBracket + 1)
+        : lastBrace >= 0
+        ? `${tail.slice(0, lastBrace + 1)}]`
+        : tail;
+
+    const parsed = tryParseArray(candidate);
+    if (parsed) return parsed;
   }
 
-  const match = cleaned.match(/\[[\s\S]*\]/);
-  const arrayCandidate =
-    match?.[0] ??
-    (cleaned.includes("[") ? cleaned.slice(cleaned.indexOf("[")) : "");
-  if (!arrayCandidate) {
-    const salvaged = salvageObjects(cleaned);
-    if (salvaged) return salvaged;
-    throw new Error("AI response did not include a task list.");
+  // Fallback: salvage any standalone objects we can parse.
+  const salvaged: AiTask[] = [];
+  for (const match of cleaned.matchAll(/\{[^{}]*\}/g)) {
+    try {
+      const parsed = JSON.parse(match[0]);
+      if (parsed && typeof parsed === "object") {
+        salvaged.push(parsed as AiTask);
+      }
+    } catch {
+      // ignore bad fragments
+    }
   }
 
-  try {
-    const extracted = JSON.parse(arrayCandidate);
-    if (!Array.isArray(extracted)) {
-      throw new Error("AI response was not an array.");
+  if (salvaged.length > 0) {
+    console.warn("[Gemini][tasks] salvaged partial task list", {
+      count: salvaged.length,
+    });
+    return salvaged;
+  }
+
+  console.warn("[Gemini][tasks] parse failed", {
+    original: cleaned.slice(0, 400),
+  });
+  throw new Error("AI response did not include a task list.");
+}
+
+function digForTasks(node: unknown): AiTask[] | null {
+  if (!node) return null;
+
+  // If it's already an array of tasks, return it
+  if (Array.isArray(node)) {
+    const looksLikeTaskArray = node.every(
+      (n) =>
+        n &&
+        typeof n === "object" &&
+        "text" in (n as any) &&
+        "minutes" in (n as any)
+    );
+    if (looksLikeTaskArray) return node as AiTask[];
+
+    for (const item of node) {
+      const found = digForTasks(item);
+      if (found) return found;
     }
-    return extracted;
-  } catch (err) {
-    const repaired = repairJsonArray(arrayCandidate);
-    if (repaired) {
+  }
+
+  if (typeof node === "object") {
+    for (const value of Object.values(node)) {
+      const found = digForTasks(value);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
+function extractTasksFromParts(parts: Array<Record<string, any>>): AiTask[] | null {
+  for (const part of parts) {
+    const rawArgs = part?.functionCall?.args;
+    if (!rawArgs) continue;
+
+    let args: any = rawArgs;
+    if (typeof rawArgs === "string") {
       try {
-        const recovered = JSON.parse(repaired);
-        if (Array.isArray(recovered)) return recovered;
+        args = JSON.parse(rawArgs);
       } catch {
-        // fall through to throw below
+        // ignore bad JSON strings
       }
     }
 
-    const salvaged = salvageObjects(arrayCandidate);
-    if (salvaged) return salvaged;
+    if (Array.isArray(args)) return args as AiTask[];
+    if (Array.isArray(args?.tasks)) return args.tasks as AiTask[];
 
-    const fromLines = parsePlainTextLines(cleaned);
-    if (fromLines.length) return fromLines;
-
-    throw new Error("Could not read AI task list.");
+    const nested = digForTasks(args);
+    if (nested) return nested;
   }
+  return null;
+}
+
+function normalizeTasks(tasks: AiTask[]): AiTask[] {
+  return tasks
+    .map((t) => ({
+      text: typeof t.text === "string" ? t.text : "",
+      minutes: Number(t.minutes) || 0,
+    }))
+    .filter((t) => t.text.length > 0 && t.minutes > 0);
 }
 
 export async function generateTasksWithAI(goal: string): Promise<AiTask[]> {
@@ -307,95 +324,98 @@ Tasks must be granular and actionable. Keep minutes between 10 and 30.
 Do NOT include markdown or code fences; only return the JSON object.
 `;
 
-  const parseSafely = (label: string, text: string | undefined) => {
+  const callGemini = async (body: Record<string, unknown>) => {
+    const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const fallback = await response.text().catch(() => "");
+      let message = `AI request failed (${response.status}).`;
+      try {
+        const parsed = JSON.parse(fallback);
+        message = parsed?.error?.message ?? message;
+      } catch {
+        if (fallback) message = `${message} ${fallback}`;
+      }
+      throw new Error(message.trim());
+    }
+
+    const data = await response.json();
+    const parts =
+      (data?.candidates?.[0]?.content?.parts as Array<Record<string, any>> | undefined) ??
+      [];
+    const text =
+      parts
+        .map((p) => (typeof p.text === "string" ? p.text : ""))
+        .join("")
+        .trim() || "";
+
+    return { text, parts, data, status: response.status };
+  };
+
+  const primary = await callGemini({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.35,
+      maxOutputTokens: 512,
+      responseMimeType: "application/json",
+    },
+  });
+
+  console.log("[Gemini][tasks] raw response", {
+    hasCandidates: Array.isArray(primary?.data?.candidates),
+    status: primary.status,
+    promptFeedback: primary?.data?.promptFeedback,
+  });
+  console.log("[Gemini][tasks] parsed text", {
+    length: primary.text.length,
+    preview: primary.text.slice(0, 160),
+  });
+
+  const parseOrNull = (text: string) => {
     if (!text) return null;
     try {
-      return normalizeTasks(parseTasksFromText(text));
-    } catch (err) {
-      console.warn(
-        `[Gemini][tasks] parse failed (${label})`,
-        err,
-        text ? { preview: text.slice(0, 240) } : {}
-      );
+      return parseTasksFromText(text);
+    } catch {
       return null;
     }
   };
 
-  try {
-    const primary = await callGeminiForTasks(apiKey, {
+  let parsed = parseOrNull(primary.text) ?? extractTasksFromParts(primary.parts);
+
+  if (!parsed || parsed.length === 0) {
+    console.warn("[Gemini][tasks] empty or unparseable response; retrying with plain text");
+    const fallback = await callGemini({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.35,
+        temperature: 0.45,
         maxOutputTokens: 512,
       },
-      safetySettings: [
-        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_NONE",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_NONE",
-        },
-      ],
     });
-
-    let parsed = parseSafely("primary", primary.text);
-
-    if (!parsed || parsed.length === 0) {
-      console.warn("[Gemini][tasks] primary empty", {
-        blockReason: primary.blockReason,
-        textPreview: (primary.text || "").slice(0, 160),
-      });
-
-      // Fallback: less strict prompt without responseMimeType (mirrors reflection flow)
-      const fallbackPrompt = `Give 5-8 atomic tasks for this goal. Return a JSON object with "tasks" (array of strings) and "minutes" (array of numbers 15-30), matching by index. No markdown or code fences. Goal: ${goal}`;
-      const fallback = await callGeminiForTasks(apiKey, {
-        contents: [{ role: "user", parts: [{ text: fallbackPrompt }] }],
-        generationConfig: {
-          temperature: 0.35,
-          maxOutputTokens: 512,
-        },
-        safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_NONE",
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_NONE",
-          },
-        ],
-      });
-
-      parsed = parseSafely("fallback", fallback.text);
-
-      if (!parsed || parsed.length === 0) {
-        const details =
-          fallback.blockReason ||
-          primary.blockReason ||
-          "AI response was empty. Check API key/quota and try again.";
-        console.warn(
-          "[Gemini][tasks] returning fallback tasks. Reason:",
-          details,
-          {
-            fallbackTextPreview: (fallback.text || "").slice(0, 160),
-          }
-        );
-        return fallbackTasks(goal);
-      }
-    }
-
-    return parsed;
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "AI request failed. Try again.";
-    throw new Error(message);
+    console.log("[Gemini][tasks] fallback parsed text", {
+      length: fallback.text.length,
+      preview: fallback.text.slice(0, 160),
+    });
+    parsed = parseOrNull(fallback.text) ?? extractTasksFromParts(fallback.parts);
   }
+
+  if (!parsed || parsed.length === 0) {
+    const block = primary?.data?.promptFeedback?.blockReason;
+    const safety =
+      primary?.data?.promptFeedback?.safetyRatings
+        ?.map((s: any) => s?.category)
+        .filter(Boolean)
+        .join(", ");
+    const details = block
+      ? `Blocked: ${block}${safety ? ` (${safety})` : ""}`
+      : "AI response was empty. Check API key/quota and try again.";
+    throw new Error(details);
+  }
+
+  return normalizeTasks(parsed);
 }
 
 /**
@@ -493,7 +513,7 @@ ${recent
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.45,
-        maxOutputTokens: 256,
+        maxOutputTokens: 320,
       },
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -515,8 +535,20 @@ ${recent
       hasText: Boolean(primary.text),
     });
 
-    if (primary.text) {
+    const truncated =
+      (primary.finishReason === "MAX_TOKENS" && (primary.text?.length ?? 0) < 40) ||
+      ((primary.text ?? "").split(/\s+/).filter(Boolean).length <= 3);
+
+    if (primary.text && !truncated) {
       return primary.text;
+    }
+
+    if (truncated) {
+      console.warn("[Gemini][reflection] truncation detected, retrying with minimal prompt", {
+        finishReason: primary.finishReason,
+        textLen: primary.text?.length,
+        wordCount: primary.text?.split(/\s+/).filter(Boolean).length,
+      });
     }
 
     // Fallback: minimal prompt, very small token budget to dodge MAX_TOKENS
