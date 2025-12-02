@@ -575,7 +575,6 @@ export default function SessionBreakdownScreen() {
           }}
           placeholder="e.g. 2"
           row
-          centered
           small
           error={newOrderError}
           label="(Optional) Order number"
