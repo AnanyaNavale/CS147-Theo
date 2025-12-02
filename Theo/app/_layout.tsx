@@ -11,6 +11,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { fontMap } from "@/design/fonts";
 import { SupabaseProvider, useSupabase } from "@/providers/SupabaseProvider";
+import { StatusBar } from "expo-status-bar";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -41,6 +42,7 @@ function RootLayoutNav() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SupabaseProvider>
+        <StatusBar style="auto" />
         <AppNavigator />
       </SupabaseProvider>
     </GestureHandlerRootView>
