@@ -66,7 +66,7 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
         hitSlop={10}
         style={styles.carouselButton}
       >
-        <Icon name="carousel-left" size={18} tint={theme.colors.accentDark} />
+        <Icon name="carousel-left" size={16} tint={theme.colors.accentDark} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.shell} onPress={() => cycleMode(1)}>
@@ -85,7 +85,7 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
         hitSlop={10}
         style={styles.carouselButton}
       >
-        <Icon name="carousel-right" size={18} tint={theme.colors.accentDark} />
+        <Icon name="carousel-right" size={16} tint={theme.colors.accentDark} />
       </TouchableOpacity>
     </View>
   );
