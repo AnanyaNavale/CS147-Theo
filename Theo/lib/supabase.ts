@@ -356,7 +356,7 @@ export async function fetchSessions(userId: string): Promise<WorkSession[]> {
  * Used for ARCHIVE.
  */
 export async function fetchSessionDatesForMonth(
-  month: number, // 1-12
+  month: number,
   year: number,
   userId: string
 ): Promise<string[]> {
@@ -385,7 +385,15 @@ export async function fetchSessionDatesForMonth(
 
   // Extract unique dates in UTC
   const uniqueDates = Array.from(
-    new Set(data.map((row) => row.created_at.slice(0, 10)))
+    new Set(
+      data.map((row) => {
+        const d = new Date(row.created_at);
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(d.getUTCDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      })
+    )
   );
 
   return uniqueDates;
