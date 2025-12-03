@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import {
   Image,
   LayoutChangeEvent,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -117,32 +118,38 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
         </TouchableOpacity>
       </View>
 
-      {/* Overlay */}
+      {/* Overlay + menu card */}
       {menuOpen && (
-        <Pressable
-          style={styles.menuOverlay}
-          onPress={() => setMenuOpen(false)}
-        />
-      )}
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          onRequestClose={() => setMenuOpen(false)}
+        >
+          <View style={StyleSheet.absoluteFillObject}>
+            <Pressable
+              style={styles.menuOverlay}
+              onPress={() => setMenuOpen(false)}
+            />
 
-      {/* Menu card */}
-      {menuOpen && (
-        <View style={[styles.menuAnchor, { top: menuHeight }]}>
-          <View style={styles.menuCard}>
-            {menuOptions.map((opt, idx) => (
-              <TouchableOpacity
-                key={opt.label}
-                style={styles.menuItem}
-                onPress={opt.onPress}
-              >
-                <Text style={styles.menuLabel}>{opt.label}</Text>
-                {idx < menuOptions.length - 1 && (
-                  <View style={styles.menuDivider} />
-                )}
-              </TouchableOpacity>
-            ))}
+            <View style={[styles.menuAnchor, { top: menuHeight }]}>
+              <View style={styles.menuCard}>
+                {menuOptions.map((opt, idx) => (
+                  <TouchableOpacity
+                    key={opt.label}
+                    style={styles.menuItem}
+                    onPress={opt.onPress}
+                  >
+                    <Text style={styles.menuLabel}>{opt.label}</Text>
+                    {idx < menuOptions.length - 1 && (
+                      <View style={styles.menuDivider} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
           </View>
-        </View>
+        </Modal>
       )}
 
       <AppModal
@@ -200,7 +207,7 @@ const styles = StyleSheet.create({
   },
   menuAnchor: {
     position: "absolute",
-    left: 30, // same as header paddingHorizontal
+    left: theme.spacing.md,
     zIndex: 3,
   },
   menuCard: {

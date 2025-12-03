@@ -43,6 +43,8 @@ export function Menu({ options, width = 220 }: MenuProps) {
     }
   };
 
+  const handleClose = () => setOpen(false);
+
   const left = Math.max(
     8,
     Math.min(anchor.x + anchor.w - width, windowWidth - width - 8)
@@ -57,25 +59,32 @@ export function Menu({ options, width = 220 }: MenuProps) {
       </Pressable>
 
       {/* Menu Modal */}
-      <Modal transparent visible={open} animationType="fade">
-        {/* Backdrop to dismiss */}
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)} />
+      <Modal
+        transparent
+        visible={open}
+        animationType="fade"
+        onRequestClose={handleClose}
+      >
+        <View style={styles.fullscreen}>
+          {/* Backdrop to dismiss */}
+          <Pressable style={styles.backdrop} onPress={handleClose} />
 
-        {/* Menu Box */}
-        <View style={[styles.menuBox, { width, left, top }]}>
-          {options.map((opt, idx) => (
-            <TouchableOpacity
-              key={idx}
-              onPress={() => handlePress(opt.onPress)}
-              style={[
-                styles.option,
-                idx !== options.length - 1 && styles.optionBorder,
-              ]}
-              activeOpacity={0.6}
-            >
-              <Text variant="body">{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
+          {/* Menu Box */}
+          <View style={[styles.menuBox, { width, left, top }]}>
+            {options.map((opt, idx) => (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => handlePress(opt.onPress)}
+                style={[
+                  styles.option,
+                  idx !== options.length - 1 && styles.optionBorder,
+                ]}
+                activeOpacity={0.6}
+              >
+                <Text variant="body">{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </Modal>
     </>
@@ -83,12 +92,10 @@ export function Menu({ options, width = 220 }: MenuProps) {
 }
 
 const styles = StyleSheet.create({
+  fullscreen: StyleSheet.absoluteFillObject,
+
   backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
   },
 
   menuBox: {
