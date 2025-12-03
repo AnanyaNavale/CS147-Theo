@@ -144,7 +144,7 @@ export default function SessionSummaryScreen() {
         <Spacer size="lg" />
 
         <View style={styles.row}>
-          <Text style={styles.label}>Date Created:</Text>
+          <Text style={styles.label}>Date created:</Text>
           <Text style={styles.value}>{formattedDate}</Text>
         </View>
 

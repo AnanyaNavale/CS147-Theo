@@ -1,14 +1,14 @@
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
+import { Checkbox, Spacer } from "@/components";
 import SvgStrokeText from "@/components/SvgStrokeText";
-import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useEffect, useState } from "react";
+import { theme } from "@/design/theme";
 import { fetchSessionById, fetchTasksForSession } from "@/lib/supabase";
 import { Task, WorkSession } from "@/types/database.types";
-import { theme } from "@/design/theme";
-import { Checkbox, Spacer } from "@/components";
+import { Feather } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function SingleSessionScreen() {
   const router = useRouter();
@@ -75,7 +75,8 @@ export default function SingleSessionScreen() {
   if (error) return <Text>Error: {error}</Text>;
   if (!sessionData) return <Text>Session not found</Text>;
 
-  const headerTitle = sessionData?.status === "planned" ? "Plan Summary" : "Session Summary";
+  const headerTitle =
+    sessionData?.status === "planned" ? "Plan Summary" : "Session Summary";
 
   function formatTime(totalMinutes: number): string {
     const hours = Math.floor(totalMinutes / 60);
@@ -110,7 +111,7 @@ export default function SingleSessionScreen() {
       <View style={styles.shadow} />
 
       <View style={styles.row}>
-        <Text style={styles.label}>Date Created:</Text>
+        <Text style={styles.label}>Date created:</Text>
         <Text style={styles.value}>{formattedDate}</Text>
       </View>
 
@@ -155,12 +156,14 @@ export default function SingleSessionScreen() {
           {tasks.length > 0 ? (
             tasks.map((task, index) => (
               <View key={task.id ?? index} style={styles.taskRow}>
-                {sessionData.status !== "planned" && (<Checkbox
-                  checked={task.is_completed} // or `true` if all should appear checked
-                  onChange={() => {}}
-                  boxStyle={styles.checkBox}
-                  containerStyle={styles.checkboxContainer}
-                />)}
+                {sessionData.status !== "planned" && (
+                  <Checkbox
+                    checked={task.is_completed} // or `true` if all should appear checked
+                    onChange={() => {}}
+                    boxStyle={styles.checkBox}
+                    containerStyle={styles.checkboxContainer}
+                  />
+                )}
                 <View style={styles.taskTextWrap}>
                   <Text style={styles.taskText}>
                     {index + 1}. {task.task_name}
