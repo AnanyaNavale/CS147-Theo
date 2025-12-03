@@ -24,7 +24,6 @@ import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import SvgStrokeText from "@/components/SvgStrokeText";
 import { fonts } from "@/assets/themes/typography";
 import { ensureUserProfile, fetchUserProfile, supabase } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
@@ -224,7 +223,9 @@ export default function ProfileScreen() {
             stroke="black"
             strokeWidth={0.3}
             textStyle={{ fontSize: fonts.sizes.header2 }}
-    <Container padded={false} style={styles.safe}>
+          />
+        </View>
+      </View>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -233,16 +234,6 @@ export default function ProfileScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Icon name="arrow-left" size={36} />
-            </TouchableOpacity>
-            <SvgStrokeText text="Profile" />
-            <View style={{ width: 28 }} />
-          </View>
-
-          <Spacer size="lg" />
-
           <View style={styles.avatarRow}>
             <TouchableOpacity
               onPress={pickAndUploadAvatar}
@@ -279,58 +270,7 @@ export default function ProfileScreen() {
             editable={!loading && !saving}
             containerStyle={styles.inputContainer}
           />
-        </View>
-      </View>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            keyboardShouldPersistTaps="handled"
-          >
-
-            <View style={styles.avatarRow}>
-              <TouchableOpacity
-                onPress={pickAndUploadAvatar}
-                disabled={uploading || loading}
-                style={styles.avatarButton}
-              >
-                {avatarUrl ? (
-                  <Image
-                    source={{ uri: avatarUrl }}
-                    style={styles.avatarImage}
-                  />
-                ) : (
-                  <View style={[styles.avatarImage, styles.avatarFallback]}>
-                    <Feather
-                      name="user"
-                      size={68}
-                      color={theme.solidColors.white}
-                    />
-                  </View>
-                )}
-                {uploading && (
-                  <View style={styles.avatarOverlay}>
-                    <ActivityIndicator color="#fff" />
-                  </View>
-                )}
-              </TouchableOpacity>
-              <Text style={styles.avatarHint}>Tap to update photo</Text>
-            </View>
-
-            <Spacer />
-
-            <InputField
-              label="Name"
-              placeholder="Your name"
-              value={displayName}
-              onChangeText={setDisplayName}
-              editable={!loading && !saving}
-              containerStyle={styles.inputContainer}
-            />
-
-            <InputField
+          <InputField
               label="Email"
               placeholder="Email"
               value={email}
@@ -352,20 +292,7 @@ export default function ProfileScreen() {
               </View>
             )}
 
-            <Button
-              label={saving ? "Saving..." : "Save changes"}
-              onPress={handleSave}
-              variant="brown"
-              size="lg"
-              disabled={saving}
-              style={styles.saveButton}
-            />
-          </ScrollView>
-        </KeyboardAvoidingView>
-    </View>
-          )}
-
-          <BasicButton
+            <BasicButton
             text={saving ? "Saving..." : "Save changes"}
             onPress={handleSave}
             disabled={saving}
@@ -385,7 +312,9 @@ export default function ProfileScreen() {
               {loggingOut ? "Logging out..." : "Log out"}
             </Text>
           </TouchableOpacity>
+
         </ScrollView>
+
       </KeyboardAvoidingView>
 
       <AppModal
@@ -413,7 +342,8 @@ export default function ProfileScreen() {
           </View>
         </View>
       )}
-    </Container>
+
+    </View>
   );
 }
 
