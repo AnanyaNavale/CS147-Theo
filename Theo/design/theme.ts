@@ -108,7 +108,7 @@ export const theme = {
   },
 
   checkbox: {
-    size: 22,
+    size: 24,
     borderColor: "#8A5E3C",
     checkColor: "#000",
     bg: "transparent",

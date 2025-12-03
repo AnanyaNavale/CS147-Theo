@@ -3,6 +3,8 @@ import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -10,14 +12,14 @@ import { PawLoader } from "@/components/ui/PawLoader";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 
 type SessionTask = {
   id: string;
   text: string;
   minutes: number;
   status?: string | null;
+  actualSeconds?: number;
+  timeSeconds?: number;
 };
 
 export default function SessionSummaryScreen() {
@@ -58,9 +60,19 @@ export default function SessionSummaryScreen() {
       return data
         .map((t, idx) => {
           const text = (t.text ?? t.name ?? "").toString();
-          const minutes = Number(
-            t.minutes ?? (t.time != null ? t.time / 60 : 0)
-          );
+          const rawSeconds =
+            typeof t.actualSeconds === "number"
+              ? t.actualSeconds
+              : typeof t.timeSeconds === "number"
+              ? t.timeSeconds
+              : typeof t.time === "number"
+              ? t.time
+              : Number.isFinite(Number(t.minutes))
+              ? Number(t.minutes) * 60
+              : 0;
+          const minutes = rawSeconds / 60;
+          const statusValue =
+            typeof t.status === "string" ? t.status.toLowerCase() : null;
           return text
             ? {
                 id: t.id?.toString() ?? `task-${idx}`,
@@ -70,6 +82,11 @@ export default function SessionSummaryScreen() {
                 minutes: Number.isFinite(minutes)
                   ? Math.max(0, Math.round(minutes))
                   : 0,
+                actualSeconds:
+                  typeof t.actualSeconds === "number"
+                    ? Math.max(0, Math.round(t.actualSeconds))
+                    : undefined,
+                timeSeconds: Math.max(0, Math.round(rawSeconds)),
               }
             : null;
         })
@@ -79,12 +96,16 @@ export default function SessionSummaryScreen() {
     }
   }, [tasks]);
 
-  const totalMinutes = parsedTasks.reduce(
-    (sum, t) => sum + (t.minutes || 0),
-    0
-  );
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const totalSecondsWorked = parsedTasks.reduce((sum, t) => {
+    if (t.status !== "completed") return sum;
+    const seconds =
+      typeof t.actualSeconds === "number"
+        ? t.actualSeconds
+        : t.timeSeconds ?? t.minutes * 60;
+    return sum + (Number.isFinite(seconds) ? seconds : 0);
+  }, 0);
+  const hours = Math.floor(totalSecondsWorked / 3600);
+  const minutes = Math.floor((totalSecondsWorked % 3600) / 60);
   const allTasksSkipped =
     parsedTasks.length > 0 && parsedTasks.every((t) => t.status === "skipped");
   const sessionSkipped = normalizedStatusParam === "skipped" || allTasksSkipped;
@@ -165,16 +186,27 @@ export default function SessionSummaryScreen() {
             {parsedTasks.map((task, index) => (
               <View key={task.id ?? index} style={styles.taskRow}>
                 <Checkbox
-                  checked
+                  checked={task.status === "completed"}
                   onChange={() => {}}
                   boxStyle={styles.checkBox}
                   containerStyle={styles.checkboxContainer}
                 />
                 <View style={styles.taskTextWrap}>
                   <Text style={styles.taskText}>
-                    {index + 1}. {task.text}
+                    {index + 1}. {task.text}{" "}
+                    {/* <Text style={styles.taskMinutes}>
+                      (
+                      {Math.max(
+                        0,
+                        Math.round(
+                          (typeof task.actualSeconds === "number"
+                            ? task.actualSeconds
+                            : task.timeSeconds ?? task.minutes * 60) / 60
+                        )
+                      )}{" "}
+                      min.)
+                    </Text> */}
                   </Text>
-                  <Text style={styles.taskMinutes}>({task.minutes} min.)</Text>
                 </View>
               </View>
             ))}
@@ -258,7 +290,7 @@ const styles = StyleSheet.create({
   taskTextWrap: {
     flex: 1,
     flexDirection: "row",
-    flexWrap: "wrap",
+    //flexWrap: "wrap",
     alignItems: "flex-end",
   },
   taskText: {
@@ -266,6 +298,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
     marginRight: theme.spacing.sm,
+    paddingLeft: theme.spacing.sm,
   },
   taskMinutes: {
     fontFamily: theme.typography.families.regular,

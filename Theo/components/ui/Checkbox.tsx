@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { theme } from "../../design/theme";
+import { Icon } from "./Icon";
 
 export type CheckboxProps = {
   checked: boolean;
@@ -44,7 +45,7 @@ export function Checkbox({
           {
             width: size,
             height: size,
-            borderRadius: theme.radii.sm,
+            borderRadius: theme.radii.sm + 2,
             borderColor: theme.checkbox.borderColor,
             backgroundColor: theme.checkbox.bg,
           },
@@ -52,18 +53,13 @@ export function Checkbox({
         ]}
       >
         {checked && (
-          <Text
-            style={[
-              styles.check,
-              {
-                color: theme.checkbox.checkColor,
-                fontFamily: theme.typography.families.regular,
-              },
-              checkStyle,
-            ]}
-          >
-            ✓
-          </Text>
+          <View style={[styles.checkmark]}>
+            <Icon
+              name="check"
+              size={Math.max(26, size - 6)}
+              tint={theme.checkbox.checkColor}
+            />
+          </View>
         )}
       </View>
 
@@ -97,12 +93,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  check: {
-    fontSize: theme.typography.sizes.lg,
-    lineHeight: theme.typography.sizes.lg + 2,
-    marginTop: -2,
-  },
   label: {
     marginLeft: theme.spacing.sm,
+  },
+  checkmark: {
+    marginRight: -theme.spacing.sm,
+    marginBottom: 4,
   },
 });
