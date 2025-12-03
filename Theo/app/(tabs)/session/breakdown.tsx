@@ -353,7 +353,7 @@ export default function SessionBreakdownScreen() {
           {goalInput ? (
             <SvgStrokeText
               text={"Would you like to set\nsome tasks for your goal?"}
-              containerStyle={{ alignSelf: "center" }}
+              containerStyle={{ alignSelf: "center", marginTop: "10%" }}
             />
           ) : (
             <SvgStrokeText
@@ -744,9 +744,11 @@ const styles = StyleSheet.create({
   goalInputWrapper: {
     flex: 1,
     marginLeft: theme.spacing.sm,
+    justifyContent: "center",
   },
   goalInputContainer: {
     marginBottom: 0,
+    paddingBottom: 0,
   },
   goalInput: {
     textAlignVertical: "center",
