@@ -666,7 +666,9 @@ export default function SessionBreakdownScreen() {
                 orderNumber > maxPosition)
             ) {
               setNewOrderError(
-                `The valid order numbers are 1 to ${maxPosition}`
+                `You currently have ${tasks.length} task${
+                  tasks.length === 1 ? "" : "s"
+                }, please \nenter a number between 1 and ${maxPosition}`
               );
             } else {
               setNewOrderError("");
