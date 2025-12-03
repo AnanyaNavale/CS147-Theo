@@ -210,7 +210,8 @@ const styles = StyleSheet.create({
 
   closeBtnFloating: {
     position: "absolute",
-    right: 10,
+    right: -12,
+    top: -12,
   },
 
   customContent: {

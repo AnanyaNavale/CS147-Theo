@@ -118,7 +118,7 @@ export default function LoginScreen() {
           <BasicButton
             text={isSubmitting ? "Logging in..." : "Log in"}
             onPress={handleLogin}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !email.trim() || !password}
             style={styles.sessionButton}
             //labelStyle={styles.sessionButtonLabel}
           />

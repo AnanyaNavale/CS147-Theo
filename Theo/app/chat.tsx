@@ -1,4 +1,22 @@
-import { useLocalSearchParams } from "expo-router";
+import { colors } from "@/assets/themes/colors";
+import { InputField } from "@/components";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { ChatBubble } from "@/components/ui/ChatBubble";
+import { Icon } from "@/components/ui/Icon";
+import { Text } from "@/components/ui/Text";
+import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
+import { theme } from "@/design/theme";
+import { generateReflectionReply } from "@/lib/ai";
+import {
+  ReflectionChatMessage,
+  createSession,
+  fetchSessionById,
+  saveReflectionChat,
+} from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -13,26 +31,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { InputField } from "@/components";
-import { ChatBubble } from "@/components/ui/ChatBubble";
-import { Icon } from "@/components/ui/Icon";
-import { Text } from "@/components/ui/Text";
-import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
-import { theme } from "@/design/theme";
-import { generateReflectionReply } from "@/lib/ai";
 import {
-  ReflectionChatMessage,
-  createSession,
-  fetchSessionById,
-  saveReflectionChat,
-} from "@/lib/supabase";
-import { useSupabase } from "@/providers/SupabaseProvider";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useRouter } from "expo-router";
-import { colors } from "@/assets/themes/colors";
-import { Feather } from "@expo/vector-icons";
-import SvgStrokeText from "@/components/SvgStrokeText";
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 /* ------------------------------------------------------
    MESSAGE TYPE
@@ -134,6 +136,7 @@ export default function ChatScreen() {
     sessionId?: string;
     goal?: string;
   }>();
+  const insets = useSafeAreaInsets();
   const { session } = useSupabase();
   const navigation = useRouter();
   const [sessionId, setSessionId] = useState<string | null>(
@@ -472,7 +475,7 @@ export default function ChatScreen() {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        //keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
       >
         <View style={styles.header}>
           <TouchableOpacity
@@ -640,8 +643,11 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
+    height: theme.input.height + theme.spacing.md + theme.spacing.xl,
   },
 
   sessionLink: {
@@ -651,43 +657,53 @@ const styles = StyleSheet.create({
 
   textboxWrapper: {
     flex: 1,
-    position: "relative",
-    minHeight: theme.input.height,
+    //position: "relative",
+    //minHeight: theme.input.height,
   },
 
   textInput: {
-    position: "relative",
+    //position: "relative",
     borderWidth: 2,
-    borderRadius: theme.radii.md,
-    paddingLeft: theme.spacing.md,
+    marginTop: 11,
+    // borderRadius: theme.radii.md,
+    // paddingLeft: theme.spacing.md,
     paddingRight: 35,
-    height: theme.input.height,
-    paddingVertical: 0,
-    textAlignVertical: "center",
-    marginBottom: 0,
+    // height: theme.input.height,
+    //paddingVertical: 0,
+    //textAlignVertical: "center",
+    //marginBottom: 0,
   },
 
   sendAccessory: {
     position: "absolute",
     right: theme.spacing.sm,
-    top: theme.input.height / 2 - 22 / 2,
+    top: 19,
+    //bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 2,
   },
 
   sendIcon: {
-    width: 22,
+    width: 28,
+    height: 28,
     tintColor: theme.colors.accentDark,
   },
 
   micWrapper: {
     marginLeft: theme.spacing.md,
     height: theme.input.height,
+    width: theme.input.height,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   micIcon: {
     tintColor: theme.colors.accentDark,
-    height: 36,
-    width: 36,
+    height: theme.input.height - 4,
+    width: theme.input.height - 4,
+    resizeMode: "contain",
+    top: 1,
   },
   voiceButton: {
     backgroundColor: theme.colors.accentDark,

@@ -35,6 +35,8 @@ export default function ProfileScreen() {
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [initialDisplayName, setInitialDisplayName] = useState("");
+  const [initialEmail, setInitialEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -49,12 +51,16 @@ export default function ProfileScreen() {
     setLoading(true);
     try {
       const profile = await fetchUserProfile(user.id);
-      setDisplayName(
+      const profileDisplayName =
         profile?.display_name ??
-          (user.user_metadata?.display_name as string | undefined) ??
-          ""
-      );
-      setEmail(user.email ?? "");
+        (user.user_metadata?.display_name as string | undefined) ??
+        "";
+      const profileEmail = user.email ?? "";
+
+      setDisplayName(profileDisplayName);
+      setEmail(profileEmail);
+      setInitialDisplayName(profileDisplayName);
+      setInitialEmail(profileEmail);
       setAvatarUrl(
         profile?.avatar_url ??
           (user.user_metadata?.avatar_url as string | undefined) ??
@@ -105,7 +111,11 @@ export default function ProfileScreen() {
         avatarUrl: avatarUrl || null,
       });
 
-      setMessage("Profile updated.");
+      const normalizedEmail = email.trim();
+      setInitialDisplayName(displayName);
+      setInitialEmail(normalizedEmail || "");
+      setEmail(normalizedEmail);
+      setMessage("Profile updated!");
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to update profile.";
@@ -198,7 +208,7 @@ export default function ProfileScreen() {
         avatarUrl: publicUrl,
       });
       await loadProfile();
-      setMessage("Photo updated.");
+      setMessage("Photo updated!");
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to upload image.";
@@ -271,31 +281,35 @@ export default function ProfileScreen() {
             containerStyle={styles.inputContainer}
           />
           <InputField
-              label="Email"
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              editable={!loading && !saving}
-              containerStyle={styles.inputContainer}
-            />
+            label="Email"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            editable={!loading && !saving}
+            containerStyle={styles.inputContainer}
+          />
 
-            {error && (
-              <View style={[styles.banner, styles.errorBanner]}>
-                <Text style={styles.bannerText}>{error}</Text>
-              </View>
-            )}
-            {message && (
-              <View style={[styles.banner, styles.infoBanner]}>
-                <Text style={styles.bannerText}>{message}</Text>
-              </View>
-            )}
+          {error && (
+            <View style={[styles.banner, styles.errorBanner]}>
+              <Text style={{ color: theme.colors.danger }}>{error}</Text>
+            </View>
+          )}
+          {message && (
+            <View style={[styles.banner, styles.infoBanner]}>
+              <Text style={styles.bannerText}>{message}</Text>
+            </View>
+          )}
 
-            <BasicButton
+          <BasicButton
             text={saving ? "Saving..." : "Save changes"}
             onPress={handleSave}
-            disabled={saving}
+            disabled={
+              saving ||
+              loading ||
+              (displayName === initialDisplayName && email === initialEmail)
+            }
             style={styles.saveButton}
           />
 
@@ -379,11 +393,11 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     //color: theme.solidColors.white,
-    color: theme.solidColors.danger,
+    color: theme.solidColors.text,
     fontFamily: theme.typography.families.regular,
   },
   infoBanner: {
-    backgroundColor: theme.colors.text,
+    //backgroundColor: theme.colors.text,
   },
   errorBanner: {
     // backgroundColor: theme.colors.danger,

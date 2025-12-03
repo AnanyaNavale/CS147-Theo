@@ -74,7 +74,7 @@ export default function EndSessionScreen() {
           ) : (
             <>
               <SvgStrokeText
-                text="Session Complete"
+                text="Session complete"
                 stroke={theme.colors.accentDark}
                 textStyle={{ color: theme.colors.accentDark }}
               ></SvgStrokeText>

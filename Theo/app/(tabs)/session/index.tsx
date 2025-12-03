@@ -8,17 +8,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "@/assets/themes/colors";
 import { Spacer } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { AppModal } from "@/components/ui/AppModal";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { colors } from "@/assets/themes/colors";
 
 export default function StartSessionScreen() {
   const handleCreateNew = () => router.push("../(tabs)/session/goal");
   const { width } = useWindowDimensions();
+  const [showComingSoon, setShowComingSoon] = React.useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -65,9 +67,7 @@ export default function StartSessionScreen() {
         <View style={styles.actionBlock}>
           <BasicButton
             text="Copy a recent session"
-            onPress={() => {
-              // TODO: implement copy flow
-            }}
+            onPress={() => setShowComingSoon(true)}
             variant="secondary"
           />
           <Spacer size="md" />
@@ -83,9 +83,7 @@ export default function StartSessionScreen() {
         <View style={styles.actionBlock}>
           <BasicButton
             text="Complete a session"
-            onPress={() => {
-              // TODO: implement complete flow
-            }}
+            onPress={() => setShowComingSoon(true)}
             variant="tertiary"
             //style={[styles.actionButton, { width: buttonWidth }]}
           />
@@ -95,6 +93,31 @@ export default function StartSessionScreen() {
           </Text>
         </View>
       </ScrollView>
+      <AppModal
+        visible={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+        variant="custom"
+        title="Coming soon!"
+        showClose
+      >
+        <Text style={styles.modalMessage}>
+          Copying and completing sessions isn't ready yet.
+        </Text>
+        <Spacer size="md" />
+        <Text style={styles.modalMessage}>
+          Please create a new session to get started.
+        </Text>
+        <Spacer size="md" />
+        <BasicButton
+          style={styles.center}
+          text="Create a new session"
+          onPress={() => {
+            setShowComingSoon(false);
+            handleCreateNew();
+          }}
+          textStyle={{ flexWrap: "nowrap" }}
+        />
+      </AppModal>
     </SafeAreaView>
   );
 }
@@ -141,5 +164,16 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.light.separator,
     marginHorizontal: theme.spacing.lg,
+  },
+  modalMessage: {
+    textAlign: "center",
+    marginTop: theme.spacing.sm,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.mutedText,
+  },
+  center: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: "100%",
   },
 });
