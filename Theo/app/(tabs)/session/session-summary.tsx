@@ -127,7 +127,7 @@ export default function SessionSummaryScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Spacer size="lg" />
         <View style={styles.centered}>
-          <SvgStrokeText text="Session Summary" />
+          <SvgStrokeText text="Session summary" />
         </View>
         <Spacer size="lg" />
 
@@ -208,7 +208,7 @@ export default function SessionSummaryScreen() {
 
         <Spacer size="xl" />
       </ScrollView>
-      <ArrowAction label="Return to Home" onPress={handleBackHome} />
+      <ArrowAction label="Return to home" onPress={handleBackHome} />
     </SafeAreaView>
   );
 }

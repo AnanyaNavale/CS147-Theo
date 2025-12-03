@@ -30,7 +30,7 @@ export default function SingleSessionScreen() {
         </TouchableOpacity>
         <View style={styles.header}>
           {isSession ? (
-            <SvgStrokeText text="Session Summary" />
+            <SvgStrokeText text="Session summary" />
           ) : (
             <SvgStrokeText text="Plan Summary" />
           )}
@@ -79,9 +79,19 @@ export default function SingleSessionScreen() {
             //   textStyle={styles.subheading}
             //   containerStyle={{ alignSelf: "flex-start", paddingLeft: 8 }}
             // />
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{ flexDirection: "row" }}>
               <Text style={styles.subheading}>Status:</Text>
-              <Text style={[styles.sectionResponse, {color: colors.light.header2, fontFamily: fonts.typeface.bodyBold }]}>{status}</Text>
+              <Text
+                style={[
+                  styles.sectionResponse,
+                  {
+                    color: colors.light.header2,
+                    fontFamily: fonts.typeface.bodyBold,
+                  },
+                ]}
+              >
+                {status}
+              </Text>
             </View>
           ) : null}
         </View>
@@ -157,8 +167,8 @@ const styles = StyleSheet.create({
     // marginLeft: 16,
     marginVertical: 5,
     borderColor: "blue",
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     // alignItems: 'flex-start',
     // borderWidth: 1,
   },
