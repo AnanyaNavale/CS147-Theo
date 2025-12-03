@@ -37,7 +37,7 @@ export default function SessionCompleteScreen() {
             />
           </TouchableOpacity>
 
-          <Text style={styles.label}>GOAL:</Text>
+          <Text style={styles.label}>Goal:</Text>
 
           <View style={{ width: 22 }} />
         </View>

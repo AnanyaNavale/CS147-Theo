@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,15 +12,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 import { InputField } from "@/components";
 import SvgStrokeText from "@/components/SvgStrokeText";
-import { Text } from "@/components/ui/Text";
 import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
+import { Text } from "@/components/ui/Text";
 import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
 import { theme } from "@/design/theme";
 
@@ -94,9 +91,13 @@ export default function GoalScreen() {
             />
 
             <Spacer size="lg" />
-            
-            <Text variant="h1" color="accentDark" style={{ alignSelf: "center" }}>
-              GOAL:
+
+            <Text
+              variant="h1"
+              color="accentDark"
+              style={{ alignSelf: "center" }}
+            >
+              Goal:
             </Text>
 
             <Spacer size="md" />

@@ -213,7 +213,7 @@ export default function FinalizeSessionScreen() {
         {goalText && (
           <View style={styles.goalRow}>
             <Text variant="h1" style={styles.goalLabel}>
-              GOAL:
+              Goal:
             </Text>
             <Text style={styles.goalValue}>{goalText}</Text>
             <Spacer size="md" />
@@ -257,7 +257,8 @@ export default function FinalizeSessionScreen() {
           />
         )}
 
-        {showSuccessModal && (<AppModal
+        {showSuccessModal && (
+          <AppModal
             visible={showSuccessModal}
             onClose={() => setShowSuccessModal(false)}
             variant="custom"
@@ -283,7 +284,8 @@ export default function FinalizeSessionScreen() {
                 />
               </View>
             }
-          />)}
+          />
+        )}
 
         {showStartModal && (
           <AppModal

@@ -139,7 +139,7 @@ export default function SessionSummaryScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Spacer size="lg" />
         <View style={styles.centered}>
-          <SvgStrokeText text="Session summary" />
+          <SvgStrokeText text="Session Summary" />
         </View>
         <Spacer size="lg" />
 

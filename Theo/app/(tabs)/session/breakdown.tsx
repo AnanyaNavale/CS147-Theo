@@ -336,7 +336,7 @@ export default function SessionBreakdownScreen() {
 
       <View style={styles.goalRow}>
         <Text variant="h1" color="accentDark" style={styles.goalLabel}>
-          GOAL:
+          Goal:
         </Text>
 
         <View style={styles.goalInputWrapper}>
