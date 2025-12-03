@@ -156,7 +156,13 @@ export default function SignUpScreen() {
           <BasicButton
             text={isSubmitting ? "Creating..." : "Create account"}
             onPress={handleSignUp}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              !fullName.trim() ||
+              !email.trim() ||
+              !password ||
+              !confirmPassword
+            }
             style={styles.sessionButton}
           />
 

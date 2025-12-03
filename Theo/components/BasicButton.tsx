@@ -45,7 +45,8 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
     },
     ref
   ) => {
-    // Inside your component
+    const isDisabled = rest.disabled ?? false;
+
     const getColors = (variant: "primary" | "secondary" | "tertiary") => {
       switch (variant) {
         case "primary":
@@ -78,6 +79,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
             height,
             backgroundColor: bg,
             shadowColor: sc,
+            opacity: isDisabled ? 0.5 : 1,
           },
           style,
         ]}
