@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   Image,
   StyleSheet,
-  // Text
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -44,7 +43,6 @@ const teddy = require("../../../assets/theo/waving.png");
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
   const initialGoal = goal ?? "";
-  const { session: authSession } = useSupabase();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [goalInput, setGoalInput] = useState(initialGoal);
@@ -206,55 +204,6 @@ export default function SessionBreakdownScreen() {
     }
   }
 
-  // async function confirmContinue() {
-  //   let sessionId: string | undefined = undefined;
-
-  //   if (authSession?.user) {
-  //     setPersisting(true);
-  //     setPersistError(null);
-  //     try {
-  //       const session = await createSession(
-  //         authSession.user.id,
-  //         !!goalInput,
-  //         goalInput || null,
-  //         tasks.length > 0
-  //       );
-  //       sessionId = session.id;
-
-  //       if (tasks.length > 0) {
-  //         const ordered = tasks.map((t, idx) => ({
-  //           session_id: session.id,
-  //           task_name: t.text,
-  //           order_index: idx + 1,
-  //           time_allotted: t.minutes,
-  //           is_completed: false,
-  //         }));
-
-  //         for (const payload of ordered) {
-  //           await createTask(payload as any);
-  //         }
-  //       }
-  //     } catch (err) {
-  //       const msg =
-  //         err instanceof Error ? err.message : "Failed to save tasks.";
-  //       setPersistError(msg);
-  //     } finally {
-  //       setPersisting(false);
-  //     }
-  //   }
-
-  //   const nextRoute = {
-  //     pathname: "./finalize-session",
-  //     params: {
-  //       tasks: JSON.stringify(tasks),
-  //       goal: goalInput,
-  //       sessionId,
-  //     },
-  //   } as const;
-
-  //   router.push(nextRoute);
-  // }
-
   function confirmContinue() {
     router.push({
       pathname: "./finalize-session",
@@ -404,10 +353,12 @@ export default function SessionBreakdownScreen() {
           {goalInput ? (
             <SvgStrokeText
               text={"Would you like to set\nsome tasks for your goal?"}
+              containerStyle={{ alignSelf: "center" }}
             />
           ) : (
             <SvgStrokeText
               text={"Would you like to create\ntasks for this session?"}
+              containerStyle={{ alignSelf: "center", marginTop: "10%" }}
             />
           )}
 
@@ -498,7 +449,7 @@ export default function SessionBreakdownScreen() {
       )}
 
       {/* SKIP ROW FOR EMPTY STATE */}
-      {tasks.length === 0 && !isGenerating && (
+      {tasks.length === 0 && !isGenerating && goalInput && (
         <ArrowAction label="Skip" onPress={confirmContinue} />
       )}
       {tasks.length > 0 && !isGenerating && (

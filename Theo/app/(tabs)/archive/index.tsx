@@ -77,8 +77,6 @@ export default function ArchiveScreen() {
 
   const { supabase, session: authSession } = useSupabase();
   const router = useRouter();
-  // const session = await getCurrentSession();
-  // const userId = session?.user?.id;
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
 
@@ -154,7 +152,7 @@ export default function ArchiveScreen() {
 
   return (
     <View style={styles.container}>
-      <SvgStrokeText text="Session & plan archive" />
+      <SvgStrokeText text="Session & Plan Archive" />
       <View style={styles.calendarContainer}>
         <Calendar
           renderHeader={(date) => {
