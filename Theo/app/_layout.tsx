@@ -42,7 +42,7 @@ function RootLayoutNav() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SupabaseProvider>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
         <AppNavigator />
       </SupabaseProvider>
     </GestureHandlerRootView>
