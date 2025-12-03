@@ -135,10 +135,17 @@ export default function SessionScreen() {
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
   const [newTimeError, setNewTimeError] = useState("");
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newTaskMinutes, setNewTaskMinutes] = useState("");
+  const [newTaskMinutesError, setNewTaskMinutesError] = useState("");
+  const [newTaskOrder, setNewTaskOrder] = useState("");
+  const [newTaskOrderError, setNewTaskOrderError] = useState("");
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showMarkDoneConfirm, setShowMarkDoneConfirm] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [showStartBreakConfirm, setShowStartBreakConfirm] = useState(false);
   const [showEndBreakConfirm, setShowEndBreakConfirm] = useState(false);
@@ -235,9 +242,21 @@ export default function SessionScreen() {
       return;
     }
 
+    if (currentTask.status !== "in_progress") return;
+
     if (!isBreak && secondsLeft <= 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setIsRunning(false);
+      const isLastTask = currentTaskIndex >= sessionTasks.length - 1;
+
+      if (isLastTask) {
+        updateTaskStatus(currentTaskIndex, "completed");
+        setIsBreak(false);
+        setBreakAfterTaskComplete(false);
+        goToEndSession();
+        return;
+      }
+
       setShowCompleteModal(true);
     }
   }, [secondsLeft, currentTask, isBreak]);
@@ -364,16 +383,94 @@ export default function SessionScreen() {
     setShowAddTimeModal(true);
   };
 
-  /* SKIP */
-  const handleSkipTaskConfirmed = () => {
-    if (!currentTask) return;
+  const getMinAddOrder = () => {
+    const lastCompletedIndex = sessionTasks.reduce(
+      (last, task, idx) =>
+        task.status === "completed" || task.status === "skipped" ? idx : last,
+      -1
+    );
+    const byCompletion = lastCompletedIndex >= 0 ? lastCompletedIndex + 2 : 1;
+    const byProgress = currentTask ? currentTaskIndex + 2 : 1; // must come after current task
+    return Math.max(byCompletion, byProgress);
+  };
 
-    updateTaskStatus(currentTaskIndex, "skipped");
-    setShowSkipConfirm(false);
-    setShowCompleteModal(false);
-    setIsBreak(false);
-    setBreakAfterTaskComplete(false);
+  const handleAddTaskOrderChange = (text: string) => {
+    setNewTaskOrder(text);
+    const trimmed = text.trim();
+    const orderNumber = trimmed ? Number(trimmed) : null;
+    const maxPosition = sessionTasks.length + 1;
+    const minPosition = getMinAddOrder();
 
+    if (
+      orderNumber !== null &&
+      (!Number.isInteger(orderNumber) ||
+        orderNumber < minPosition ||
+        orderNumber > maxPosition)
+    ) {
+      setNewTaskOrderError(
+        `Enter a number ${minPosition} - ${maxPosition} so the new\ntask stays after the current one`
+      );
+    } else {
+      setNewTaskOrderError("");
+    }
+  };
+
+  const handleAddTask = () => {
+    if (!newTaskName.trim() || !newTaskMinutes.trim()) return;
+
+    const minutesVal = Number(newTaskMinutes) || 0;
+    if (!Number.isInteger(minutesVal)) {
+      setNewTaskMinutesError("Task length must be a whole number");
+      return;
+    }
+    if (minutesVal > 120) {
+      setNewTaskMinutesError("Task length cannot exceed 120 minutes");
+      return;
+    }
+    setNewTaskMinutesError("");
+
+    const maxPosition = sessionTasks.length + 1;
+    const minPosition = getMinAddOrder();
+    const orderNumber = newTaskOrder.trim()
+      ? Number(newTaskOrder.trim())
+      : maxPosition;
+
+    if (
+      !Number.isInteger(orderNumber) ||
+      orderNumber < minPosition ||
+      orderNumber > maxPosition
+    ) {
+      setNewTaskOrderError(
+        `Enter a number ${minPosition} - ${maxPosition} so the new task stays after the current one`
+      );
+      return;
+    }
+
+    const insertAt = orderNumber - 1;
+    const newTask: SessionTask = {
+      id: Date.now().toString(),
+      name: newTaskName.trim(),
+      time: minutesVal * 60,
+      status: "pending",
+    };
+
+    setSessionTasks((prev) => {
+      const updated = [...prev];
+      updated.splice(insertAt, 0, newTask);
+      return updated;
+    });
+
+    setCurrentTaskIndex((prev) => (insertAt <= prev ? prev + 1 : prev));
+
+    setShowAddTaskModal(false);
+    setNewTaskName("");
+    setNewTaskMinutes("");
+    setNewTaskOrder("");
+    setNewTaskMinutesError("");
+    setNewTaskOrderError("");
+  };
+
+  const advanceToNextTask = () => {
     const isLast = currentTaskIndex >= sessionTasks.length - 1;
     if (isLast) {
       goToEndSession();
@@ -391,10 +488,39 @@ export default function SessionScreen() {
     updateTaskStatus(nextIndex, "in_progress");
   };
 
+  const handleConfirmMarkTaskDone = () => {
+    if (!currentTask) return;
+
+    updateTaskStatus(currentTaskIndex, "completed");
+    setShowMarkDoneConfirm(false);
+    setShowCompleteModal(false);
+    setIsBreak(false);
+    setBreakAfterTaskComplete(false);
+
+    advanceToNextTask();
+  };
+
+  /* SKIP */
+  const handleSkipTaskConfirmed = () => {
+    if (!currentTask) return;
+
+    updateTaskStatus(currentTaskIndex, "skipped");
+    setShowSkipConfirm(false);
+    setShowCompleteModal(false);
+    setIsBreak(false);
+    setBreakAfterTaskComplete(false);
+
+    advanceToNextTask();
+  };
+
   /* ADD TIME */
   const handleApplyTime = () => {
     const m = Number(newTime);
     if (!m || m <= 0) return;
+    if (!Number.isInteger(m)) {
+      setNewTimeError("Time must be a whole number");
+      return;
+    }
     if (m > 120) {
       setNewTimeError("Additional time cannot exceed 120 minutes");
       return;
@@ -433,7 +559,8 @@ export default function SessionScreen() {
     newTime.trim().length > 0 &&
     !newTimeError &&
     Number(newTime) > 0 &&
-    Number(newTime) <= 120;
+    Number(newTime) <= 120 &&
+    Number.isInteger(Number(newTime));
   const canRenameTask = editedTaskName.trim().length > 0;
 
   /* ---------------- RENDER ---------------- */
@@ -468,7 +595,9 @@ export default function SessionScreen() {
                   ? [
                       {
                         label: "Mark task done",
-                        onPress: () => setShowCompleteModal(true),
+                        onPress: () => {
+                          setShowMarkDoneConfirm(true);
+                        },
                       },
                       {
                         label: "Add time to task",
@@ -476,6 +605,17 @@ export default function SessionScreen() {
                           setNewTime("");
                           setNewTimeError("");
                           setShowAddTimeModal(true);
+                        },
+                      },
+                      {
+                        label: "Add task",
+                        onPress: () => {
+                          setNewTaskName("");
+                          setNewTaskMinutes("");
+                          setNewTaskOrder("");
+                          setNewTaskMinutesError("");
+                          setNewTaskOrderError("");
+                          setShowAddTaskModal(true);
                         },
                       },
                       {
@@ -735,6 +875,17 @@ export default function SessionScreen() {
       />
 
       <AppModal
+        visible={showMarkDoneConfirm}
+        onClose={() => setShowMarkDoneConfirm(false)}
+        variant="alert"
+        title="Mark task done?"
+        message="We’ll mark this task complete and move to the next one."
+        cancelLabel="Cancel"
+        confirmLabel="Done"
+        onConfirm={handleConfirmMarkTaskDone}
+      />
+
+      <AppModal
         visible={showCompleteModal}
         onClose={() => setShowCompleteModal(false)}
         variant="bottom-sheet"
@@ -793,7 +944,7 @@ export default function SessionScreen() {
         }}
         variant="bottom-sheet"
         title="Add time to task"
-        height={250}
+        height={220}
       >
         <InputField
           label="Minutes to add:"
@@ -801,7 +952,9 @@ export default function SessionScreen() {
           onChangeText={(text) => {
             setNewTime(text);
             const m = Number(text);
-            if (m > 120) {
+            if (!Number.isInteger(m)) {
+              setNewTimeError("Time must be a whole number");
+            } else if (m > 120) {
               setNewTimeError("Additional time cannot exceed 120 minutes");
             } else {
               setNewTimeError("");
@@ -812,13 +965,104 @@ export default function SessionScreen() {
           row
           error={newTimeError}
         />
-        <Spacer />
-        <Button
-          label="Add time"
-          variant={canAddTime ? "gold" : "ghost"}
+
+        <TouchableOpacity
+          onPress={() => {
+            if (canAddTime) handleApplyTime();
+          }}
           disabled={!canAddTime}
-          onPress={handleApplyTime}
+          style={[
+            styles.actionCircle,
+            styles.actionCircleNeutral,
+            styles.smallActionCircle,
+            !canAddTime && { opacity: 0.4 },
+          ]}
+        >
+          <Icon name="plus" size={40} tint={theme.solidColors.white} />
+        </TouchableOpacity>
+      </AppModal>
+
+      <AppModal
+        visible={showAddTaskModal}
+        onClose={() => {
+          setShowAddTaskModal(false);
+          setNewTaskMinutesError("");
+          setNewTaskOrderError("");
+        }}
+        variant="bottom-sheet"
+        title="Add a task"
+        height={360}
+      >
+        <InputField
+          label="Description*"
+          value={newTaskName}
+          onChangeText={setNewTaskName}
+          placeholder="Tap to input task description"
+          multiline
+          noBorder
         />
+
+        <Spacer size="md" />
+
+        <InputField
+          label="Length*"
+          keyboardType="numeric"
+          value={newTaskMinutes}
+          onChangeText={(text) => {
+            setNewTaskMinutes(text);
+            const minutesVal = Number(text) || 0;
+            if (!Number.isInteger(minutesVal)) {
+              setNewTaskMinutesError("Task length must be a whole number");
+            } else if (minutesVal > 120) {
+              setNewTaskMinutesError("Task length cannot exceed 120 minutes");
+            } else {
+              setNewTaskMinutesError("");
+            }
+          }}
+          placeholder="00 : 00"
+          row
+          error={newTaskMinutesError}
+        />
+
+        <Spacer size="md" />
+
+        <InputField
+          keyboardType="numeric"
+          value={newTaskOrder}
+          onChangeText={handleAddTaskOrderChange}
+          placeholder="e.g. 2"
+          row
+          small
+          error={newTaskOrderError}
+          label="(Optional) Order number"
+        />
+
+        <Spacer size="lg" />
+
+        {(() => {
+          const canAddTask =
+            newTaskName.trim().length > 0 &&
+            newTaskMinutes.trim().length > 0 &&
+            !newTaskOrderError &&
+            !newTaskMinutesError &&
+            Number.isInteger(Number(newTaskMinutes));
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                if (canAddTask) handleAddTask();
+              }}
+              disabled={!canAddTask}
+              style={[
+                styles.actionCircle,
+                styles.actionCircleNeutral,
+                styles.smallActionCircle,
+                !canAddTask && { opacity: 0.4 },
+              ]}
+            >
+              <Icon name="plus" size={40} tint={theme.solidColors.white} />
+            </TouchableOpacity>
+          );
+        })()}
       </AppModal>
 
       <AppModal
@@ -862,12 +1106,20 @@ export default function SessionScreen() {
           placeholder="Task name"
         />
 
-        <Button
-          label="Save"
-          variant={canRenameTask ? "gold" : "ghost"}
-          disabled={!canRenameTask}
-          onPress={handleSaveTaskEdit}
-        />
+        <TouchableOpacity
+          onPress={() => {
+            if (canRenameTask) handleSaveTaskEdit();
+          }}
+          disabled={!canAddTime}
+          style={[
+            styles.actionCircle,
+            styles.actionCircleNeutral,
+            styles.smallActionCircle,
+            !canAddTime && { opacity: 0.4 },
+          ]}
+        >
+          <Icon name="check" size={30} tint={theme.solidColors.white} />
+        </TouchableOpacity>
       </AppModal>
     </View>
   );
@@ -948,5 +1200,22 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
     ...theme.shadow.soft,
+  },
+  actionCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    ...theme.shadow.medium,
+  },
+
+  actionCircleNeutral: {
+    backgroundColor: theme.colors.accentDark,
+  },
+  smallActionCircle: {
+    alignSelf: "flex-end",
+    width: 50,
+    height: 50,
   },
 });

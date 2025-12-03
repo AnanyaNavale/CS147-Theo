@@ -1,7 +1,6 @@
 import { BlurView } from "expo-blur";
 import React from "react";
 import {
-  DimensionValue,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -10,11 +9,10 @@ import {
   View,
 } from "react-native";
 import { theme } from "../../design/theme";
-import { ButtonVariant, Button } from "./Button";
+import SvgStrokeText from "../SvgStrokeText";
+import { Button, ButtonVariant } from "./Button";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
-import SvgStrokeText from "../SvgStrokeText";
-import { colors } from "@/assets/themes/colors";
 
 export type ModalVariant = "alert" | "custom" | "bottom-sheet";
 
@@ -33,7 +31,7 @@ export type AppModalProps = {
   onConfirm?: () => void;
 
   height?: number;
-  
+
   showClose?: boolean;
 
   children?: React.ReactNode;
@@ -191,7 +189,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginTop: theme.spacing.lg,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   flexButton: { flex: 1 },
