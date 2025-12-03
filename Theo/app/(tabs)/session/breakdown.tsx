@@ -55,6 +55,7 @@ export default function SessionBreakdownScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newText, setNewText] = useState("");
   const [newMinutes, setNewMinutes] = useState("");
+  const [newMinutesError, setNewMinutesError] = useState("");
   const [newOrder, setNewOrder] = useState("");
   const [newOrderError, setNewOrderError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -68,6 +69,7 @@ export default function SessionBreakdownScreen() {
 
   const [editText, setEditText] = useState("");
   const [editMinutes, setEditMinutes] = useState("");
+  const [editMinutesError, setEditMinutesError] = useState("");
 
   const { width, height } = useWindowDimensions();
   const isCompact = width < 360 || height < 720;
@@ -85,6 +87,7 @@ export default function SessionBreakdownScreen() {
     setEditingTask(task);
     setEditText(task.text);
     setEditMinutes(String(task.minutes));
+    setEditMinutesError("");
   }
 
   function requestDeleteTask(id: string) {
@@ -113,13 +116,19 @@ export default function SessionBreakdownScreen() {
 
   function saveEdit() {
     if (!editingTask) return;
+    const minutesVal = Number(editMinutes) || 0;
+    if (minutesVal > 120) {
+      setEditMinutesError("Task length cannot exceed 120 minutes");
+      return;
+    }
+    setEditMinutesError("");
     setTasks((prev) =>
       prev.map((t) =>
         t.id === editingTask.id
           ? {
               ...t,
               text: editText.trim(),
-              minutes: Number(editMinutes) || 0,
+              minutes: minutesVal,
             }
           : t
       )
@@ -143,9 +152,16 @@ export default function SessionBreakdownScreen() {
       return;
     }
 
+    const minutesVal = Number(newMinutes) || 0;
+    if (minutesVal > 120) {
+      setNewMinutesError("Task length cannot exceed 120 minutes");
+      return;
+    }
+    setNewMinutesError("");
+
     const newItem: Task = {
       id: Date.now().toString(),
-      minutes: Number(newMinutes) || 0,
+      minutes: minutesVal,
       text: newText.trim(),
     };
 
@@ -160,6 +176,7 @@ export default function SessionBreakdownScreen() {
     setNewText("");
     setNewMinutes("");
     setNewOrder("");
+    setNewMinutesError("");
     setNewOrderError("");
     setShowAddModal(false);
   }
@@ -303,6 +320,8 @@ export default function SessionBreakdownScreen() {
     );
   };
 
+  const deleteTargetText =
+    deleteTargetId && tasks.find((task) => task.id === deleteTargetId)?.text;
   let helpMessages;
 
   if (tasks.length === 0) {
@@ -395,7 +414,10 @@ export default function SessionBreakdownScreen() {
             fontSize: fonts.sizes.header2,
           }}
           stroke={colors.light.header2}
-          containerStyle={{ alignSelf: "flex-start" }}
+          containerStyle={{
+            //alignSelf: "flex-start",
+            marginLeft: theme.spacing.sm + 4,
+          }}
         />
       )}
 
@@ -552,10 +574,18 @@ export default function SessionBreakdownScreen() {
           label="Length*"
           keyboardType="numeric"
           value={editMinutes}
-          onChangeText={setEditMinutes}
+          onChangeText={(text) => {
+            setEditMinutes(text);
+            const minutesVal = Number(text) || 0;
+            if (minutesVal > 120) {
+              setEditMinutesError("Task length cannot exceed 120 minutes");
+            } else {
+              setEditMinutesError("");
+            }
+          }}
           placeholder="00 : 00"
           row
-          inputStyle={{ width: 100 }}
+          error={editMinutesError}
         />
 
         <Spacer size="md" />
@@ -605,10 +635,18 @@ export default function SessionBreakdownScreen() {
           label="Length*"
           keyboardType="numeric"
           value={newMinutes}
-          onChangeText={setNewMinutes}
+          onChangeText={(text) => {
+            setNewMinutes(text);
+            const minutesVal = Number(text) || 0;
+            if (minutesVal > 120) {
+              setNewMinutesError("Task length cannot exceed 120 minutes");
+            } else {
+              setNewMinutesError("");
+            }
+          }}
           placeholder="00 : 00"
           row
-          inputStyle={{ width: 100 }}
+          error={newMinutesError}
         />
 
         <Spacer size="md" />
@@ -622,7 +660,6 @@ export default function SessionBreakdownScreen() {
           }}
           placeholder="e.g. 2"
           row
-          centered
           small
           error={newOrderError}
           label="(Optional) Order number"
@@ -634,7 +671,8 @@ export default function SessionBreakdownScreen() {
           const canAdd =
             newText.trim().length > 0 &&
             newMinutes.trim().length > 0 &&
-            !newOrderError;
+            !newOrderError &&
+            !newMinutesError;
           return (
             <TouchableOpacity
               onPress={() => {
@@ -667,7 +705,9 @@ export default function SessionBreakdownScreen() {
         message={
           deleteMode === "all"
             ? "This will remove every task in your list."
-            : "This cannot be undone."
+            : `Task: ${
+                deleteTargetText ?? "this task"
+              } \n \nThis cannot be undone.`
         }
         confirmLabel="Delete"
         cancelLabel="Cancel"
@@ -731,6 +771,7 @@ const styles = StyleSheet.create({
   },
   goalInput: {
     textAlignVertical: "center",
+    paddingRight: theme.spacing.md,
   },
 
   taskHeader: {

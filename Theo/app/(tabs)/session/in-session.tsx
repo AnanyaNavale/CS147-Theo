@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppModal } from "@/components/ui/AppModal";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -132,11 +131,14 @@ export default function SessionScreen() {
   const [showStopModal, setShowStopModal] = useState(false);
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
+  const [newTimeError, setNewTimeError] = useState("");
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [showStartBreakConfirm, setShowStartBreakConfirm] = useState(false);
+  const [showEndBreakConfirm, setShowEndBreakConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const sessionEndLoggedRef = useRef(false);
 
@@ -355,6 +357,7 @@ export default function SessionScreen() {
   const handleNeedMoreTimeFromComplete = () => {
     setShowCompleteModal(false);
     setNewTime("5");
+    setNewTimeError("");
     setShowAddTimeModal(true);
   };
 
@@ -389,6 +392,11 @@ export default function SessionScreen() {
   const handleApplyTime = () => {
     const m = Number(newTime);
     if (!m || m <= 0) return;
+    if (m > 120) {
+      setNewTimeError("Additional time cannot exceed 120 minutes");
+      return;
+    }
+    setNewTimeError("");
     const extraSeconds = m * 60;
 
     const updated = secondsLeft + extraSeconds;
@@ -418,6 +426,12 @@ export default function SessionScreen() {
   ).length;
 
   const taskPosition = currentTask ? currentTaskIndex + 1 : totalTasks;
+  const canAddTime =
+    newTime.trim().length > 0 &&
+    !newTimeError &&
+    Number(newTime) > 0 &&
+    Number(newTime) <= 120;
+  const canRenameTask = editedTaskName.trim().length > 0;
 
   /* ---------------- RENDER ---------------- */
 
@@ -449,6 +463,7 @@ export default function SessionScreen() {
                     label: "Add time to task",
                     onPress: () => {
                       setNewTime("");
+                      setNewTimeError("");
                       setShowAddTimeModal(true);
                     },
                   },
@@ -597,20 +612,22 @@ export default function SessionScreen() {
             taskDuration={currentTask?.time ?? 0}
           />
         ) : (
-          <View style={styles.breakBox}>
-            <Text variant="h2" weight="bold" color="white">
-              Break time
+          <>
+            <View style={styles.breakBox}>
+              <Text variant="h2" weight="bold" color="accentDark">
+                Break time!
+              </Text>
+            </View>
+            <Spacer size="md" />
+            <Text
+              variant="body"
+              color="accentDark"
+              style={{ textDecorationLine: "underline" }}
+              onPress={() => setShowEndBreakConfirm(true)}
+            >
+              End break
             </Text>
-
-            <Spacer size="sm" />
-
-            <Button
-              size="sm"
-              label="End break"
-              variant="gold"
-              onPress={handleEndBreak}
-            />
-          </View>
+          </>
         )}
       </Animated.View>
 
@@ -644,7 +661,7 @@ export default function SessionScreen() {
         </Pressable>
 
         {!isBreak && currentTask && (
-          <Pressable onPress={handleStartBreak}>
+          <Pressable onPress={() => setShowStartBreakConfirm(true)}>
             <Icon name="break" size={48} />
           </Pressable>
         )}
@@ -660,6 +677,35 @@ export default function SessionScreen() {
         cancelLabel="Cancel"
         confirmLabel="End"
         onConfirm={confirmStop}
+      />
+
+      <AppModal
+        visible={showStartBreakConfirm}
+        onClose={() => setShowStartBreakConfirm(false)}
+        variant="alert"
+        title="Start a break?"
+        message="Pause the current task and take a break."
+        cancelLabel="Cancel"
+        confirmLabel="Start"
+        onConfirm={() => {
+          setShowStartBreakConfirm(false);
+          handleStartBreak();
+        }}
+        confirmVariant="gold"
+      />
+
+      <AppModal
+        visible={showEndBreakConfirm}
+        onClose={() => setShowEndBreakConfirm(false)}
+        variant="alert"
+        title="End break?"
+        message="Resume your task and end the break."
+        cancelLabel="Cancel"
+        confirmLabel="End"
+        onConfirm={() => {
+          setShowEndBreakConfirm(false);
+          handleEndBreak();
+        }}
       />
 
       <AppModal
@@ -726,7 +772,10 @@ export default function SessionScreen() {
 
       <AppModal
         visible={showAddTimeModal}
-        onClose={() => setShowAddTimeModal(false)}
+        onClose={() => {
+          setShowAddTimeModal(false);
+          setNewTimeError("");
+        }}
         variant="bottom-sheet"
         title="Add time to task"
         height={250}
@@ -734,13 +783,27 @@ export default function SessionScreen() {
         <InputField
           label="Minutes to add:"
           value={newTime}
-          onChangeText={setNewTime}
+          onChangeText={(text) => {
+            setNewTime(text);
+            const m = Number(text);
+            if (m > 120) {
+              setNewTimeError("Additional time cannot exceed 120 minutes");
+            } else {
+              setNewTimeError("");
+            }
+          }}
           placeholder="e.g. 10"
           keyboardType="numeric"
           row
+          error={newTimeError}
         />
         <Spacer />
-        <Button label="Add time" variant="gold" onPress={handleApplyTime} />
+        <Button
+          label="Add time"
+          variant={canAddTime ? "gold" : "ghost"}
+          disabled={!canAddTime}
+          onPress={handleApplyTime}
+        />
       </AppModal>
 
       <AppModal
@@ -784,7 +847,12 @@ export default function SessionScreen() {
           placeholder="Task name"
         />
 
-        <Button label="Save" variant="gold" onPress={handleSaveTaskEdit} />
+        <Button
+          label="Save"
+          variant={canRenameTask ? "gold" : "ghost"}
+          disabled={!canRenameTask}
+          onPress={handleSaveTaskEdit}
+        />
       </AppModal>
     </View>
   );
@@ -856,11 +924,14 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   breakBox: {
-    backgroundColor: theme.colors.accentDark,
-    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.solidColors.white,
+    paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.md,
     borderRadius: theme.radii.md,
     alignItems: "center",
     minWidth: 250,
+    borderWidth: 2,
+    borderColor: theme.colors.accentDark,
+    ...theme.shadow.soft,
   },
 });
