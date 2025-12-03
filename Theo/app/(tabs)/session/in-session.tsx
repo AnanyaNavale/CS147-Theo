@@ -242,9 +242,21 @@ export default function SessionScreen() {
       return;
     }
 
+    if (currentTask.status !== "in_progress") return;
+
     if (!isBreak && secondsLeft <= 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setIsRunning(false);
+      const isLastTask = currentTaskIndex >= sessionTasks.length - 1;
+
+      if (isLastTask) {
+        updateTaskStatus(currentTaskIndex, "completed");
+        setIsBreak(false);
+        setBreakAfterTaskComplete(false);
+        goToEndSession();
+        return;
+      }
+
       setShowCompleteModal(true);
     }
   }, [secondsLeft, currentTask, isBreak]);
@@ -407,6 +419,10 @@ export default function SessionScreen() {
     if (!newTaskName.trim() || !newTaskMinutes.trim()) return;
 
     const minutesVal = Number(newTaskMinutes) || 0;
+    if (!Number.isInteger(minutesVal)) {
+      setNewTaskMinutesError("Task length must be a whole number");
+      return;
+    }
     if (minutesVal > 120) {
       setNewTaskMinutesError("Task length cannot exceed 120 minutes");
       return;
@@ -501,6 +517,10 @@ export default function SessionScreen() {
   const handleApplyTime = () => {
     const m = Number(newTime);
     if (!m || m <= 0) return;
+    if (!Number.isInteger(m)) {
+      setNewTimeError("Time must be a whole number");
+      return;
+    }
     if (m > 120) {
       setNewTimeError("Additional time cannot exceed 120 minutes");
       return;
@@ -539,7 +559,8 @@ export default function SessionScreen() {
     newTime.trim().length > 0 &&
     !newTimeError &&
     Number(newTime) > 0 &&
-    Number(newTime) <= 120;
+    Number(newTime) <= 120 &&
+    Number.isInteger(Number(newTime));
   const canRenameTask = editedTaskName.trim().length > 0;
 
   /* ---------------- RENDER ---------------- */
@@ -931,7 +952,9 @@ export default function SessionScreen() {
           onChangeText={(text) => {
             setNewTime(text);
             const m = Number(text);
-            if (m > 120) {
+            if (!Number.isInteger(m)) {
+              setNewTimeError("Time must be a whole number");
+            } else if (m > 120) {
               setNewTimeError("Additional time cannot exceed 120 minutes");
             } else {
               setNewTimeError("");
@@ -988,7 +1011,9 @@ export default function SessionScreen() {
           onChangeText={(text) => {
             setNewTaskMinutes(text);
             const minutesVal = Number(text) || 0;
-            if (minutesVal > 120) {
+            if (!Number.isInteger(minutesVal)) {
+              setNewTaskMinutesError("Task length must be a whole number");
+            } else if (minutesVal > 120) {
               setNewTaskMinutesError("Task length cannot exceed 120 minutes");
             } else {
               setNewTaskMinutesError("");
@@ -1019,7 +1044,8 @@ export default function SessionScreen() {
             newTaskName.trim().length > 0 &&
             newTaskMinutes.trim().length > 0 &&
             !newTaskOrderError &&
-            !newTaskMinutesError;
+            !newTaskMinutesError &&
+            Number.isInteger(Number(newTaskMinutes));
           return (
             <TouchableOpacity
               onPress={() => {

@@ -116,6 +116,10 @@ export default function SessionBreakdownScreen() {
   function saveEdit() {
     if (!editingTask) return;
     const minutesVal = Number(editMinutes) || 0;
+    if (!Number.isInteger(minutesVal)) {
+      setEditMinutesError("Task length must be a whole number");
+      return;
+    }
     if (minutesVal > 120) {
       setEditMinutesError("Task length cannot exceed 120 minutes");
       return;
@@ -152,6 +156,10 @@ export default function SessionBreakdownScreen() {
     }
 
     const minutesVal = Number(newMinutes) || 0;
+    if (!Number.isInteger(minutesVal)) {
+      setNewMinutesError("Task length must be a whole number");
+      return;
+    }
     if (minutesVal > 120) {
       setNewMinutesError("Task length cannot exceed 120 minutes");
       return;
@@ -588,7 +596,9 @@ export default function SessionBreakdownScreen() {
           onChangeText={(text) => {
             setEditMinutes(text);
             const minutesVal = Number(text) || 0;
-            if (minutesVal > 120) {
+            if (!Number.isInteger(minutesVal)) {
+              setEditMinutesError("Task length must be a whole number");
+            } else if (minutesVal > 120) {
               setEditMinutesError("Task length cannot exceed 120 minutes");
             } else {
               setEditMinutesError("");
@@ -649,7 +659,9 @@ export default function SessionBreakdownScreen() {
           onChangeText={(text) => {
             setNewMinutes(text);
             const minutesVal = Number(text) || 0;
-            if (minutesVal > 120) {
+            if (!Number.isInteger(minutesVal)) {
+              setNewMinutesError("Task length must be a whole number");
+            } else if (minutesVal > 120) {
               setNewMinutesError("Task length cannot exceed 120 minutes");
             } else {
               setNewMinutesError("");
@@ -700,7 +712,8 @@ export default function SessionBreakdownScreen() {
             newText.trim().length > 0 &&
             newMinutes.trim().length > 0 &&
             !newOrderError &&
-            !newMinutesError;
+            !newMinutesError &&
+            Number.isInteger(Number(newMinutes));
           return (
             <TouchableOpacity
               onPress={() => {
