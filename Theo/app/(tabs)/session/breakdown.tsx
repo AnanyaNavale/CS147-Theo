@@ -288,7 +288,12 @@ export default function SessionBreakdownScreen() {
               <Icon name="pencil" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
 
+            <TouchableOpacity
+              style={[styles.swipeAction, styles.swipeDelete]}
+              onPress={() => requestDeleteTask(item.id)}
+            >
               <Icon name="trash" size={22} tint={theme.solidColors.white} />
+            </TouchableOpacity>
           </View>
         )}
       >

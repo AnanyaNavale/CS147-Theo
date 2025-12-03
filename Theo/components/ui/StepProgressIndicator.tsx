@@ -236,7 +236,7 @@ export function StepProgressIndicator({
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}
         variant="custom"
-        title={"Report a\nProblem"}
+        title="Report a Problem"
       >
         <Text style={styles.modalBody}>
           Reporting will be available shortly.
