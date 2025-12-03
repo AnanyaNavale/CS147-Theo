@@ -1,12 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppModal, Button } from "@/components";
@@ -16,7 +10,12 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { createPlan, createSession, createTask, CreateTaskPayload } from "@/lib/supabase";
+import {
+  createPlan,
+  createSession,
+  createTask,
+  CreateTaskPayload,
+} from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 const teddy = require("@/assets/theo/waving.png");
@@ -67,10 +66,6 @@ export default function FinalizeSessionScreen() {
     return lines.join("\n");
   }, [goalText, taskCount, totalMinutes]);
 
-  const [savingPlan, setSavingPlan] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [showStartConfirm, setShowStartConfirm] = useState(false);
   // NOT USING
   // const [showSettings, setShowSettings] = useState(false);
   // const [reflection, setReflection] = useState(false);
@@ -146,7 +141,7 @@ export default function FinalizeSessionScreen() {
         hasGoal,
         goalText || null,
         hasTasks,
-        totalTime, 
+        totalTime
       );
 
       console.log("📌 newSession:", newSession);

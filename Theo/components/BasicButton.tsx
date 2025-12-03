@@ -5,11 +5,10 @@ import { theme } from "@/design/theme";
 import React from "react";
 import {
   DimensionValue,
-  TouchableOpacity,
-  Text,
   StyleSheet,
   Text,
   TextStyle,
+  TouchableOpacity,
   View,
   ViewStyle,
 } from "react-native";
