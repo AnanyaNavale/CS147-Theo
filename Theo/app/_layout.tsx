@@ -7,8 +7,8 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import { useColorScheme } from "@/components/useColorScheme";
 import { PawLoader } from "@/components/ui/PawLoader";
+import { useColorScheme } from "@/components/useColorScheme";
 import { fontMap } from "@/design/fonts";
 import { SupabaseProvider, useSupabase } from "@/providers/SupabaseProvider";
 import { StatusBar } from "expo-status-bar";

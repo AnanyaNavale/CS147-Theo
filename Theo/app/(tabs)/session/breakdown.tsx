@@ -30,7 +30,6 @@ import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { generateTasksWithAI } from "@/lib/ai";
-import { createSession, createTask } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 type Task = {
@@ -255,7 +254,7 @@ export default function SessionBreakdownScreen() {
 
   //   router.push(nextRoute);
   // }
-  
+
   function confirmContinue() {
     router.push({
       pathname: "./finalize-session",
@@ -272,25 +271,37 @@ export default function SessionBreakdownScreen() {
     isActive,
     getIndex,
   }: RenderItemParams<Task>) => {
+    let swipeableRef: Swipeable | null = null;
+    const closeSwipe = () => swipeableRef?.close();
+
     // Use the current list position so numbering stays sequential after reordering
     const position = getIndex?.() ?? 0;
     const taskNumber = position + 1;
 
     return (
       <Swipeable
+        ref={(ref) => {
+          swipeableRef = ref;
+        }}
         overshootRight={false}
         renderRightActions={() => (
           <View style={styles.swipeActions}>
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeEdit]}
-              onPress={() => openEditModal(item)}
+              onPress={() => {
+                closeSwipe();
+                openEditModal(item);
+              }}
             >
               <Icon name="pencil" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeDelete]}
-              onPress={() => requestDeleteTask(item.id)}
+              onPress={() => {
+                closeSwipe();
+                requestDeleteTask(item.id);
+              }}
             >
               <Icon name="trash" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
@@ -656,9 +667,26 @@ export default function SessionBreakdownScreen() {
           value={newOrder}
           onChangeText={(text) => {
             setNewOrder(text);
-            setNewOrderError("");
+            const trimmed = text.trim();
+            const orderNumber = trimmed ? Number(trimmed) : null;
+            const maxPosition = tasks.length + 1;
+
+            if (
+              orderNumber !== null &&
+              (!Number.isInteger(orderNumber) ||
+                orderNumber < 1 ||
+                orderNumber > maxPosition)
+            ) {
+              setNewOrderError(
+                `You currently have ${tasks.length} task${
+                  tasks.length === 1 ? "" : "s"
+                }, please \nenter a number between 1 and ${maxPosition}`
+              );
+            } else {
+              setNewOrderError("");
+            }
           }}
-          placeholder="e.g. 2"
+          placeholder="e.g. 1"
           row
           small
           error={newOrderError}
