@@ -63,7 +63,7 @@ export default function EndSessionScreen() {
           {goalText ? (
             <>
               <SvgStrokeText
-                text="Goal:"
+                text="GOAL:"
                 stroke={theme.colors.accentDark}
                 textStyle={{ color: theme.colors.accentDark }}
               ></SvgStrokeText>
@@ -73,11 +73,7 @@ export default function EndSessionScreen() {
             </>
           ) : (
             <>
-              <SvgStrokeText
-                text="Session complete"
-                stroke={theme.colors.accentDark}
-                textStyle={{ color: theme.colors.accentDark }}
-              ></SvgStrokeText>
+              <SvgStrokeText text="Session complete"></SvgStrokeText>
               <Spacer />
             </>
           )}
