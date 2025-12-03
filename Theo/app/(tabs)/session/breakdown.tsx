@@ -271,25 +271,37 @@ export default function SessionBreakdownScreen() {
     isActive,
     getIndex,
   }: RenderItemParams<Task>) => {
+    let swipeableRef: Swipeable | null = null;
+    const closeSwipe = () => swipeableRef?.close();
+
     // Use the current list position so numbering stays sequential after reordering
     const position = getIndex?.() ?? 0;
     const taskNumber = position + 1;
 
     return (
       <Swipeable
+        ref={(ref) => {
+          swipeableRef = ref;
+        }}
         overshootRight={false}
         renderRightActions={() => (
           <View style={styles.swipeActions}>
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeEdit]}
-              onPress={() => openEditModal(item)}
+              onPress={() => {
+                closeSwipe();
+                openEditModal(item);
+              }}
             >
               <Icon name="pencil" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeDelete]}
-              onPress={() => requestDeleteTask(item.id)}
+              onPress={() => {
+                closeSwipe();
+                requestDeleteTask(item.id);
+              }}
             >
               <Icon name="trash" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
