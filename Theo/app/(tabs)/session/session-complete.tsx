@@ -4,6 +4,7 @@ import React from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { getSessionGoal } from "@/state/sessionGoal";
@@ -37,7 +38,11 @@ export default function SessionCompleteScreen() {
             />
           </TouchableOpacity>
 
-          <Text style={styles.label}>Goal:</Text>
+          <SvgStrokeText
+            text="Goal:"
+            stroke={theme.colors.accentDark}
+            textStyle={{ color: theme.colors.accentDark }}
+          ></SvgStrokeText>
 
           <View style={{ width: 22 }} />
         </View>

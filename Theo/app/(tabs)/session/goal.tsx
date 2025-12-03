@@ -18,7 +18,6 @@ import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { Text } from "@/components/ui/Text";
 import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
 import { theme } from "@/design/theme";
 
@@ -92,13 +91,14 @@ export default function GoalScreen() {
 
             <Spacer size="lg" />
 
-            <Text
-              variant="h1"
-              color="accentDark"
-              style={{ alignSelf: "center" }}
-            >
-              Goal:
-            </Text>
+            <SvgStrokeText
+              text="Goal:"
+              stroke={theme.colors.accentDark}
+              textStyle={{
+                color: theme.colors.accentDark,
+              }}
+              containerStyle={{ alignSelf: "center" }}
+            ></SvgStrokeText>
 
             <Spacer size="md" />
 

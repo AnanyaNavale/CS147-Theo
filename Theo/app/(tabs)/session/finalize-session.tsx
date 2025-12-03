@@ -212,9 +212,11 @@ export default function FinalizeSessionScreen() {
 
         {goalText && (
           <View style={styles.goalRow}>
-            <Text variant="h1" style={styles.goalLabel}>
-              Goal:
-            </Text>
+            <SvgStrokeText
+              text="Goal:"
+              stroke={theme.colors.accentDark}
+              textStyle={{ color: theme.colors.accentDark }}
+            ></SvgStrokeText>
             <Text style={styles.goalValue}>{goalText}</Text>
             <Spacer size="md" />
           </View>
