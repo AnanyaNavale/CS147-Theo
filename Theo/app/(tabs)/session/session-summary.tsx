@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   taskText: {
     fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
     marginRight: theme.spacing.sm,
   },
