@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
   },
   smallError: {
-    marginTop: theme.spacing.xxl,
+    marginTop: theme.spacing.xxl + theme.spacing.sm,
   },
   rightAccessory: {
     position: "absolute",

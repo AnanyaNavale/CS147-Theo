@@ -39,6 +39,8 @@ type SessionTask = {
   status: TaskStatus;
 };
 
+const iconSize = 54;
+
 export default function SessionScreen() {
   /* ---------------------------------------------------------
    * GET PASSED-IN GOAL + TASKS
@@ -514,7 +516,9 @@ export default function SessionScreen() {
                     >
                       <Text style={styles.menuLabel}>{opt.label}</Text>
                     </TouchableOpacity>
-                    {idx < arr.length - 1 && <View style={styles.menuDivider} />}
+                    {idx < arr.length - 1 && (
+                      <View style={styles.menuDivider} />
+                    )}
                   </View>
                 ))}
               </View>
@@ -652,12 +656,12 @@ export default function SessionScreen() {
       <View style={styles.row}>
         {!isBreak && currentTask && (
           <Pressable onPress={handlePlayPause}>
-            <Icon name={isRunning ? "pause" : "play"} size={48} />
+            <Icon name={isRunning ? "pause" : "play"} size={iconSize} />
           </Pressable>
         )}
 
         <Pressable onPress={() => setShowStopModal(true)}>
-          <Icon name="stop" size={48} />
+          <Icon name="stop" size={iconSize} />
         </Pressable>
 
         <Pressable
@@ -668,12 +672,12 @@ export default function SessionScreen() {
             })
           }
         >
-          <Icon name="chat" size={48} />
+          <Icon name="chat" size={iconSize} />
         </Pressable>
 
         {!isBreak && currentTask && (
           <Pressable onPress={() => setShowStartBreakConfirm(true)}>
-            <Icon name="break" size={48} />
+            <Icon name="break" size={iconSize} />
           </Pressable>
         )}
       </View>
