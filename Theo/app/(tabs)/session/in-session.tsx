@@ -111,6 +111,7 @@ export default function SessionScreen() {
   const [isRunning, setIsRunning] = useState(hasTasks);
   const [isBreak, setIsBreak] = useState(false);
   const [breakAfterTaskComplete, setBreakAfterTaskComplete] = useState(false);
+  const [workSecondsSinceBreak, setWorkSecondsSinceBreak] = useState(0);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -230,6 +231,7 @@ export default function SessionScreen() {
     if (isRunning && !isBreak && currentTask) {
       intervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => Math.max(prev - 1, 0));
+        setWorkSecondsSinceBreak((prev) => prev + 1);
       }, 1000);
     }
 
@@ -238,6 +240,17 @@ export default function SessionScreen() {
       intervalRef.current = null;
     };
   }, [isRunning, isBreak, currentTask]);
+
+  // Force a short break after 60 minutes of active work time.
+  useEffect(() => {
+    if (!isBreak && isRunning && currentTask && workSecondsSinceBreak >= 3600) {
+      setSavedTime(secondsLeft);
+      setIsBreak(true);
+      setIsRunning(false);
+      setBreakAfterTaskComplete(false);
+      setWorkSecondsSinceBreak(0);
+    }
+  }, [isBreak, isRunning, currentTask, workSecondsSinceBreak, secondsLeft]);
 
   /* FRAME ANIMATION */
   useEffect(() => {
@@ -340,6 +353,7 @@ export default function SessionScreen() {
     setIsBreak(true);
     setIsRunning(false);
     setBreakAfterTaskComplete(false);
+    setWorkSecondsSinceBreak(0);
   };
 
   const handleEndBreak = () => {
@@ -399,6 +413,7 @@ export default function SessionScreen() {
     setIsBreak(true);
     setBreakAfterTaskComplete(true);
     setIsRunning(false);
+    setWorkSecondsSinceBreak(0);
   };
 
   const handleNeedMoreTimeFromComplete = () => {
