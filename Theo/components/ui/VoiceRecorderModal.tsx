@@ -108,10 +108,11 @@ export function VoiceRecorderModal({
 
       let rec: Audio.Recording | null = null;
       try {
-        rec = new RecordingCtor();
-        await rec.prepareToRecordAsync(
+        const createdRecording = new RecordingCtor() as Audio.Recording;
+        await createdRecording.prepareToRecordAsync(
           Audio.RecordingOptionsPresets.HIGH_QUALITY
         );
+        rec = createdRecording;
       } catch (ctorErr) {
         console.warn(
           "Recording constructor failed, trying createAsync fallback",
@@ -184,7 +185,10 @@ export function VoiceRecorderModal({
     }
   };
 
-  const canRecord = useMemo(() => status !== "transcribing" && !submitting, [status, submitting]);
+  const canRecord = useMemo(
+    () => status !== "transcribing" && !submitting,
+    [status, submitting]
+  );
   const showTranscriptBox = transcript.length > 0 || status === "transcribing";
   const primaryLabel = useMemo(() => {
     if (status === "recording") return "Stop recording";
@@ -208,11 +212,20 @@ export function VoiceRecorderModal({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.statusRow}>
-          <View style={[styles.statusPill, status === "recording" ? styles.pillRecording : styles.pillIdle]}>
+          <View
+            style={[
+              styles.statusPill,
+              status === "recording" ? styles.pillRecording : styles.pillIdle,
+            ]}
+          >
             <Icon
               name="mic"
               size={20}
-              tint={status === "recording" ? theme.solidColors.white : theme.colors.text}
+              tint={
+                status === "recording"
+                  ? theme.solidColors.white
+                  : theme.colors.text
+              }
             />
             <Text
               style={[
@@ -246,7 +259,12 @@ export function VoiceRecorderModal({
           <View style={styles.transcriptBox}>
             <View style={styles.transcriptHeader}>
               <Text style={styles.transcriptTitle}>Transcript</Text>
-              {status === "transcribing" && <ActivityIndicator size="small" color={theme.colors.accentDark} />}
+              {status === "transcribing" && (
+                <ActivityIndicator
+                  size="small"
+                  color={theme.colors.accentDark}
+                />
+              )}
             </View>
             <ScrollView style={styles.transcriptScroll}>
               <Text style={styles.transcriptText}>
