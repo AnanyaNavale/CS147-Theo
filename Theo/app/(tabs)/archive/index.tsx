@@ -84,27 +84,23 @@ export default function ArchiveScreen() {
     const fetchMonthSessionsData = async () => {
       setLoading(true);
       try {
-        const userId = authSession?.user?.id; // ✅ use value from top-level hook
-
+        const userId = authSession?.user?.id;
         if (!userId) {
           setMonthSessions({});
           return;
         }
 
-        const data = await fetchSessionDatesForMonth(
+        // 1. Fetch local-day strings from Supabase
+        const sessionDays = await fetchSessionDatesForMonth(
           currentMonth,
           currentYear,
           userId
         );
-        console.log(data);
 
+        // 2. Build marked object
         const marked: Record<string, any> = {};
-
-        data.forEach((utcDateString) => {
-          const localDate = new Date(utcDateString);
-          const day = localDate.toLocaleDateString("en-CA"); 
-          // const day = localDate.toISOString().slice(0, 10); // OR format using local time
-          marked[day] = {
+        sessionDays.forEach((localDay) => {
+          marked[localDay] = {
             customStyles: {
               container: {
                 borderColor: colors.light.markedDates,
@@ -121,6 +117,7 @@ export default function ArchiveScreen() {
           };
         });
 
+        // 3. Set state
         setMonthSessions(marked);
       } catch (error) {
         console.error("Error fetching month sessions:", error);
