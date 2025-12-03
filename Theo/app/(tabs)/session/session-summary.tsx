@@ -10,6 +10,8 @@ import { PawLoader } from "@/components/ui/PawLoader";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 
 type SessionTask = {
   id: string;
@@ -85,7 +87,7 @@ export default function SessionSummaryScreen() {
     normalizedStatusParam === "completed" ||
     (!normalizedStatusParam && !sessionSkipped);
   const statusLabel =
-    sessionSkipped || !sessionEnded ? "Not completed" : "Complete";
+    sessionSkipped || !sessionEnded ? "Incomplete" : "Complete";
 
   const handleBackHome = () => {
     setShowLoader(true);
@@ -109,18 +111,21 @@ export default function SessionSummaryScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Spacer size="lg" />
         <View style={styles.centered}>
-          <SvgStrokeText
-            text="Session summary"
-            stroke={theme.colors.accentDark}
-            textStyle={[styles.title, { color: theme.colors.accentDark }]}
-          ></SvgStrokeText>
+          <SvgStrokeText text="Session Summary" />
         </View>
         <Spacer size="lg" />
 
-        <View style={styles.row}>
-          <Text style={styles.label}>Goal:</Text>
-          <Text style={styles.value}>{goalText}</Text>
-        </View>
+        {/* <View style={styles.row}>
+          <Text style={styles.label}>Date Created:</Text>
+          <Text style={styles.value}>{dateCreated}</Text>
+        </View> */}
+
+        {goal && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Goal:</Text>
+            <Text style={styles.value}>{goalText}</Text>
+          </View>
+        )}
 
         <View style={styles.row}>
           <Text style={styles.label}>Status:</Text>
@@ -144,37 +149,39 @@ export default function SessionSummaryScreen() {
 
         <Spacer size="lg" />
 
-        <Text style={styles.sectionHeading}>Breakdown:</Text>
+        <View style={{ margin: theme.spacing.xs }}>
+          <Text style={styles.sectionHeading}>Breakdown:</Text>
 
-        <Spacer size="sm" />
+          <Spacer size="sm" />
 
-        <View style={styles.breakdownList}>
-          {parsedTasks.map((task, index) => (
-            <View key={task.id ?? index} style={styles.taskRow}>
-              <Checkbox
-                checked
-                onChange={() => {}}
-                boxStyle={styles.checkBox}
-                containerStyle={styles.checkboxContainer}
-              />
-              <View style={styles.taskTextWrap}>
-                <Text style={styles.taskText}>
-                  {index + 1}. {task.text}
-                </Text>
-                <Text style={styles.taskMinutes}>({task.minutes} min.)</Text>
+          <View style={styles.breakdownList}>
+            {parsedTasks.map((task, index) => (
+              <View key={task.id ?? index} style={styles.taskRow}>
+                <Checkbox
+                  checked
+                  onChange={() => {}}
+                  boxStyle={styles.checkBox}
+                  containerStyle={styles.checkboxContainer}
+                />
+                <View style={styles.taskTextWrap}>
+                  <Text style={styles.taskText}>
+                    {index + 1}. {task.text}
+                  </Text>
+                  <Text style={styles.taskMinutes}>({task.minutes} min.)</Text>
+                </View>
               </View>
-            </View>
-          ))}
-          {parsedTasks.length === 0 && (
-            <Text style={styles.value}>No tasks recorded.</Text>
-          )}
+            ))}
+            {parsedTasks.length === 0 && (
+              <Text style={styles.value}>No tasks recorded.</Text>
+            )}
+          </View>
         </View>
 
         <Spacer size="lg" />
 
         <Spacer size="xl" />
       </ScrollView>
-      <ArrowAction label="Back home" onPress={handleBackHome} />
+      <ArrowAction label="Return to Home" onPress={handleBackHome} />
     </SafeAreaView>
   );
 }
@@ -206,12 +213,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    marginBottom: theme.spacing.xs,
+    margin: theme.spacing.xs,
   },
   label: {
     fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.lg,
     color: theme.colors.text,
+    marginRight: 5,
   },
   value: {
     fontFamily: theme.typography.families.regular,
@@ -219,10 +227,12 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   statusValue: {
-    color: theme.colors.accent,
+    color: colors.light.secondary,
+    fontFamily: fonts.typeface.bodyBold,
   },
   statusValueSkipped: {
-    color: theme.colors.danger,
+    color: colors.light.primary,
+    fontFamily: fonts.typeface.bodyBold,
   },
   sectionHeading: {
     fontFamily: theme.typography.families.handwritten,
@@ -236,19 +246,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: theme.spacing.sm,
+    marginLeft: theme.spacing.md,
   },
   taskTextWrap: {
     flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-end",
   },
   taskText: {
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+    marginRight: theme.spacing.sm,
   },
   taskMinutes: {
     fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.accentDark,
   },
   checkboxContainer: {
     paddingVertical: 0,

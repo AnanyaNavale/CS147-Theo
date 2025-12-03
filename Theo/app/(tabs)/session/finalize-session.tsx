@@ -16,7 +16,7 @@ import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { createPlan } from "@/lib/supabase";
+import { createPlan, createSession, createTask, CreateTaskPayload } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 const teddy = require("@/assets/theo/waving.png");
@@ -38,6 +38,11 @@ export default function FinalizeSessionScreen() {
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
   const teddySize = isCompact ? 180 : 220;
+
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
 
   const parsedTasks: Task[] = useMemo(() => {
     if (!tasks) return [];
@@ -66,6 +71,14 @@ export default function FinalizeSessionScreen() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
+  // NOT USING
+  // const [showSettings, setShowSettings] = useState(false);
+  // const [reflection, setReflection] = useState(false);
+  // const [collab, setCollab] = useState(false);
+  // const [friendsOnly, setFriendsOnly] = useState(false);
+  // const [saveDefault, setSaveDefault] = useState(false);
+
+  // const handleSelectSettings = () => setShowSettings(true);
 
   const handleSavePlan = async () => {
     if (savingPlan) return;
@@ -91,7 +104,7 @@ export default function FinalizeSessionScreen() {
       );
 
       // Title can be anything you want; for now, we can default it
-      const title = hasGoal ? goal! : undefined;
+      const title = hasGoal ? goal! : "Plan";
 
       // Call your createPlan function with the authenticated user id
       const newPlan = await createPlan(
@@ -114,33 +127,78 @@ export default function FinalizeSessionScreen() {
     }
   };
 
-  const handleStartSession = () => {
-    setShowStartConfirm(true);
-  };
+  const totalTime = parsedTasks.reduce((sum, t) => sum + t.minutes, 0);
 
-  const confirmStartSession = () => {
-    setShowStartConfirm(false);
-    router.push({
-      pathname: "./in-session",
-      params: {
-        goal: goalText,
-        tasks: JSON.stringify(parsedTasks),
-        sessionId: sessionId ?? null,
-      },
-    });
+  const handleStartSession = async () => {
+    console.log("handleStartSession called");
+    if (!session?.user) {
+      console.error("No authenticated user");
+      return;
+    }
+
+    try {
+      // 1. CREATE THE SESSION
+      const hasGoal = Boolean(goalText && goalText.trim());
+      const hasTasks = parsedTasks.length > 0;
+
+      const newSession = await createSession(
+        session.user.id,
+        hasGoal,
+        goalText || null,
+        hasTasks,
+        totalTime, 
+      );
+
+      console.log("📌 newSession:", newSession);
+      const newSessionId = newSession.id;
+
+      // 2. CREATE TASK ROWS (ordered)
+      if (parsedTasks.length > 0) {
+        for (let i = 0; i < parsedTasks.length; i++) {
+          const t = parsedTasks[i];
+
+          const payload: CreateTaskPayload = {
+            session_id: newSessionId,
+            task_name: t.text,
+            order_index: i + 1,
+            time_allotted: t.minutes,
+            is_completed: false,
+          };
+
+          await createTask(payload);
+        }
+      }
+
+      console.log("Tasks entered");
+
+      // 3. NAVIGATE TO IN-SESSION SCREEN
+      router.push({
+        pathname: "./in-session",
+        params: {
+          goal: goalText,
+          tasks: JSON.stringify(parsedTasks),
+          sessionId: newSessionId,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to start session:", err);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.content}>
         <View style={styles.headerRow}>
           <StepProgressIndicator
             steps={["Setup", "Customize", "Finalize"]}
             activeCount={3}
             onPressMenu={() => {}}
+            helpMessagept1={
+              "You're almost there!\n\nHere, you may select whether you would like to start working on your prepared plan in a session or save it for another time in your archive.\n"
+            }
+            helpMessagept2={
+              "Starting your session will launch you into the session space. Saving will redirect you to your archive to view your stored plan."
+            }
           />
         </View>
 
@@ -168,7 +226,7 @@ export default function FinalizeSessionScreen() {
         <Spacer size="xl" />
         <BasicButton
           text="Start session"
-          onPress={handleStartSession}
+          onPress={() => setShowStartModal(true)}
           style={styles.button}
         />
 
@@ -218,24 +276,25 @@ export default function FinalizeSessionScreen() {
           />
         )}
 
-        <AppModal
-          visible={showStartConfirm}
-          onClose={() => setShowStartConfirm(false)}
-          variant="alert"
-          title="Start this session?"
-          message={sessionSummary}
-          confirmLabel="Start"
-          cancelLabel="Cancel"
-          onConfirm={confirmStartSession}
-          confirmVariant="gold"
-        />
-      </ScrollView>
+        {showStartModal && (
+          <AppModal
+            visible={showStartModal}
+            onClose={() => setShowStartModal(false)}
+            variant="alert"
+            showClose={false}
+            title="Start session?"
+            message="Do you want to start this session now?"
+            confirmLabel="Yes"
+            confirmVariant="brown"
+            onConfirm={handleStartSession}
+          />
+        )}
+      </View>
 
       <Image
         source={teddy}
         style={[styles.teddy, { width: teddySize, height: teddySize }]}
       />
-      {/* <ArrowAction label={"Start"} onPress={handleStartSession} /> */}
     </SafeAreaView>
   );
 }

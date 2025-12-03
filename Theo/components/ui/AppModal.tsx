@@ -101,21 +101,23 @@ export function AppModal({
       {variant === "custom" && (
         <View style={styles.centerLayout}>
           <View style={styles.customCard}>
-            {showClose && (
-              <TouchableOpacity
-                onPress={onClose}
-                style={styles.closeBtnFloating}
-              >
-                <Icon name="x"></Icon>
-              </TouchableOpacity>
-            )}
-
-            {title && (
-              <SvgStrokeText
-                text={title}
-                containerStyle={{ alignSelf: "center" }}
-              />
-            )}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {title && <SvgStrokeText text={title} />}
+              {showClose && (
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.closeBtnFloating}
+                >
+                  <Icon name="x"></Icon>
+                </TouchableOpacity>
+              )}
+            </View>
             {message && <Text style={styles.message}>{message}</Text>}
 
             <View style={styles.customContent}>{children}</View>
@@ -134,11 +136,11 @@ export function AppModal({
             style={styles.bottomSheetAvoider}
           >
             <View style={[styles.bottomSheet, { minHeight: height }]}>
+              {title && <Text style={styles.sheetTitle}>{title}</Text>}
+
               <TouchableOpacity onPress={onClose} style={styles.closeBtnSheet}>
                 <Icon name="x" size={34}></Icon>
               </TouchableOpacity>
-
-              {title && <Text style={styles.sheetTitle}>{title}</Text>}
 
               <View>{children}</View>
             </View>
@@ -166,7 +168,7 @@ const styles = StyleSheet.create({
   alertCard: {
     width: "80%",
     backgroundColor: theme.modal.cardBg,
-    padding: theme.spacing.xl,
+    padding: theme.spacing.lg,
     borderRadius: theme.modal.radius,
     borderWidth: theme.modal.borderWidth,
     borderColor: theme.modal.borderColor,
@@ -205,20 +207,12 @@ const styles = StyleSheet.create({
     borderRadius: theme.modal.radius,
     borderWidth: theme.modal.borderWidth,
     borderColor: theme.modal.borderColor,
-    padding: theme.spacing.xl,
-    paddingTop: theme.spacing.xxl,
+    padding: theme.spacing.lg,
   },
 
   closeBtnFloating: {
     position: "absolute",
-    top: 14,
-    left: 14,
-  },
-
-  closeIcon: {
-    //fontFamily: theme.typography.families.handwritten,
-    fontSize: 32,
-    color: theme.colors.accentDark,
+    right: 10,
   },
 
   customContent: {
@@ -255,7 +249,7 @@ const styles = StyleSheet.create({
   closeBtnSheet: {
     position: "absolute",
     top: theme.spacing.lg,
-    left: theme.spacing.md,
+    right: theme.spacing.lg,
     zIndex: 20,
   },
 

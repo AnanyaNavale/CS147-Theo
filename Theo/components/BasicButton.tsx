@@ -5,7 +5,8 @@ import { theme } from "@/design/theme";
 import React from "react";
 import {
   DimensionValue,
-  Pressable,
+  TouchableOpacity,
+  Text,
   StyleSheet,
   Text,
   TextStyle,
@@ -25,7 +26,7 @@ export type BasicButtonProps = {
   iconName?: IconName;
   iconSize?: number;
   iconTint?: string;
-} & React.ComponentProps<typeof Pressable>;
+} & React.ComponentProps<typeof TouchableOpacity>;
 
 export const BasicButton = React.forwardRef<View, BasicButtonProps>(
   (
@@ -69,7 +70,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
     const { backgroundColor: bg, shadowColor: sc } = getColors(variant);
 
     return (
-      <Pressable
+      <TouchableOpacity
         ref={ref}
         style={[
           styles.base,
@@ -92,7 +93,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
           />
         )}
         <Text style={[styles.text, textStyle]}>{text}</Text>
-      </Pressable>
+      </TouchableOpacity>
     );
   }
 );

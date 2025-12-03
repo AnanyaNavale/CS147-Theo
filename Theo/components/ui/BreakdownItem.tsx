@@ -20,7 +20,7 @@ export function BreakdownItem({ minutes, text, onDelete }: BreakdownItemProps) {
       <View style={styles.taskBox}>
         <Text style={styles.taskText}>{text}</Text>
         <TouchableOpacity onPress={onDelete} style={styles.grip}>
-          <Icon name="trash" size={24} tint={theme.colors.border} />
+          <Icon name="drag" size={24} tint={theme.colors.border} />
         </TouchableOpacity>
       </View>
     </View>
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 
   grip: {
     position: "absolute",
-    right: theme.spacing.sm,
+    right: theme.spacing.xs,
     top: 0,
     bottom: 0,
     justifyContent: "center",
