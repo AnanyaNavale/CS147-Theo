@@ -37,9 +37,11 @@ export default function SingleDayScreen() {
   // Parse the string into a Date
   const currentDate = new Date(year, month - 1, day); // works if date is "YYYY-MM-DD"
 
-  const previousDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+  const previousDate = new Date(currentDate);
+  previousDate.setDate(currentDate.getDate() - 1);
 
-  const nextDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
+  const nextDate = new Date(currentDate);
+  nextDate.setDate(currentDate.getDate() + 1);
 
   const displayDate = new Date(year, month - 1, day).toLocaleDateString(
     "en-US",
@@ -108,15 +110,16 @@ export default function SingleDayScreen() {
           />
         </TouchableOpacity>
         <View style={styles.dateContainer}>
-          <SvgStrokeText text={displayDate} textStyle={{ fontSize: fonts.sizes.header2 }} />
+          <SvgStrokeText
+            text={displayDate}
+            textStyle={{ fontSize: fonts.sizes.header2 }}
+          />
         </View>
       </View>
 
       <View style={styles.shadowBottom} />
 
-      <View
-        style={styles.topContentWrapper}
-      >
+      <View style={styles.topContentWrapper}>
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
@@ -183,8 +186,7 @@ export default function SingleDayScreen() {
           onPress={() =>
             router.push({
               pathname: "/(tabs)/archive/[date]",
-              params: { date: previousDate.toISOString().split("T")[0] }, // "YYYY-MM-DD"
-              // animation: "slide_from_left",
+              params: { date: previousDate.toISOString().split("T")[0] }, // correct local day
             })
           }
         >
@@ -200,7 +202,7 @@ export default function SingleDayScreen() {
           onPress={() =>
             router.push({
               pathname: "/(tabs)/archive/[date]",
-              params: { date: nextDate.toISOString().split("T")[0] }, // "YYYY-MM-DD"
+              params: { date: nextDate.toISOString().split("T")[0] }, // correct local day
             })
           }
         >
