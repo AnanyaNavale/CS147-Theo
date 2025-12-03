@@ -94,7 +94,7 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
               name="alert-circle"
               color={colors.light.error}
               size={16}
-              style={{ marginLeft: 6 }}
+              style={[{ marginLeft: 6 }, small && styles.smallErrorIcon]}
             />
           </View>
         )}
@@ -181,7 +181,6 @@ const styles = StyleSheet.create({
   },
 
   errorRow: {
-    borderColor: "blue",
     flexDirection: "row",
     alignSelf: "flex-end",
     justifyContent: "flex-start",
@@ -191,7 +190,10 @@ const styles = StyleSheet.create({
   smallError: {
     marginTop: theme.spacing.xxl + theme.spacing.sm,
   },
-
+  smallErrorIcon: {
+    //position: "absolute",
+    marginTop: theme.spacing.xxl + theme.spacing.sm + 3,
+  },
   rightAccessory: {
     position: "absolute",
     right: theme.spacing.md,

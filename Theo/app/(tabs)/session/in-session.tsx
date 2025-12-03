@@ -1059,7 +1059,7 @@ export default function SessionScreen() {
               setNewTaskMinutesError("");
             }
           }}
-          placeholder="00 : 00"
+          placeholder="30"
           row
           error={newTaskMinutesError}
         />
@@ -1070,7 +1070,7 @@ export default function SessionScreen() {
           keyboardType="numeric"
           value={newTaskOrder}
           onChangeText={handleAddTaskOrderChange}
-          placeholder="e.g. 2"
+          placeholder="2"
           row
           small
           error={newTaskOrderError}
