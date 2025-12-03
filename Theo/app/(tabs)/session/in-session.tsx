@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Image,
+  Modal,
   Pressable,
   StyleSheet,
   TouchableOpacity,
@@ -439,78 +440,88 @@ export default function SessionScreen() {
 
   return (
     <View style={styles.container}>
-      {menuOpen && (
-        <Pressable
-          style={styles.menuOverlay}
-          onPress={() => setMenuOpen(false)}
-        />
-      )}
       {/* MENU */}
       <View style={styles.menuAnchor}>
         <TouchableOpacity onPress={toggleMenu} hitSlop={12}>
           <Icon name="more-vertical" size={24} tint={theme.colors.accentDark} />
         </TouchableOpacity>
-
-        {menuOpen && (
-          <View style={styles.menuCard}>
-            {(currentTask
-              ? [
-                  {
-                    label: "Mark task done",
-                    onPress: () => setShowCompleteModal(true),
-                  },
-                  {
-                    label: "Add time to task",
-                    onPress: () => {
-                      setNewTime("");
-                      setNewTimeError("");
-                      setShowAddTimeModal(true);
-                    },
-                  },
-                  {
-                    label: "Skip task",
-                    onPress: () => setShowSkipConfirm(true),
-                  },
-                  {
-                    label: "Rename task",
-                    onPress: () => {
-                      setEditedTaskName(currentTask.name);
-                      setShowEditTaskModal(true);
-                    },
-                  },
-                  {
-                    label: "View progress",
-                    onPress: () => setShowProgressModal(true),
-                  },
-                  {
-                    label: "End session",
-                    onPress: () => setShowStopModal(true),
-                  },
-                ]
-              : [
-                  {
-                    label: "View progress",
-                    onPress: () => setShowProgressModal(true),
-                  },
-                ]
-            ).map((opt, idx, arr) => (
-              <View key={opt.label}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setMenuOpen(false);
-                    opt.onPress();
-                  }}
-                  style={styles.menuItem}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.menuLabel}>{opt.label}</Text>
-                </TouchableOpacity>
-                {idx < arr.length - 1 && <View style={styles.menuDivider} />}
-              </View>
-            ))}
-          </View>
-        )}
       </View>
+
+      {menuOpen && (
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          onRequestClose={() => setMenuOpen(false)}
+        >
+          <View style={StyleSheet.absoluteFillObject}>
+            <Pressable
+              style={styles.menuOverlay}
+              onPress={() => setMenuOpen(false)}
+            />
+
+            <View style={styles.menuAnchor}>
+              <View style={styles.menuCard}>
+                {(currentTask
+                  ? [
+                      {
+                        label: "Mark task done",
+                        onPress: () => setShowCompleteModal(true),
+                      },
+                      {
+                        label: "Add time to task",
+                        onPress: () => {
+                          setNewTime("");
+                          setNewTimeError("");
+                          setShowAddTimeModal(true);
+                        },
+                      },
+                      {
+                        label: "Skip task",
+                        onPress: () => setShowSkipConfirm(true),
+                      },
+                      {
+                        label: "Rename task",
+                        onPress: () => {
+                          setEditedTaskName(currentTask.name);
+                          setShowEditTaskModal(true);
+                        },
+                      },
+                      {
+                        label: "View progress",
+                        onPress: () => setShowProgressModal(true),
+                      },
+                      {
+                        label: "End session",
+                        onPress: () => setShowStopModal(true),
+                      },
+                    ]
+                  : [
+                      {
+                        label: "View progress",
+                        onPress: () => setShowProgressModal(true),
+                      },
+                    ]
+                ).map((opt, idx, arr) => (
+                  <View key={opt.label}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setMenuOpen(false);
+                        opt.onPress();
+                      }}
+                      style={styles.menuItem}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.menuLabel}>{opt.label}</Text>
+                    </TouchableOpacity>
+                    {idx < arr.length - 1 && <View style={styles.menuDivider} />}
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
 
       {/* GOAL + TASK */}
       <Animated.View

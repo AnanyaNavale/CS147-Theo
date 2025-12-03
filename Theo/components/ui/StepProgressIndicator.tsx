@@ -1,14 +1,21 @@
 import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 
 import { colors } from "@/assets/themes/colors";
-import { AppModal, Button } from "@/components";
+import { fonts } from "@/assets/themes/typography";
+import { AppModal } from "@/components";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { fonts } from "@/assets/themes/typography";
 // import { Button } from "react-native/Libraries/Components/Button";
 
 type StepProgressIndicatorProps = {
@@ -78,117 +85,124 @@ export function StepProgressIndicator({
   };
 
   return (
-    <View style={[styles.container, style]}>
-      {menuOpen && (
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          onPress={() => setMenuOpen(false)}
-          activeOpacity={1}
-        />
-      )}
+    <>
+      <View style={[styles.container, style]}>
+        <View style={styles.iconSlot}>
+          {firstPage ? (
+            <TouchableOpacity
+              onPress={handleBack}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <Icon name="x" size={36} tint={colors.light.iconsStandalone} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={handleBack}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <Icon
+                name="arrow-left"
+                size={36}
+                tint={colors.light.iconsStandalone}
+              />
+            </TouchableOpacity>
+            // <View style={{ width: iconSize, height: iconSize }} />
+          )}
+        </View>
 
-      <View style={styles.iconSlot}>
-        {firstPage ? (
-          <TouchableOpacity
-            onPress={handleBack}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Icon name="x" size={36} tint={colors.light.iconsStandalone} />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={handleBack}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Icon
-              name="arrow-left"
-              size={36}
-              tint={colors.light.iconsStandalone}
-            />
-          </TouchableOpacity>
-          // <View style={{ width: iconSize, height: iconSize }} />
-        )}
-      </View>
+        <View style={styles.progressArea}>
+          <View style={styles.trackRow}>
+            {steps.map((label, index) => {
+              const isActive = index < activeCount;
+              const isLast = index === steps.length - 1;
+              const isFirst = index === 0;
 
-      <View style={styles.progressArea}>
-        <View style={styles.trackRow}>
-          {steps.map((label, index) => {
-            const isActive = index < activeCount;
-            const isLast = index === steps.length - 1;
-            const isFirst = index === 0;
+              return (
+                <View key={`${label}-track`} style={styles.stepWrapper}>
+                  {!isFirst && (
+                    <View style={[styles.halfLine, styles.lineLeft]} />
+                  )}
+                  {!isLast && (
+                    <View style={[styles.halfLine, styles.lineRight]} />
+                  )}
 
-            return (
-              <View key={`${label}-track`} style={styles.stepWrapper}>
-                {!isFirst && (
-                  <View style={[styles.halfLine, styles.lineLeft]} />
-                )}
-                {!isLast && (
-                  <View style={[styles.halfLine, styles.lineRight]} />
-                )}
+                  <View
+                    style={[
+                      styles.stepDot,
+                      isActive ? styles.stepDotActive : null,
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.stepLabel,
+                      !isActive ? styles.stepLabelInactive : null,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
 
-                <View
-                  style={[
-                    styles.stepDot,
-                    isActive ? styles.stepDotActive : null,
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.stepLabel,
-                    !isActive ? styles.stepLabelInactive : null,
-                  ]}
-                >
-                  {label}
-                </Text>
-              </View>
-            );
-          })}
+        <View style={styles.iconSlot}>
+          {showMenuIcon ? (
+            <TouchableOpacity
+              onPress={toggleMenu}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Menu"
+            >
+              <Icon
+                name="more-vertical"
+                size={36}
+                tint={colors.light.iconsStandalone}
+              />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: iconSize, height: iconSize }} />
+          )}
         </View>
       </View>
 
-      <View style={styles.iconSlot}>
-        {showMenuIcon ? (
-          <TouchableOpacity
-            onPress={toggleMenu}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Menu"
-          >
-            <Icon
-              name="more-vertical"
-              size={36}
-              tint={colors.light.iconsStandalone}
-            />
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: iconSize, height: iconSize }} />
-        )}
-      </View>
-
       {menuOpen && (
-        <View style={styles.menuCard}>
-          <MenuItem
-            label="Exit setup"
-            icon="exit"
-            onPress={handleMenuAction(() => setShowExitConfirm(true))}
-          />
-          <View style={styles.menuDivider} />
-          <MenuItem
-            label="Help"
-            icon="help"
-            onPress={handleMenuAction(() => setShowHelpModal(true))}
-          />
-          <View style={styles.menuDivider} />
-          <MenuItem
-            label="Report a problem   "
-            icon="report"
-            onPress={handleMenuAction(() => setShowReportModal(true))}
-          />
-        </View>
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          onRequestClose={() => setMenuOpen(false)}
+        >
+          <View style={StyleSheet.absoluteFillObject}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => setMenuOpen(false)}
+            />
+            <View style={styles.menuCard}>
+              <MenuItem
+                label="Exit setup"
+                icon="exit"
+                onPress={handleMenuAction(() => setShowExitConfirm(true))}
+              />
+              <View style={styles.menuDivider} />
+              <MenuItem
+                label="Help"
+                icon="help"
+                onPress={handleMenuAction(() => setShowHelpModal(true))}
+              />
+              <View style={styles.menuDivider} />
+              <MenuItem
+                label="Report a problem   "
+                icon="report"
+                onPress={handleMenuAction(() => setShowReportModal(true))}
+              />
+            </View>
+          </View>
+        </Modal>
       )}
 
       {/* Exit confirmation */}
@@ -228,7 +242,7 @@ export function StepProgressIndicator({
           Reporting will be available shortly.
         </Text>
       </AppModal>
-    </View>
+    </>
   );
 }
 
@@ -323,7 +337,7 @@ const styles = StyleSheet.create({
 
   menuCard: {
     position: "absolute",
-    top: theme.spacing.xxl,
+    top: theme.spacing.xxl * 2 + theme.spacing.lg, // offset so the menu sits lower than the icon
     right: theme.spacing.md,
     backgroundColor: theme.colors.accentDark,
     borderRadius: theme.radii.lg,
