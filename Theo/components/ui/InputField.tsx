@@ -12,6 +12,8 @@ import {
   ViewStyle,
 } from "react-native";
 import { theme } from "../../design/theme";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { colors } from "@/assets/themes/colors";
 
 export type InputFieldProps = {
   label?: string;
@@ -82,9 +84,15 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
         </View>
 
         {error && (
-          <Text style={[styles.error, errorStyle, small && styles.smallError]}>
-            {error}
-          </Text>
+          <View style={styles.errorRow}>
+            <Text style={[styles.error, errorStyle, small && styles.smallError]}>{error}</Text>
+            <MaterialCommunityIcons
+              name="alert-circle"
+              color={colors.light.error}
+              size={16}
+              style={{ marginLeft: 6 }}
+            />
+          </View>
         )}
       </View>
     );
@@ -94,7 +102,7 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    marginBottom: theme.spacing.md + 2,
+    paddingBottom: 20,
     position: "relative",
   },
 
@@ -163,15 +171,23 @@ const styles = StyleSheet.create({
   },
 
   error: {
-    position: "absolute",
-    marginTop: theme.spacing.xxl + theme.spacing.lg,
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.danger,
     fontFamily: theme.typography.families.regular,
   },
+
+  errorRow: {
+    borderColor: "blue",
+    flexDirection: "row",
+    alignSelf: "flex-end",
+    justifyContent: "flex-start",
+    position: "absolute",
+  },
+
   smallError: {
     marginTop: theme.spacing.xxl + theme.spacing.sm,
   },
+
   rightAccessory: {
     position: "absolute",
     right: theme.spacing.md,

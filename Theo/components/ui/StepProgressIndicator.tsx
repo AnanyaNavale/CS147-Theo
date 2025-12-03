@@ -211,7 +211,7 @@ export function StepProgressIndicator({
         onClose={() => setShowExitConfirm(false)}
         variant="alert"
         title="Exit setup?"
-        message="This will leave the setup flow and return you home."
+        message={"This will exit the setup flow and take you back to home."}
         confirmLabel="Exit"
         cancelLabel="Cancel"
         onConfirm={() => {

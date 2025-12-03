@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
 import { fetchSessionsForDaySorted } from "@/lib/supabase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface SessionBoxProps {
   title: string;
@@ -24,7 +25,13 @@ export default function SessionBox({ title, time, status, onPress }: SessionBoxP
       onPress={onPress}
     >
       <View style={[styles.timeContainer, getTimeStyle(status)]}>
-        <Text style={styles.time}>{timeDisplay}</Text>
+        {timeDisplay !== "0 min." ? (<Text style={styles.time}>{timeDisplay}</Text>) 
+        : 
+        (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "transparent" }}>
+            <MaterialCommunityIcons name="clock-plus-outline" size={36} color={"white"}/>
+          </View>
+        )}
       </View>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{title}</Text>
@@ -72,6 +79,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
+    overflow: 'hidden',
   },
   containerSession: {
     borderColor: "#B28F6D",
@@ -103,14 +111,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#CF9841",
   },
   titleContainer: {
+    flex: 1,
+    flexShrink: 1,
     padding: 10,
     backgroundColor: "white",
+
   },
   title: {
     fontSize: 16,
     fontFamily: "Raleway-Regular",
-    color: 'black',
-    // fontWeight: "bold",
+    color: "black",
+    width: "100%",
+    flexWrap: "wrap",
   },
   time: {
     fontSize: 16,

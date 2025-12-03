@@ -17,24 +17,25 @@ import { theme } from "@/design/theme";
 const teddy = require("../../../assets/theo/done.png");
 
 export default function EndSessionScreen() {
-  const { goal, tasks, sessionId } = useLocalSearchParams<{
-    goal?: string;
-    tasks?: string;
-    sessionId?: string | null;
-  }>();
+  const { goal, tasks, sessionId } = useLocalSearchParams();
   const sessionIdParam = Array.isArray(sessionId) ? sessionId[0] : sessionId;
   const sessionIdValue =
     sessionIdParam && sessionIdParam !== "null" ? sessionIdParam : null;
   const goalText = goal ?? "";
   const parsedTasks = useMemo(() => {
     if (!tasks) return [];
+
+    // Handle string arrays
+    const tasksString = Array.isArray(tasks) ? tasks[0] : tasks;
+
     try {
-      const data = JSON.parse(tasks);
+      const data = JSON.parse(tasksString);
       return Array.isArray(data) ? data : [];
     } catch {
       return [];
     }
   }, [tasks]);
+
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
   const teddySize = isCompact ? 200 : 260;
@@ -73,7 +74,7 @@ export default function EndSessionScreen() {
           ) : (
             <>
               <SvgStrokeText
-                text="Work session"
+                text="Session Complete"
                 stroke={theme.colors.accentDark}
                 textStyle={{ color: theme.colors.accentDark }}
               ></SvgStrokeText>
@@ -89,7 +90,7 @@ export default function EndSessionScreen() {
           <Spacer size="lg" />
           <Text style={styles.note}>Give yourself a pat on the back.</Text>
         </View>
-        <Spacer size="lg" />
+        <Spacer size="sm" />
 
         <Image
           source={teddy}

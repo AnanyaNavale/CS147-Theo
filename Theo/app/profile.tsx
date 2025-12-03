@@ -24,6 +24,7 @@ import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { fonts } from "@/assets/themes/typography";
 import { ensureUserProfile, fetchUserProfile, supabase } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
@@ -218,7 +219,23 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Container padded={false} style={styles.safe}>
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+        >
+          <Feather name={"arrow-left"} size={36} color="#8A5E3C" />
+        </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <SvgStrokeText
+            text={displayName + "'s Profile"}
+            stroke="black"
+            strokeWidth={0.3}
+            textStyle={{ fontSize: fonts.sizes.header2 }}
+          />
+        </View>
+      </View>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -227,16 +244,6 @@ export default function ProfileScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Icon name="arrow-left" size={36} />
-            </TouchableOpacity>
-            <SvgStrokeText text="Profile" />
-            <View style={{ width: 28 }} />
-          </View>
-
-          <Spacer size="lg" />
-
           <View style={styles.avatarRow}>
             <TouchableOpacity
               onPress={pickAndUploadAvatar}
@@ -273,7 +280,6 @@ export default function ProfileScreen() {
             editable={!loading && !saving}
             containerStyle={styles.inputContainer}
           />
-
           <InputField
             label="Email"
             placeholder="Email"
@@ -320,7 +326,9 @@ export default function ProfileScreen() {
               {loggingOut ? "Logging out..." : "Log out"}
             </Text>
           </TouchableOpacity>
+
         </ScrollView>
+
       </KeyboardAvoidingView>
 
       <AppModal
@@ -348,17 +356,22 @@ export default function ProfileScreen() {
           </View>
         </View>
       )}
-    </Container>
+
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
+  container: { 
+    flex: 1, 
+    padding: 16, 
     backgroundColor: theme.colors.background,
   },
   scroll: {
     flexGrow: 1,
+    padding: 16,
+    // borderWidth: 1,
+    borderColor: 'red',
     paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
@@ -376,6 +389,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.sm,
     alignSelf: "center",
     marginTop: theme.spacing.xs,
+    // borderWidth: 1,
   },
   bannerText: {
     //color: theme.solidColors.white,
@@ -390,9 +404,18 @@ const styles = StyleSheet.create({
     //alignSelf: "center",
     width: "100%",
   },
-  headerRow: {
+  headerContainer: {
+    width: "100%",
     flexDirection: "row",
+    marginTop: 55,
+    // paddingHorizontal: 16,
+  },
+  titleContainer: {
     alignItems: "center",
+    position: "absolute",
+    paddingTop: 2,
+    left: 0,
+    right: 0,
     justifyContent: "space-between",
     marginBottom: theme.spacing.lg,
   },

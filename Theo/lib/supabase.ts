@@ -360,38 +360,34 @@ export async function fetchSessionDatesForMonth(
   year: number,
   userId: string
 ): Promise<string[]> {
-  // Start of month in UTC
-  const startDate = new Date(
-    Date.UTC(year, month - 1, 1, 0, 0, 0, 0)
-  ).toISOString();
-  // End of month in UTC
-  const endDate = new Date(
-    Date.UTC(year, month, 0, 23, 59, 59, 999)
-  ).toISOString();
+  // 1. Month boundaries in LOCAL TIME
+  const startLocal = new Date(year, month - 1, 1, 0, 0, 0, 0);
+  const endLocal = new Date(year, month, 0, 23, 59, 59, 999);
+
+  // 2. Convert to UTC ISO for Supabase
+  const startDate = startLocal.toISOString();
+  const endDate = endLocal.toISOString();
 
   const { data, error } = await supabase
     .from("sessions")
-    .select("created_at", { count: "exact" })
+    .select("created_at")
     .eq("user_id", userId)
     .gte("created_at", startDate)
     .lte("created_at", endDate)
     .order("created_at", { ascending: true });
 
-  if (error) {
-    throw new Error(`Failed to fetch session dates: ${error.message}`);
-  }
-
+  if (error) throw new Error(`Failed to fetch session dates: ${error.message}`);
   if (!data) return [];
 
-  // Extract unique dates in UTC
+  // 3. Convert each timestamp to LOCAL day string (yyyy-mm-dd)
   const uniqueDates = Array.from(
     new Set(
       data.map((row) => {
         const d = new Date(row.created_at);
-        const yyyy = d.getUTCFullYear();
-        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-        const dd = String(d.getUTCDate()).padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}`;
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`; // local day
       })
     )
   );
@@ -400,19 +396,25 @@ export async function fetchSessionDatesForMonth(
 }
 
 export async function fetchSessionsForDaySorted(
-  date: string,
+  date: string, // "YYYY-MM-DD"
   userId: string
 ) {
-  const startDate = new Date(`${date}T00:00:00.000Z`).toISOString();
-  const endDate = new Date(`${date}T23:59:59.999Z`).toISOString();
+  // Parse local date start and end
+  const [year, month, day] = date.split("-").map(Number);
+
+  const startLocal = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const endLocal = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+  // Convert to UTC for the database query
+  const startDateUTC = startLocal.toISOString();
+  const endDateUTC = endLocal.toISOString();
 
   const { data, error } = await supabase
     .from("sessions")
     .select("*")
     .eq("user_id", userId)
-    .gte("created_at", startDate)
-    .lte("created_at", endDate)
-    // .order("has_settings", { ascending: false })
+    .gte("created_at", startDateUTC)
+    .lte("created_at", endDateUTC)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -516,7 +518,8 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
-    .eq("session_id", sessionId);
+    .eq("session_id", sessionId)
+    .order("order_index", { ascending: true });
 
   if (error) throw new Error(`Failed to fetch tasks: ${error.message}`);
   return data;
