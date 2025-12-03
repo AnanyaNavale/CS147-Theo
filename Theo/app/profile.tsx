@@ -1,34 +1,33 @@
+import { Feather } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  View,
-  Image,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
-import * as FileSystem from "expo-file-system";
 
-import { Button } from "@/components/ui/Button";
+import { BasicButton } from "@/components/BasicButton";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { AppModal } from "@/components/ui/AppModal";
 import { Container } from "@/components/ui/Container";
+import { Icon } from "@/components/ui/Icon";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
-import { useSupabase } from "@/providers/SupabaseProvider";
-import {
-  ensureUserProfile,
-  fetchUserProfile,
-  supabase,
-} from "@/lib/supabase";
 import { theme } from "@/design/theme";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { fonts } from "@/assets/themes/typography";
+import { ensureUserProfile, fetchUserProfile, supabase } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -43,6 +42,8 @@ export default function ProfileScreen() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const loadProfile = useCallback(async () => {
     if (!user) return;
@@ -173,7 +174,9 @@ export default function ProfileScreen() {
       }
 
       if (!fileBlob || (fileBlob as any).size === 0) {
-        throw new Error("Image data was empty after processing. Please try again.");
+        throw new Error(
+          "Image data was empty after processing. Please try again."
+        );
       }
 
       const { error: uploadError } = await supabase.storage
@@ -221,6 +224,60 @@ export default function ProfileScreen() {
             stroke="black"
             strokeWidth={0.3}
             textStyle={{ fontSize: fonts.sizes.header2 }}
+    <Container padded={false} style={styles.safe}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Icon name="arrow-left" size={36} />
+            </TouchableOpacity>
+            <SvgStrokeText text="Profile" />
+            <View style={{ width: 28 }} />
+          </View>
+
+          <Spacer size="lg" />
+
+          <View style={styles.avatarRow}>
+            <TouchableOpacity
+              onPress={pickAndUploadAvatar}
+              disabled={uploading || loading}
+              style={styles.avatarButton}
+            >
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <View style={[styles.avatarImage, styles.avatarFallback]}>
+                  <Feather
+                    name="user"
+                    size={68}
+                    color={theme.solidColors.white}
+                  />
+                </View>
+              )}
+              {uploading && (
+                <View style={styles.avatarOverlay}>
+                  <ActivityIndicator color="#fff" />
+                </View>
+              )}
+            </TouchableOpacity>
+            <Text style={styles.avatarHint}>Tap to update photo</Text>
+          </View>
+
+          <Spacer />
+
+          <InputField
+            label="Name"
+            placeholder="Your name"
+            value={displayName}
+            onChangeText={setDisplayName}
+            editable={!loading && !saving}
+            containerStyle={styles.inputContainer}
           />
         </View>
       </View>
@@ -306,6 +363,57 @@ export default function ProfileScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
     </View>
+          )}
+
+          <BasicButton
+            text={saving ? "Saving..." : "Save changes"}
+            onPress={handleSave}
+            disabled={saving}
+            style={styles.saveButton}
+          />
+
+          <Spacer size="md" />
+
+          <TouchableOpacity
+            onPress={() => {
+              if (loggingOut) return;
+              setShowLogoutConfirm(true);
+            }}
+            disabled={loggingOut}
+          >
+            <Text style={styles.logoutText}>
+              {loggingOut ? "Logging out..." : "Log out"}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <AppModal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        variant="alert"
+        title="Log out?"
+        message="Are you sure you want to log out?"
+        cancelLabel="Cancel"
+        confirmLabel="Log out"
+        onConfirm={async () => {
+          if (loggingOut) return;
+          setShowLogoutConfirm(false);
+          setLoggingOut(true);
+          await supabase.auth.signOut();
+          router.replace("/auth/login");
+          setLoggingOut(false);
+        }}
+      />
+
+      {loggingOut && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <Text style={styles.loadingText}>Logging you out...</Text>
+          </View>
+        </View>
+      )}
+    </Container>
   );
 }
 
@@ -320,6 +428,16 @@ const styles = StyleSheet.create({
     padding: 16,
     // borderWidth: 1,
     borderColor: 'red',
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  title: {
+    color: theme.colors.text,
+  },
+  infoText: {
+    marginTop: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
   },
   banner: {
     paddingVertical: theme.spacing.xs,
@@ -330,14 +448,17 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
   },
   bannerText: {
-    color: theme.solidColors.white,
+    //color: theme.solidColors.white,
+    color: theme.solidColors.danger,
     fontFamily: theme.typography.families.regular,
   },
   infoBanner: {
     backgroundColor: theme.colors.text,
   },
   errorBanner: {
-    backgroundColor: theme.colors.danger,
+    // backgroundColor: theme.colors.danger,
+    //alignSelf: "center",
+    width: "100%",
   },
   headerContainer: {
     width: "100%",
@@ -351,6 +472,8 @@ const styles = StyleSheet.create({
     paddingTop: 2,
     left: 0,
     right: 0,
+    justifyContent: "space-between",
+    marginBottom: theme.spacing.lg,
   },
   avatarRow: {
     alignItems: "center",
@@ -397,14 +520,40 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
   },
   inputContainer: {
-    width: "92%",
+    width: "100%",
     alignSelf: "center",
   },
   saveButton: {
     marginTop: theme.spacing.lg,
-    borderRadius: theme.radii.lg,
-    width: "70%",
+    //width: "100%",
     alignSelf: "center",
+  },
+  logoutText: {
+    textDecorationLine: "underline",
+    color: theme.colors.accentDark,
+    textAlign: "center",
+    fontFamily: theme.typography.families.bold,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingCard: {
+    backgroundColor: "#fff",
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radii.lg,
     ...theme.shadow.medium,
+  },
+  loadingText: {
+    fontFamily: theme.typography.families.bold,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text,
   },
 });

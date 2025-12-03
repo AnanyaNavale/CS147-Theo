@@ -1,23 +1,21 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppModal, Button } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
-import { createPlan, createSession, createTask, CreateTaskPayload } from "@/lib/supabase";
+import {
+  createPlan,
+  createSession,
+  createTask,
+  CreateTaskPayload,
+} from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 const teddy = require("@/assets/theo/waving.png");
@@ -54,6 +52,19 @@ export default function FinalizeSessionScreen() {
       return [];
     }
   }, [tasks]);
+
+  const totalMinutes = useMemo(
+    () => parsedTasks.reduce((sum, task) => sum + task.minutes, 0),
+    [parsedTasks]
+  );
+  const taskCount = parsedTasks.length;
+  const sessionSummary = useMemo(() => {
+    const lines = [];
+    if (goalText) lines.push(`Goal: ${goalText}`);
+    if (taskCount > 0) lines.push(`Tasks: ${taskCount}`);
+    if (totalMinutes > 0) lines.push(`Total time: ${totalMinutes} min`);
+    return lines.join("\n");
+  }, [goalText, taskCount, totalMinutes]);
 
   // NOT USING
   // const [showSettings, setShowSettings] = useState(false);
@@ -103,8 +114,7 @@ export default function FinalizeSessionScreen() {
       console.log("Plan saved:", newPlan);
       setShowConfirmationModal(true);
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to save plan.";
+      const msg = err instanceof Error ? err.message : "Failed to save plan.";
       setSaveError(msg);
       console.error("Error saving plan:", err);
     } finally {
@@ -131,7 +141,7 @@ export default function FinalizeSessionScreen() {
         hasGoal,
         goalText || null,
         hasTasks,
-        totalTime, 
+        totalTime
       );
 
       console.log("📌 newSession:", newSession);
@@ -305,7 +315,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.xl,
   },
   goalRow: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     gap: theme.spacing.xs,
@@ -332,11 +342,6 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.serif,
     fontSize: theme.typography.sizes.lg,
     color: theme.colors.text,
-  },
-  checkboxList: {
-    gap: theme.spacing.sm,
-    width: "90%",
-    alignSelf: "center",
   },
   teddy: {
     position: "absolute",

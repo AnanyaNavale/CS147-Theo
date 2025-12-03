@@ -1,16 +1,17 @@
-import React from "react";
-import {
-  DimensionValue,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-  View,
-} from "react-native";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import { Icon, IconName } from "@/components/ui/Icon";
+import { theme } from "@/design/theme";
+import React from "react";
+import {
+  DimensionValue,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 
 export type BasicButtonProps = {
   text: string;
@@ -83,7 +84,12 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
         {...rest}
       >
         {iconName && (
-          <Icon name={iconName} size={iconSize} tint={iconTint} style={styles.icon} />
+          <Icon
+            name={iconName}
+            size={iconSize}
+            tint={iconTint}
+            style={styles.icon}
+          />
         )}
         <Text style={[styles.text, textStyle]}>{text}</Text>
       </TouchableOpacity>
@@ -96,7 +102,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: theme.radii.md,
     margin: 10,
 
     shadowOpacity: 0.5,
