@@ -135,6 +135,12 @@ export default function SessionScreen() {
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
   const [newTimeError, setNewTimeError] = useState("");
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newTaskMinutes, setNewTaskMinutes] = useState("");
+  const [newTaskMinutesError, setNewTaskMinutesError] = useState("");
+  const [newTaskOrder, setNewTaskOrder] = useState("");
+  const [newTaskOrderError, setNewTaskOrderError] = useState("");
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
@@ -365,6 +371,89 @@ export default function SessionScreen() {
     setShowAddTimeModal(true);
   };
 
+  const getMinAddOrder = () => {
+    const lastCompletedIndex = sessionTasks.reduce(
+      (last, task, idx) =>
+        task.status === "completed" || task.status === "skipped" ? idx : last,
+      -1
+    );
+    const byCompletion = lastCompletedIndex >= 0 ? lastCompletedIndex + 2 : 1;
+    const byProgress = currentTask ? currentTaskIndex + 2 : 1; // must come after current task
+    return Math.max(byCompletion, byProgress);
+  };
+
+  const handleAddTaskOrderChange = (text: string) => {
+    setNewTaskOrder(text);
+    const trimmed = text.trim();
+    const orderNumber = trimmed ? Number(trimmed) : null;
+    const maxPosition = sessionTasks.length + 1;
+    const minPosition = getMinAddOrder();
+
+    if (
+      orderNumber !== null &&
+      (!Number.isInteger(orderNumber) ||
+        orderNumber < minPosition ||
+        orderNumber > maxPosition)
+    ) {
+      setNewTaskOrderError(
+        `Enter a number ${minPosition} - ${maxPosition} so the new\ntask stays after the current one`
+      );
+    } else {
+      setNewTaskOrderError("");
+    }
+  };
+
+  const handleAddTask = () => {
+    if (!newTaskName.trim() || !newTaskMinutes.trim()) return;
+
+    const minutesVal = Number(newTaskMinutes) || 0;
+    if (minutesVal > 120) {
+      setNewTaskMinutesError("Task length cannot exceed 120 minutes");
+      return;
+    }
+    setNewTaskMinutesError("");
+
+    const maxPosition = sessionTasks.length + 1;
+    const minPosition = getMinAddOrder();
+    const orderNumber = newTaskOrder.trim()
+      ? Number(newTaskOrder.trim())
+      : maxPosition;
+
+    if (
+      !Number.isInteger(orderNumber) ||
+      orderNumber < minPosition ||
+      orderNumber > maxPosition
+    ) {
+      setNewTaskOrderError(
+        `Enter a number ${minPosition} - ${maxPosition} so the new task stays after the current one`
+      );
+      return;
+    }
+
+    const insertAt = orderNumber - 1;
+    const newTask: SessionTask = {
+      id: Date.now().toString(),
+      name: newTaskName.trim(),
+      time: minutesVal * 60,
+      status: "pending",
+    };
+
+    setSessionTasks((prev) => {
+      const updated = [...prev];
+      updated.splice(insertAt, 0, newTask);
+      return updated;
+    });
+
+    setCurrentTaskIndex((prev) => (insertAt <= prev ? prev + 1 : prev));
+
+    setShowAddTaskModal(false);
+    setNewTaskName("");
+    setNewTaskMinutes("");
+    setNewTaskOrder("");
+    setNewTaskMinutesError("");
+    setNewTaskOrderError("");
+  };
+
   const advanceToNextTask = () => {
     const isLast = currentTaskIndex >= sessionTasks.length - 1;
     if (isLast) {
@@ -495,6 +584,17 @@ export default function SessionScreen() {
                           setNewTime("");
                           setNewTimeError("");
                           setShowAddTimeModal(true);
+                        },
+                      },
+                      {
+                        label: "Add task",
+                        onPress: () => {
+                          setNewTaskName("");
+                          setNewTaskMinutes("");
+                          setNewTaskOrder("");
+                          setNewTaskMinutesError("");
+                          setNewTaskOrderError("");
+                          setShowAddTaskModal(true);
                         },
                       },
                       {
@@ -857,6 +957,86 @@ export default function SessionScreen() {
         >
           <Icon name="plus" size={40} tint={theme.solidColors.white} />
         </TouchableOpacity>
+      </AppModal>
+
+      <AppModal
+        visible={showAddTaskModal}
+        onClose={() => {
+          setShowAddTaskModal(false);
+          setNewTaskMinutesError("");
+          setNewTaskOrderError("");
+        }}
+        variant="bottom-sheet"
+        title="Add a task"
+        height={360}
+      >
+        <InputField
+          label="Description*"
+          value={newTaskName}
+          onChangeText={setNewTaskName}
+          placeholder="Tap to input task description"
+          multiline
+          noBorder
+        />
+
+        <Spacer size="md" />
+
+        <InputField
+          label="Length*"
+          keyboardType="numeric"
+          value={newTaskMinutes}
+          onChangeText={(text) => {
+            setNewTaskMinutes(text);
+            const minutesVal = Number(text) || 0;
+            if (minutesVal > 120) {
+              setNewTaskMinutesError("Task length cannot exceed 120 minutes");
+            } else {
+              setNewTaskMinutesError("");
+            }
+          }}
+          placeholder="00 : 00"
+          row
+          error={newTaskMinutesError}
+        />
+
+        <Spacer size="md" />
+
+        <InputField
+          keyboardType="numeric"
+          value={newTaskOrder}
+          onChangeText={handleAddTaskOrderChange}
+          placeholder="e.g. 2"
+          row
+          small
+          error={newTaskOrderError}
+          label="(Optional) Order number"
+        />
+
+        <Spacer size="lg" />
+
+        {(() => {
+          const canAddTask =
+            newTaskName.trim().length > 0 &&
+            newTaskMinutes.trim().length > 0 &&
+            !newTaskOrderError &&
+            !newTaskMinutesError;
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                if (canAddTask) handleAddTask();
+              }}
+              disabled={!canAddTask}
+              style={[
+                styles.actionCircle,
+                styles.actionCircleNeutral,
+                styles.smallActionCircle,
+                !canAddTask && { opacity: 0.4 },
+              ]}
+            >
+              <Icon name="plus" size={40} tint={theme.solidColors.white} />
+            </TouchableOpacity>
+          );
+        })()}
       </AppModal>
 
       <AppModal
