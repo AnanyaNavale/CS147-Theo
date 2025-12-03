@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
+    overflow: 'hidden',
   },
   containerSession: {
     borderColor: "#B28F6D",
@@ -103,14 +104,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#CF9841",
   },
   titleContainer: {
+    flex: 1,
+    flexShrink: 1,
     padding: 10,
     backgroundColor: "white",
+
   },
   title: {
     fontSize: 16,
     fontFamily: "Raleway-Regular",
-    color: 'black',
-    // fontWeight: "bold",
+    color: "black",
+    width: "100%",
+    flexWrap: "wrap",
   },
   time: {
     fontSize: 16,

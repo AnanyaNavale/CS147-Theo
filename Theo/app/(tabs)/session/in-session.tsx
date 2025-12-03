@@ -572,7 +572,7 @@ export default function SessionScreen() {
       {/* MENU */}
       <View style={styles.menuAnchor}>
         <TouchableOpacity onPress={toggleMenu} hitSlop={12}>
-          <Icon name="more-vertical" size={24} tint={theme.colors.accentDark} />
+          <Icon name="more-vertical" size={36} tint={theme.colors.accentDark} />
         </TouchableOpacity>
       </View>
 

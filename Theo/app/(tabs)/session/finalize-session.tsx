@@ -41,6 +41,7 @@ export default function FinalizeSessionScreen() {
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
 
   const parsedTasks: Task[] = useMemo(() => {
@@ -99,6 +100,7 @@ export default function FinalizeSessionScreen() {
       );
 
       // Title can be anything you want; for now, we can default it
+      console.log(goal);
       const title = hasGoal ? goal! : "Plan";
 
       // Call your createPlan function with the authenticated user id
@@ -112,7 +114,7 @@ export default function FinalizeSessionScreen() {
       );
 
       console.log("Plan saved:", newPlan);
-      setShowConfirmationModal(true);
+      setShowSuccessModal(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save plan.";
       setSaveError(msg);
@@ -210,7 +212,7 @@ export default function FinalizeSessionScreen() {
 
         {goalText && (
           <View style={styles.goalRow}>
-            <Text variant="h2" style={styles.goalLabel}>
+            <Text variant="h1" style={styles.goalLabel}>
               GOAL:
             </Text>
             <Text style={styles.goalValue}>{goalText}</Text>
@@ -220,7 +222,7 @@ export default function FinalizeSessionScreen() {
 
         <Spacer size="xl" />
         <BasicButton
-          text="Start session"
+          text="Start your session"
           onPress={() => setShowStartModal(true)}
           style={styles.button}
         />
@@ -230,7 +232,7 @@ export default function FinalizeSessionScreen() {
         <BasicButton
           text={savingPlan ? "Saving..." : "Save plan to archive"}
           disabled={savingPlan}
-          onPress={handleSavePlan}
+          onPress={() => setShowConfirmationModal(true)}
           variant="secondary"
           style={styles.button}
         />
@@ -245,6 +247,19 @@ export default function FinalizeSessionScreen() {
           <AppModal
             visible={showConfirmationModal}
             onClose={() => setShowConfirmationModal(false)}
+            variant="alert"
+            showClose={false}
+            title="Save plan?"
+            message="Do you want to save this plan now?"
+            confirmLabel="Save"
+            confirmVariant="brown"
+            onConfirm={handleSavePlan}
+          />
+        )}
+
+        {showSuccessModal && (<AppModal
+            visible={showSuccessModal}
+            onClose={() => setShowSuccessModal(false)}
             variant="custom"
             showClose={false}
             title="Plan saved!"
@@ -261,15 +276,14 @@ export default function FinalizeSessionScreen() {
                     const dd = String(today.getDate()).padStart(2, "0");
                     const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                    setShowConfirmationModal(false);
+                    setShowSuccessModal(false);
 
-                    router.push(`../archive/${todayStr}/index`);
+                    router.push(`../archive/${todayStr}`);
                   }}
                 />
               </View>
             }
-          />
-        )}
+          />)}
 
         {showStartModal && (
           <AppModal

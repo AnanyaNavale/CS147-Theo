@@ -239,7 +239,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderColor: 'red',
-    borderWidth: 1,
   },
   backButton: {
     position: "absolute",

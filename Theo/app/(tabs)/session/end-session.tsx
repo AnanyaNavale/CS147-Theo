@@ -89,7 +89,7 @@ export default function EndSessionScreen() {
           <Spacer size="lg" />
           <Text style={styles.note}>Give yourself a pat on the back.</Text>
         </View>
-        <Spacer size="lg" />
+        <Spacer size="sm" />
 
         <Image
           source={teddy}

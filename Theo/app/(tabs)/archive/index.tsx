@@ -77,8 +77,6 @@ export default function ArchiveScreen() {
 
   const { supabase, session: authSession } = useSupabase();
   const router = useRouter();
-  // const session = await getCurrentSession();
-  // const userId = session?.user?.id;
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
 
@@ -104,7 +102,8 @@ export default function ArchiveScreen() {
 
         data.forEach((utcDateString) => {
           const localDate = new Date(utcDateString);
-          const day = localDate.toISOString().slice(0, 10); // OR format using local time
+          const day = localDate.toLocaleDateString("en-CA"); 
+          // const day = localDate.toISOString().slice(0, 10); // OR format using local time
           marked[day] = {
             customStyles: {
               container: {
@@ -154,7 +153,7 @@ export default function ArchiveScreen() {
 
   return (
     <View style={styles.container}>
-      <SvgStrokeText text="Session & plan archive" />
+      <SvgStrokeText text="Session & Plan Archive" />
       <View style={styles.calendarContainer}>
         <Calendar
           renderHeader={(date) => {
@@ -167,14 +166,11 @@ export default function ArchiveScreen() {
                   paddingVertical: 4,
                   paddingTop: 7,
                   paddingHorizontal: 16,
-                  // paddingRight: 20,
                   borderRadius: theme.radii.md,
                   justifyContent: "center",
                   alignItems: "center",
-                  // borderWidth: 2,
-                  // borderColor: "#B28F6D",
                   alignSelf: "center",
-                  // marginBottom: 10,
+
                 }}
               >
                 <SvgStrokeText

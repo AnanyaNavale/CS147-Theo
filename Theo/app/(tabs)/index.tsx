@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -20,24 +20,40 @@ import SvgStrokeText from "@/components/SvgStrokeText";
 import MainHeader from "@/components/ui/MainHeader";
 import { theme } from "@/design/theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { fetchUserProfile } from "@/lib/supabase";
+
 
 const teddyBear = require("@/assets/theo/working.png");
 const HEADER_HEIGHT = 145; // size of main header (fixed) including its padding
 const TAB_OVERLAP = 35; // size of the portion of the "session" circle in the tab bar that exceeds the actual tab bar
 
-// const QUOTES = [
-//   `"You are braver than you believe, stronger than you seem, and smarter than you think." - Christopher Robin`,
-//   `"Success is the sum of small efforts, repeated day in and day out." - Robert Collier`,
-//   `"It always seems impossible until it's done." - Nelson Mandela`,
-// ];
-
 export default function HomeScreen() {
-  const userName = "User";
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const today = formatHomeDate(new Date());
   const [menuOpen, setMenuOpen] = useState(false);
   const hasIncomplete = false; // TODO: Page for incomplete sessions
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
+  const { session } = useSupabase();
+
+  useEffect(() => {
+    if (!session?.user) return;
+
+    fetchUserProfile(session.user.id)
+      .then((profile) => setDisplayName(profile?.display_name ?? null))
+      .catch((err) => {
+        console.error("Failed to fetch display name:", err);
+        setDisplayName(null);
+      });
+  }, [session]);
+
+  function capitalizeFirst(str: string | null | undefined): string {
+    if (!str || str.length === 0) return "";
+    return str[0].toUpperCase() + str.slice(1);
+  }
+
+  const formattedName = capitalizeFirst(displayName);
 
   function formatHomeDate(date: Date) {
     const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
@@ -47,11 +63,6 @@ export default function HomeScreen() {
 
     return `${weekday}, ${month}/${day}/${year}`;
   }
-
-  // const quote = useMemo(() => {
-  //   const idx = Math.floor(Math.random() * QUOTES.length);
-  //   return QUOTES[idx];
-  // }, []);
 
   const usableHeight = screenHeight - HEADER_HEIGHT - TAB_OVERLAP; // subract out header + overlap for height content can occupy
 
@@ -95,7 +106,7 @@ export default function HomeScreen() {
             </TouchableOpacity> */}
           </View>
           <SvgStrokeText
-            text={`Hi, ${userName}`}
+            text={`Hi, ${formattedName}`}
             containerStyle={styles.hiText}
             textAnchor="start"
           />
@@ -141,6 +152,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     width: "100%",
     marginTop: theme.spacing.lg,
+    marginLeft: theme.spacing.md,
     alignItems: "flex-start",
   },
   dateContainer: {
@@ -169,6 +181,7 @@ const styles = StyleSheet.create({
   },
   ctaRow: {
     alignItems: "center",
+    marginBottom: "10%",
   },
   quoteCard: {
     width: "80%",
