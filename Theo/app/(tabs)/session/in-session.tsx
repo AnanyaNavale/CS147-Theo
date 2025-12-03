@@ -37,6 +37,7 @@ type SessionTask = {
   name: string;
   time: number;
   status: TaskStatus;
+  actualSeconds?: number;
 };
 
 const iconSize = 54;
@@ -157,10 +158,34 @@ export default function SessionScreen() {
   const timerScale = useRef(new Animated.Value(1)).current;
 
   /* HELPERS */
-  const updateTaskStatus = (index: number, status: TaskStatus) => {
+  const updateTaskStatus = (
+    index: number,
+    status: TaskStatus,
+    timeSpentSeconds?: number
+  ) => {
     setSessionTasks((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, status } : t))
+      prev.map((t, i) =>
+        i === index
+          ? {
+              ...t,
+              status,
+              time: timeSpentSeconds != null ? timeSpentSeconds : t.time,
+              actualSeconds:
+                timeSpentSeconds != null ? timeSpentSeconds : t.actualSeconds,
+            }
+          : t
+      )
     );
+  };
+
+  const currentTaskTimeSpent = () =>
+    Math.max(0, Math.round(savedTime - secondsLeft));
+
+  const closeOutCurrentTask = (status: TaskStatus) => {
+    if (!currentTask) return 0;
+    const spent = currentTaskTimeSpent();
+    updateTaskStatus(currentTaskIndex, status, spent);
+    return spent;
   };
 
   const markSessionCompleted = async () => {
@@ -250,7 +275,7 @@ export default function SessionScreen() {
       const isLastTask = currentTaskIndex >= sessionTasks.length - 1;
 
       if (isLastTask) {
-        updateTaskStatus(currentTaskIndex, "completed");
+        closeOutCurrentTask("completed");
         setIsBreak(false);
         setBreakAfterTaskComplete(false);
         goToEndSession();
@@ -368,7 +393,7 @@ export default function SessionScreen() {
   const handleMarkTaskDoneAndBreak = () => {
     if (!currentTask) return;
 
-    updateTaskStatus(currentTaskIndex, "completed");
+    closeOutCurrentTask("completed");
     setShowCompleteModal(false);
 
     setIsBreak(true);
@@ -491,7 +516,7 @@ export default function SessionScreen() {
   const handleConfirmMarkTaskDone = () => {
     if (!currentTask) return;
 
-    updateTaskStatus(currentTaskIndex, "completed");
+    closeOutCurrentTask("completed");
     setShowMarkDoneConfirm(false);
     setShowCompleteModal(false);
     setIsBreak(false);
@@ -504,7 +529,7 @@ export default function SessionScreen() {
   const handleSkipTaskConfirmed = () => {
     if (!currentTask) return;
 
-    updateTaskStatus(currentTaskIndex, "skipped");
+    closeOutCurrentTask("skipped");
     setShowSkipConfirm(false);
     setShowCompleteModal(false);
     setIsBreak(false);
