@@ -27,6 +27,7 @@ const ICONS = {
   send: require("../../assets/icons/send.png"),
   "carousel-left": require("../../assets/icons/carousel-left.png"),
   "carousel-right": require("../../assets/icons/carousel-right.png"),
+  check: require("../../assets/icons/check.png"),
 } as const;
 
 // 2. Infer valid icon names

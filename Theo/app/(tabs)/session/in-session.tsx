@@ -139,6 +139,7 @@ export default function SessionScreen() {
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [editedTaskName, setEditedTaskName] = useState("");
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showMarkDoneConfirm, setShowMarkDoneConfirm] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [showStartBreakConfirm, setShowStartBreakConfirm] = useState(false);
   const [showEndBreakConfirm, setShowEndBreakConfirm] = useState(false);
@@ -364,16 +365,7 @@ export default function SessionScreen() {
     setShowAddTimeModal(true);
   };
 
-  /* SKIP */
-  const handleSkipTaskConfirmed = () => {
-    if (!currentTask) return;
-
-    updateTaskStatus(currentTaskIndex, "skipped");
-    setShowSkipConfirm(false);
-    setShowCompleteModal(false);
-    setIsBreak(false);
-    setBreakAfterTaskComplete(false);
-
+  const advanceToNextTask = () => {
     const isLast = currentTaskIndex >= sessionTasks.length - 1;
     if (isLast) {
       goToEndSession();
@@ -389,6 +381,31 @@ export default function SessionScreen() {
     setIsRunning(true);
 
     updateTaskStatus(nextIndex, "in_progress");
+  };
+
+  const handleConfirmMarkTaskDone = () => {
+    if (!currentTask) return;
+
+    updateTaskStatus(currentTaskIndex, "completed");
+    setShowMarkDoneConfirm(false);
+    setShowCompleteModal(false);
+    setIsBreak(false);
+    setBreakAfterTaskComplete(false);
+
+    advanceToNextTask();
+  };
+
+  /* SKIP */
+  const handleSkipTaskConfirmed = () => {
+    if (!currentTask) return;
+
+    updateTaskStatus(currentTaskIndex, "skipped");
+    setShowSkipConfirm(false);
+    setShowCompleteModal(false);
+    setIsBreak(false);
+    setBreakAfterTaskComplete(false);
+
+    advanceToNextTask();
   };
 
   /* ADD TIME */
@@ -468,7 +485,9 @@ export default function SessionScreen() {
                   ? [
                       {
                         label: "Mark task done",
-                        onPress: () => setShowCompleteModal(true),
+                        onPress: () => {
+                          setShowMarkDoneConfirm(true);
+                        },
                       },
                       {
                         label: "Add time to task",
@@ -735,6 +754,17 @@ export default function SessionScreen() {
       />
 
       <AppModal
+        visible={showMarkDoneConfirm}
+        onClose={() => setShowMarkDoneConfirm(false)}
+        variant="alert"
+        title="Mark task done?"
+        message="We’ll mark this task complete and move to the next one."
+        cancelLabel="Cancel"
+        confirmLabel="Done"
+        onConfirm={handleConfirmMarkTaskDone}
+      />
+
+      <AppModal
         visible={showCompleteModal}
         onClose={() => setShowCompleteModal(false)}
         variant="bottom-sheet"
@@ -793,7 +823,7 @@ export default function SessionScreen() {
         }}
         variant="bottom-sheet"
         title="Add time to task"
-        height={250}
+        height={220}
       >
         <InputField
           label="Minutes to add:"
@@ -812,13 +842,21 @@ export default function SessionScreen() {
           row
           error={newTimeError}
         />
-        <Spacer />
-        <Button
-          label="Add time"
-          variant={canAddTime ? "gold" : "ghost"}
+
+        <TouchableOpacity
+          onPress={() => {
+            if (canAddTime) handleApplyTime();
+          }}
           disabled={!canAddTime}
-          onPress={handleApplyTime}
-        />
+          style={[
+            styles.actionCircle,
+            styles.actionCircleNeutral,
+            styles.smallActionCircle,
+            !canAddTime && { opacity: 0.4 },
+          ]}
+        >
+          <Icon name="plus" size={40} tint={theme.solidColors.white} />
+        </TouchableOpacity>
       </AppModal>
 
       <AppModal
@@ -862,12 +900,20 @@ export default function SessionScreen() {
           placeholder="Task name"
         />
 
-        <Button
-          label="Save"
-          variant={canRenameTask ? "gold" : "ghost"}
-          disabled={!canRenameTask}
-          onPress={handleSaveTaskEdit}
-        />
+        <TouchableOpacity
+          onPress={() => {
+            if (canRenameTask) handleSaveTaskEdit();
+          }}
+          disabled={!canAddTime}
+          style={[
+            styles.actionCircle,
+            styles.actionCircleNeutral,
+            styles.smallActionCircle,
+            !canAddTime && { opacity: 0.4 },
+          ]}
+        >
+          <Icon name="check" size={30} tint={theme.solidColors.white} />
+        </TouchableOpacity>
       </AppModal>
     </View>
   );
@@ -948,5 +994,22 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
     ...theme.shadow.soft,
+  },
+  actionCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    ...theme.shadow.medium,
+  },
+
+  actionCircleNeutral: {
+    backgroundColor: theme.colors.accentDark,
+  },
+  smallActionCircle: {
+    alignSelf: "flex-end",
+    width: 50,
+    height: 50,
   },
 });
