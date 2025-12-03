@@ -30,6 +30,17 @@ export default function SessionSummaryScreen() {
   const goalText = goal ?? "";
   const [showLoader, setShowLoader] = useState(false);
 
+  // 1. Get current date
+  const now = new Date();
+
+  // 2. Format as "Full day name, MM/DD/YYYY"
+  const formattedDate = now.toLocaleDateString("en-US", {
+    weekday: "long", // Full day name, e.g., "Tuesday"
+    month: "2-digit", // "01".."12"
+    day: "2-digit", // "01".."31"
+    year: "numeric", // "2025"
+  });
+
   const normalizedStatusParam = useMemo(() => {
     const raw =
       Array.isArray(sessionStatus) && sessionStatus.length > 0
@@ -55,9 +66,7 @@ export default function SessionSummaryScreen() {
                 id: t.id?.toString() ?? `task-${idx}`,
                 text,
                 status:
-                  typeof t.status === "string"
-                    ? t.status.toLowerCase()
-                    : null,
+                  typeof t.status === "string" ? t.status.toLowerCase() : null,
                 minutes: Number.isFinite(minutes)
                   ? Math.max(0, Math.round(minutes))
                   : 0,
@@ -77,10 +86,8 @@ export default function SessionSummaryScreen() {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const allTasksSkipped =
-    parsedTasks.length > 0 &&
-    parsedTasks.every((t) => t.status === "skipped");
-  const sessionSkipped =
-    normalizedStatusParam === "skipped" || allTasksSkipped;
+    parsedTasks.length > 0 && parsedTasks.every((t) => t.status === "skipped");
+  const sessionSkipped = normalizedStatusParam === "skipped" || allTasksSkipped;
   const sessionEnded =
     normalizedStatusParam === "ended" ||
     normalizedStatusParam === "complete" ||
@@ -115,10 +122,10 @@ export default function SessionSummaryScreen() {
         </View>
         <Spacer size="lg" />
 
-        {/* <View style={styles.row}>
+        <View style={styles.row}>
           <Text style={styles.label}>Date Created:</Text>
-          <Text style={styles.value}>{dateCreated}</Text>
-        </View> */}
+          <Text style={styles.value}>{formattedDate}</Text>
+        </View>
 
         {goal && (
           <View style={styles.row}>

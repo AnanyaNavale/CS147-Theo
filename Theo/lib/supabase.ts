@@ -518,7 +518,8 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
-    .eq("session_id", sessionId);
+    .eq("session_id", sessionId)
+    .order("order_index", { ascending: true });
 
   if (error) throw new Error(`Failed to fetch tasks: ${error.message}`);
   return data;

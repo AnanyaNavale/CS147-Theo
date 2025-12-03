@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
 import { fetchSessionsForDaySorted } from "@/lib/supabase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface SessionBoxProps {
   title: string;
@@ -24,7 +25,13 @@ export default function SessionBox({ title, time, status, onPress }: SessionBoxP
       onPress={onPress}
     >
       <View style={[styles.timeContainer, getTimeStyle(status)]}>
-        <Text style={styles.time}>{timeDisplay}</Text>
+        {timeDisplay !== "0 min." ? (<Text style={styles.time}>{timeDisplay}</Text>) 
+        : 
+        (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "transparent" }}>
+            <MaterialCommunityIcons name="clock-plus-outline" size={36} color={"white"}/>
+          </View>
+        )}
       </View>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{title}</Text>
