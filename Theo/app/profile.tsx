@@ -27,6 +27,8 @@ import {
   supabase,
 } from "@/lib/supabase";
 import { theme } from "@/design/theme";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { fonts } from "@/assets/themes/typography";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -205,111 +207,119 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Container padded style={styles.safe}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
         >
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Feather name="arrow-left" size={28} color={theme.colors.text} />
-            </TouchableOpacity>
-            <Text variant="h1" style={styles.title}>
-              Profile
-            </Text>
-            <View style={{ width: 28 }} />
-          </View>
-
-          <Spacer size="lg" />
-
-          <View style={styles.avatarRow}>
-            <TouchableOpacity
-              onPress={pickAndUploadAvatar}
-              disabled={uploading || loading}
-              style={styles.avatarButton}
-            >
-              {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
-              ) : (
-                <View style={[styles.avatarImage, styles.avatarFallback]}>
-                  <Feather name="user" size={68} color={theme.solidColors.white} />
-                </View>
-              )}
-              {uploading && (
-                <View style={styles.avatarOverlay}>
-                  <ActivityIndicator color="#fff" />
-                </View>
-              )}
-            </TouchableOpacity>
-            <Text style={styles.avatarHint}>Tap to update photo</Text>
-          </View>
-
-          <Spacer />
-
-          <InputField
-            label="Name"
-            placeholder="Your name"
-            value={displayName}
-            onChangeText={setDisplayName}
-            editable={!loading && !saving}
-            containerStyle={styles.inputContainer}
+          <Feather name={"arrow-left"} size={36} color="#8A5E3C" />
+        </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <SvgStrokeText
+            text={displayName + "'s Profile"}
+            stroke="black"
+            strokeWidth={0.3}
+            textStyle={{ fontSize: fonts.sizes.header2 }}
           />
+        </View>
+      </View>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            keyboardShouldPersistTaps="handled"
+          >
 
-          <InputField
-            label="Email"
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!loading && !saving}
-            containerStyle={styles.inputContainer}
-          />
-
-          {error && (
-            <View style={[styles.banner, styles.errorBanner]}>
-              <Text style={styles.bannerText}>{error}</Text>
+            <View style={styles.avatarRow}>
+              <TouchableOpacity
+                onPress={pickAndUploadAvatar}
+                disabled={uploading || loading}
+                style={styles.avatarButton}
+              >
+                {avatarUrl ? (
+                  <Image
+                    source={{ uri: avatarUrl }}
+                    style={styles.avatarImage}
+                  />
+                ) : (
+                  <View style={[styles.avatarImage, styles.avatarFallback]}>
+                    <Feather
+                      name="user"
+                      size={68}
+                      color={theme.solidColors.white}
+                    />
+                  </View>
+                )}
+                {uploading && (
+                  <View style={styles.avatarOverlay}>
+                    <ActivityIndicator color="#fff" />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={styles.avatarHint}>Tap to update photo</Text>
             </View>
-          )}
-          {message && (
-            <View style={[styles.banner, styles.infoBanner]}>
-              <Text style={styles.bannerText}>{message}</Text>
-            </View>
-          )}
 
-          <Button
-            label={saving ? "Saving..." : "Save changes"}
-            onPress={handleSave}
-            variant="brown"
-            size="lg"
-            disabled={saving}
-            style={styles.saveButton}
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Container>
+            <Spacer />
+
+            <InputField
+              label="Name"
+              placeholder="Your name"
+              value={displayName}
+              onChangeText={setDisplayName}
+              editable={!loading && !saving}
+              containerStyle={styles.inputContainer}
+            />
+
+            <InputField
+              label="Email"
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!loading && !saving}
+              containerStyle={styles.inputContainer}
+            />
+
+            {error && (
+              <View style={[styles.banner, styles.errorBanner]}>
+                <Text style={styles.bannerText}>{error}</Text>
+              </View>
+            )}
+            {message && (
+              <View style={[styles.banner, styles.infoBanner]}>
+                <Text style={styles.bannerText}>{message}</Text>
+              </View>
+            )}
+
+            <Button
+              label={saving ? "Saving..." : "Save changes"}
+              onPress={handleSave}
+              variant="brown"
+              size="lg"
+              disabled={saving}
+              style={styles.saveButton}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
+  container: { 
+    flex: 1, 
+    padding: 16, 
     backgroundColor: theme.colors.background,
   },
   scroll: {
     flexGrow: 1,
-    paddingVertical: theme.spacing.lg,
-  },
-  title: {
-    color: theme.colors.text,
-  },
-  infoText: {
-    marginTop: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    padding: 16,
+    // borderWidth: 1,
+    borderColor: 'red',
   },
   banner: {
     paddingVertical: theme.spacing.xs,
@@ -317,6 +327,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.sm,
     alignSelf: "center",
     marginTop: theme.spacing.xs,
+    // borderWidth: 1,
   },
   bannerText: {
     color: theme.solidColors.white,
@@ -328,10 +339,18 @@ const styles = StyleSheet.create({
   errorBanner: {
     backgroundColor: theme.colors.danger,
   },
-  headerRow: {
+  headerContainer: {
+    width: "100%",
     flexDirection: "row",
+    marginTop: 55,
+    // paddingHorizontal: 16,
+  },
+  titleContainer: {
     alignItems: "center",
-    justifyContent: "space-between",
+    position: "absolute",
+    paddingTop: 2,
+    left: 0,
+    right: 0,
   },
   avatarRow: {
     alignItems: "center",
