@@ -586,7 +586,7 @@ export default function SessionBreakdownScreen() {
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
         variant="bottom-sheet"
-        title="Add Task"
+        title="Add a task"
         height={420}
         //contentStyle={styles.taskModalContent}
         //hideCloseButton
