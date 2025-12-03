@@ -29,7 +29,6 @@ import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { generateTasksWithAI } from "@/lib/ai";
-import { useSupabase } from "@/providers/SupabaseProvider";
 
 type Task = {
   id: string;
@@ -541,7 +540,7 @@ export default function SessionBreakdownScreen() {
         />
 
         <InputField
-          label="Length*"
+          label="Length (minutes)*"
           keyboardType="numeric"
           value={editMinutes}
           onChangeText={(text) => {
@@ -555,7 +554,7 @@ export default function SessionBreakdownScreen() {
               setEditMinutesError("");
             }
           }}
-          placeholder="00 : 00"
+          placeholder="30"
           row
           error={editMinutesError}
         />
@@ -604,7 +603,7 @@ export default function SessionBreakdownScreen() {
         <Spacer size="md" />
 
         <InputField
-          label="Length*"
+          label="Length (minutes)*"
           keyboardType="numeric"
           value={newMinutes}
           onChangeText={(text) => {
@@ -618,7 +617,7 @@ export default function SessionBreakdownScreen() {
               setNewMinutesError("");
             }
           }}
-          placeholder="00 : 00"
+          placeholder="30"
           row
           error={newMinutesError}
         />
@@ -649,7 +648,7 @@ export default function SessionBreakdownScreen() {
               setNewOrderError("");
             }
           }}
-          placeholder="e.g. 1"
+          placeholder={`${tasks.length + 1}`}
           row
           small
           error={newOrderError}

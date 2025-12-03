@@ -1,5 +1,7 @@
 // components/InputField.tsx
 
+import { colors } from "@/assets/themes/colors";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   StyleProp,
@@ -12,8 +14,6 @@ import {
   ViewStyle,
 } from "react-native";
 import { theme } from "../../design/theme";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { colors } from "@/assets/themes/colors";
 
 export type InputFieldProps = {
   label?: string;
@@ -85,7 +85,11 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
 
         {error && (
           <View style={styles.errorRow}>
-            <Text style={[styles.error, errorStyle, small && styles.smallError]}>{error}</Text>
+            <Text
+              style={[styles.error, errorStyle, small && styles.smallError]}
+            >
+              {error}
+            </Text>
             <MaterialCommunityIcons
               name="alert-circle"
               color={colors.light.error}
