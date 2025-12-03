@@ -30,7 +30,6 @@ import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { generateTasksWithAI } from "@/lib/ai";
-import { createSession, createTask } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 type Task = {
@@ -255,7 +254,7 @@ export default function SessionBreakdownScreen() {
 
   //   router.push(nextRoute);
   // }
-  
+
   function confirmContinue() {
     router.push({
       pathname: "./finalize-session",
@@ -656,9 +655,24 @@ export default function SessionBreakdownScreen() {
           value={newOrder}
           onChangeText={(text) => {
             setNewOrder(text);
-            setNewOrderError("");
+            const trimmed = text.trim();
+            const orderNumber = trimmed ? Number(trimmed) : null;
+            const maxPosition = tasks.length + 1;
+
+            if (
+              orderNumber !== null &&
+              (!Number.isInteger(orderNumber) ||
+                orderNumber < 1 ||
+                orderNumber > maxPosition)
+            ) {
+              setNewOrderError(
+                `The valid order numbers are 1 to ${maxPosition}`
+              );
+            } else {
+              setNewOrderError("");
+            }
           }}
-          placeholder="e.g. 2"
+          placeholder="e.g. 1"
           row
           small
           error={newOrderError}
