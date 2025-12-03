@@ -16,8 +16,10 @@ import {
 } from "react-native";
 
 import { BasicButton } from "@/components/BasicButton";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { AppModal } from "@/components/ui/AppModal";
 import { Container } from "@/components/ui/Container";
+import { Icon } from "@/components/ui/Icon";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
@@ -206,7 +208,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Container padded style={styles.safe}>
+    <Container padded={false} style={styles.safe}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -217,11 +219,9 @@ export default function ProfileScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Feather name="arrow-left" size={28} color={theme.colors.text} />
+              <Icon name="arrow-left" size={36} />
             </TouchableOpacity>
-            <Text variant="h1" style={styles.title}>
-              Profile
-            </Text>
+            <SvgStrokeText text="Profile" />
             <View style={{ width: 28 }} />
           </View>
 
@@ -345,7 +345,9 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 1,
-    paddingVertical: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
   },
   title: {
     color: theme.colors.text,
@@ -378,6 +380,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: theme.spacing.lg,
   },
   avatarRow: {
     alignItems: "center",

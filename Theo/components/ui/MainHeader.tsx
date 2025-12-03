@@ -14,6 +14,7 @@ import { colors } from "@/assets/themes/colors";
 import { theme } from "@/design/theme";
 import { signOut } from "@/lib/supabase";
 import { useRouter } from "expo-router";
+import { AppModal } from "./AppModal";
 
 const logo = require("@/assets/images/logo.png");
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -46,6 +47,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuHeight, setMenuHeight] = useState(0);
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     // Reset failure flag when a new avatar URL arrives
@@ -54,6 +56,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
 
   const handleLogout = async () => {
     setMenuOpen(false);
+    setShowLogoutConfirm(false);
     try {
       await signOut();
       router.replace("../auth/login");
@@ -64,13 +67,19 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
 
   const menuOptions = [
     {
-      label: "Settings",
+      label: "Profile",
       onPress: () => {
         setMenuOpen(false);
         router.push("../profile");
       },
     },
-    { label: "Log out", onPress: handleLogout },
+    {
+      label: "Log out",
+      onPress: () => {
+        setMenuOpen(false);
+        setShowLogoutConfirm(true);
+      },
+    },
   ];
 
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -135,6 +144,17 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
           </View>
         </View>
       )}
+
+      <AppModal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        variant="alert"
+        title="Log out?"
+        message="Are you sure you want to log out?"
+        cancelLabel="Cancel"
+        confirmLabel="Log out"
+        onConfirm={handleLogout}
+      />
     </View>
   );
 }

@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     borderWidth: theme.input.borderWidth,
     borderColor: theme.input.borderColor,
-    borderRadius: theme.input.borderRadius,
+    borderRadius: theme.radii.md,
     color: theme.colors.text,
     fontFamily: theme.typography.families.regular,
     paddingRight: theme.spacing.xl * 1.6,

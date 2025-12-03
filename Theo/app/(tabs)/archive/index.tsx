@@ -1,6 +1,6 @@
-import { Dimensions, StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Dimensions, StyleSheet } from "react-native";
 
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
@@ -8,14 +8,14 @@ import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchSessionDatesForMonth } from "@/lib/supabase";
 
 // import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from "@/components/Themed";
+import { View } from "@/components/Themed";
 
-import { Calendar, LocaleConfig } from "react-native-calendars";
-import { Feather } from "@expo/vector-icons";
-import SvgStrokeText from "@/components/SvgStrokeText";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
-import MainHeader from "@/components/ui/MainHeader";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { theme } from "@/design/theme";
+import { Feather } from "@expo/vector-icons";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -64,9 +64,15 @@ LocaleConfig.defaultLocale = "custom";
 
 export default function ArchiveScreen() {
   // STATES
-  const [monthSessions, setMonthSessions] = useState<{ [date: string]: any }>({});
-  const [currentMonth, setCurrentMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
-  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [monthSessions, setMonthSessions] = useState<{ [date: string]: any }>(
+    {}
+  );
+  const [currentMonth, setCurrentMonth] = useState<number>(
+    new Date().getMonth() + 1
+  ); // 1-12
+  const [currentYear, setCurrentYear] = useState<number>(
+    new Date().getFullYear()
+  );
   const [loading, setLoading] = useState(false);
 
   const { supabase, session: authSession } = useSupabase();
@@ -81,7 +87,6 @@ export default function ArchiveScreen() {
     const fetchMonthSessionsData = async () => {
       setLoading(true);
       try {
-
         const data = await fetchSessionDatesForMonth(currentMonth, currentYear);
 
         const marked: { [date: string]: any } = {};
@@ -108,17 +113,14 @@ export default function ArchiveScreen() {
         });
 
         setMonthSessions(marked);
-
       } catch (error) {
         console.error("Error fetching month sessions:", error);
       } finally {
         setLoading(false);
       }
-
     };
 
     fetchMonthSessionsData();
-
   }, [authSession, currentMonth, currentYear]);
 
   const today = new Date().toLocaleDateString("en-CA"); // outputs YYYY-MM-DD
@@ -142,7 +144,7 @@ export default function ArchiveScreen() {
 
   return (
     <View style={styles.container}>
-      <SvgStrokeText text="Session & Plan Archive" />
+      <SvgStrokeText text="Session & plan archive" />
       <View style={styles.calendarContainer}>
         <Calendar
           renderHeader={(date) => {
@@ -156,7 +158,7 @@ export default function ArchiveScreen() {
                   paddingTop: 7,
                   paddingHorizontal: 16,
                   // paddingRight: 20,
-                  borderRadius: 12,
+                  borderRadius: theme.radii.md,
                   justifyContent: "center",
                   alignItems: "center",
                   // borderWidth: 2,
