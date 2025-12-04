@@ -6,29 +6,61 @@ import { useEffect, useRef, useState } from "react";
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionsForDayWithSettingsSorted } from "@/lib/supabase";
+import { fetchSessionsForDaySorted } from "@/lib/supabase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { fonts } from "@/assets/themes/typography";
+import { colors } from "@/assets/themes/colors";
 
 interface SessionBoxProps {
   title: string;
+  goal: string;
   time: string;
-  has_settings: boolean;
   status: string;
   onPress?: () => void;
 }
 
-export default function SessionBox({ title, time, has_settings, status, onPress }: SessionBoxProps) {
+export default function SessionBox({ title, goal, time, status, onPress }: SessionBoxProps) {
   const timeDisplay = formatMinutes(Number(time));
+
+  const hasTitle = title?.trim() !== "";
+  if (!hasTitle) {
+    title = goal;
+  }
 
   return (
     <TouchableOpacity
-      style={[styles.container, getBoxStyle(has_settings, status)]}
+      style={[styles.container, getBoxStyle(status)]}
       onPress={onPress}
     >
-      <View style={[styles.timeContainer, getTimeStyle(has_settings, status)]}>
-        <Text style={styles.time}>{timeDisplay}</Text>
+      <View style={[styles.timeContainer, getTimeStyle(status)]}>
+        {timeDisplay !== "0 min." ? (
+          <Text style={styles.time}>{timeDisplay}</Text>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "transparent",
+            }}
+          >
+            <MaterialCommunityIcons
+              name="clock-plus-outline"
+              size={36}
+              color={"white"}
+            />
+          </View>
+        )}
       </View>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>{title}</Text>
+        <Text
+          style={[
+            styles.title,
+            (title === "Session" || title === "Plan") && styles.italicTitle,
+          ]}
+        >
+          {title}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -47,16 +79,18 @@ function formatMinutes(totalMinutes: number) {
   return `${minutes} min.`;
 }
 
-function getBoxStyle(has_settings: boolean, status: string) {
-  if (has_settings && status === "completed")
+function getBoxStyle(status: string) {
+  console.log(status);
+  if (status === "complete")
     return styles.containerCompleted;
-  if (has_settings) return styles.containerSession;
+  if (status !== "complete" && status !== "planned") return styles.containerSession;
   return styles.containerPlan;
 }
 
-function getTimeStyle(has_settings: boolean, status: string) {
-  if (has_settings && status === "completed") return styles.timeContainerCompleted;
-  if (has_settings) return styles.timeContainerSession;
+function getTimeStyle(status: string) {
+  if (status === "complete") return styles.timeContainerCompleted;
+  if (status !== "complete" && status !== "planned")
+    return styles.timeContainerSession;
   return styles.timeContainerPlan;
 }
 
@@ -65,26 +99,27 @@ const styles = StyleSheet.create({
     height: 100,
     marginHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: "white",
+    backgroundColor: colors.light.background,
     borderWidth: 2,
     marginBottom: 12,
     flexDirection: "row",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
+    overflow: 'hidden',
   },
   containerSession: {
     borderColor: "#B28F6D",
     borderStyle: "dashed",
-    shadowColor: "#B28F6D80",
+    shadowColor: colors.light.shadowPrimary,
   },
   containerCompleted: {
-    borderColor: "#8A5E3C",
-    shadowColor: "#8A5E3C80",
+    borderColor: colors.light.primary,
+    shadowColor: colors.light.shadowPrimary,
   },
   containerPlan: {
-    borderColor: "#CF9841",
-    shadowColor: "#CF984180",
+    borderColor: colors.light.secondary,
+    shadowColor: colors.light.shadowSecondary,
   },
   timeContainer: {
     width: "25%",
@@ -97,20 +132,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#B28F6D",
   },
   timeContainerCompleted: {
-    backgroundColor: "#8A5E3C",
+    backgroundColor: colors.light.primary,
   },
   timeContainerPlan: {
-    backgroundColor: "#CF9841",
+    backgroundColor: colors.light.secondary,
   },
   titleContainer: {
+    flex: 1,
+    flexShrink: 1,
     padding: 10,
-    backgroundColor: "white",
+    backgroundColor: colors.light.background,
+
   },
   title: {
     fontSize: 16,
-    fontFamily: "Raleway-Regular",
-    color: 'black',
-    // fontWeight: "bold",
+    fontFamily: fonts.typeface.body,
+    color: colors.light.body,
+    width: "100%",
+    flexWrap: "wrap",
+  },
+  italicTitle: {
+    fontFamily: fonts.typeface.bodyItalic,
   },
   time: {
     fontSize: 16,

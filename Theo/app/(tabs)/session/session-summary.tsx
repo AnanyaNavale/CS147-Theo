@@ -3,6 +3,8 @@ import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { ArrowAction } from "@/components/ui/ArrowAction";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -15,15 +17,40 @@ type SessionTask = {
   id: string;
   text: string;
   minutes: number;
+  status?: string | null;
+  actualSeconds?: number;
+  timeSeconds?: number;
 };
 
 export default function SessionSummaryScreen() {
-  const { goal, tasks } = useLocalSearchParams<{
+  const { goal, tasks, status, sessionStatus } = useLocalSearchParams<{
     goal?: string;
     tasks?: string;
+    status?: string;
+    sessionStatus?: string;
   }>();
   const goalText = goal ?? "";
   const [showLoader, setShowLoader] = useState(false);
+
+  // 1. Get current date
+  const now = new Date();
+
+  // 2. Format as "Full day name, MM/DD/YYYY"
+  const formattedDate = now.toLocaleDateString("en-US", {
+    weekday: "long", // Full day name, e.g., "Tuesday"
+    month: "2-digit", // "01".."12"
+    day: "2-digit", // "01".."31"
+    year: "numeric", // "2025"
+  });
+
+  const normalizedStatusParam = useMemo(() => {
+    const raw =
+      Array.isArray(sessionStatus) && sessionStatus.length > 0
+        ? sessionStatus[0]
+        : sessionStatus ??
+          (Array.isArray(status) && status.length > 0 ? status[0] : status);
+    return raw ? raw.toString().trim().toLowerCase() : null;
+  }, [sessionStatus, status]);
 
   const parsedTasks: SessionTask[] = useMemo(() => {
     if (!tasks) return [];
@@ -33,16 +60,33 @@ export default function SessionSummaryScreen() {
       return data
         .map((t, idx) => {
           const text = (t.text ?? t.name ?? "").toString();
-          const minutes = Number(
-            t.minutes ?? (t.time != null ? t.time / 60 : 0)
-          );
+          const rawSeconds =
+            typeof t.actualSeconds === "number"
+              ? t.actualSeconds
+              : typeof t.timeSeconds === "number"
+              ? t.timeSeconds
+              : typeof t.time === "number"
+              ? t.time
+              : Number.isFinite(Number(t.minutes))
+              ? Number(t.minutes) * 60
+              : 0;
+          const minutes = rawSeconds / 60;
+          const statusValue =
+            typeof t.status === "string" ? t.status.toLowerCase() : null;
           return text
             ? {
                 id: t.id?.toString() ?? `task-${idx}`,
                 text,
+                status:
+                  typeof t.status === "string" ? t.status.toLowerCase() : null,
                 minutes: Number.isFinite(minutes)
                   ? Math.max(0, Math.round(minutes))
                   : 0,
+                actualSeconds:
+                  typeof t.actualSeconds === "number"
+                    ? Math.max(0, Math.round(t.actualSeconds))
+                    : undefined,
+                timeSeconds: Math.max(0, Math.round(rawSeconds)),
               }
             : null;
         })
@@ -52,12 +96,26 @@ export default function SessionSummaryScreen() {
     }
   }, [tasks]);
 
-  const totalMinutes = parsedTasks.reduce(
-    (sum, t) => sum + (t.minutes || 0),
-    0
-  );
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const totalSecondsWorked = parsedTasks.reduce((sum, t) => {
+    if (t.status !== "completed") return sum;
+    const seconds =
+      typeof t.actualSeconds === "number"
+        ? t.actualSeconds
+        : t.timeSeconds ?? t.minutes * 60;
+    return sum + (Number.isFinite(seconds) ? seconds : 0);
+  }, 0);
+  const hours = Math.floor(totalSecondsWorked / 3600);
+  const minutes = Math.floor((totalSecondsWorked % 3600) / 60);
+  const allTasksSkipped =
+    parsedTasks.length > 0 && parsedTasks.every((t) => t.status === "skipped");
+  const sessionSkipped = normalizedStatusParam === "skipped" || allTasksSkipped;
+  const sessionEnded =
+    normalizedStatusParam === "ended" ||
+    normalizedStatusParam === "complete" ||
+    normalizedStatusParam === "completed" ||
+    (!normalizedStatusParam && !sessionSkipped);
+  const statusLabel =
+    sessionSkipped || !sessionEnded ? "Incomplete" : "Complete";
 
   const handleBackHome = () => {
     setShowLoader(true);
@@ -81,26 +139,46 @@ export default function SessionSummaryScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Spacer size="lg" />
         <View style={styles.centered}>
-          <SvgStrokeText
-            text="Session summary"
-            stroke={theme.colors.accentDark}
-            textStyle={[styles.title, { color: theme.colors.accentDark }]}
-          ></SvgStrokeText>
+          <SvgStrokeText text="Session Summary" />
         </View>
         <Spacer size="lg" />
 
         <View style={styles.row}>
-          <Text style={styles.label}>Goal:</Text>
-          <Text style={styles.value}>{goalText}</Text>
+          <Text weight="bold" style={styles.label}>
+            Date created:
+          </Text>
+          <Text weight="bold" style={styles.value}>
+            {formattedDate}
+          </Text>
+        </View>
+
+        {goal && (
+          <View style={styles.row}>
+            <Text weight="bold" style={styles.label}>
+              Goal:
+            </Text>
+            <Text style={styles.value}>{goalText}</Text>
+          </View>
+        )}
+
+        <View style={styles.row}>
+          <Text weight="bold" style={styles.label}>
+            Status:
+          </Text>
+          <Text
+            style={[
+              styles.value,
+              sessionSkipped ? styles.statusValueSkipped : styles.statusValue,
+            ]}
+          >
+            {statusLabel}
+          </Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Status:</Text>
-          <Text style={[styles.value, styles.statusValue]}>Complete</Text>
-        </View>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Time spent:</Text>
+          <Text weight="bold" style={styles.label}>
+            Time spent:
+          </Text>
           <Text style={styles.value}>
             {hours > 0 ? `${hours} hr${hours > 1 ? "s" : ""}, ` : ""}
             {minutes} min
@@ -109,41 +187,49 @@ export default function SessionSummaryScreen() {
 
         <Spacer size="lg" />
 
-        <Text style={styles.sectionHeading}>Breakdown:</Text>
+        <View style={{ margin: theme.spacing.xs }}>
+          <Text style={styles.sectionHeading}>Breakdown:</Text>
+          <Spacer size="sm" />
 
-        <Spacer size="sm" />
-
-        <View style={styles.breakdownList}>
-          {parsedTasks.map((task, index) => (
-            <View key={task.id ?? index} style={styles.taskRow}>
-              <Checkbox
-                checked
-                onChange={() => {}}
-                boxStyle={styles.checkBox}
-                containerStyle={styles.checkboxContainer}
-              />
-              <View style={styles.taskTextWrap}>
-                <Text style={styles.taskText}>
-                  {index + 1}. {task.text}
-                </Text>
-                <Text style={styles.taskMinutes}>({task.minutes} min.)</Text>
+          <View style={styles.breakdownList}>
+            {parsedTasks.map((task, index) => (
+              <View key={task.id ?? index} style={styles.taskRow}>
+                <Checkbox
+                  checked={task.status === "completed"}
+                  onChange={() => {}}
+                  boxStyle={styles.checkBox}
+                  containerStyle={styles.checkboxContainer}
+                />
+                <View style={styles.taskTextWrap}>
+                  <Text style={styles.taskText}>
+                    {index + 1}. {task.text}{" "}
+                    {/* <Text style={styles.taskMinutes}>
+                      (
+                      {Math.max(
+                        0,
+                        Math.round(
+                          (typeof task.actualSeconds === "number"
+                            ? task.actualSeconds
+                            : task.timeSeconds ?? task.minutes * 60) / 60
+                        )
+                      )}{" "}
+                      min.)
+                    </Text> */}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
-          {parsedTasks.length === 0 && (
-            <Text style={styles.value}>No tasks recorded.</Text>
-          )}
+            ))}
+            {parsedTasks.length === 0 && (
+              <Text style={styles.value}>No tasks recorded.</Text>
+            )}
+          </View>
         </View>
 
         <Spacer size="lg" />
 
-        <Text style={styles.sectionHeading}>Reflections:</Text>
-        <Spacer size="sm" />
-        <Text style={styles.value}>AI Summary:</Text>
-
         <Spacer size="xl" />
       </ScrollView>
-      <ArrowAction label="Back home" onPress={handleBackHome} />
+      <ArrowAction label="Return to home" onPress={handleBackHome} />
     </SafeAreaView>
   );
 }
@@ -175,12 +261,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    marginBottom: theme.spacing.xs,
+    margin: theme.spacing.xs,
   },
   label: {
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.lg,
+    //fontFamily: theme.typography.families.handwritten,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+    marginRight: 5,
   },
   value: {
     fontFamily: theme.typography.families.regular,
@@ -188,10 +275,15 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   statusValue: {
-    color: theme.colors.accent,
+    color: colors.light.secondary,
+    fontFamily: fonts.typeface.bodyBold,
+  },
+  statusValueSkipped: {
+    color: colors.light.primary,
+    fontFamily: fonts.typeface.bodyBold,
   },
   sectionHeading: {
-    fontFamily: theme.typography.families.handwritten,
+    //fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.lg,
     color: theme.colors.text,
   },
@@ -202,19 +294,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: theme.spacing.sm,
+    marginLeft: theme.spacing.md,
   },
   taskTextWrap: {
     flex: 1,
+    flexDirection: "row",
+    //flexWrap: "wrap",
+    alignItems: "flex-end",
   },
   taskText: {
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+    marginRight: theme.spacing.sm,
+    paddingLeft: theme.spacing.sm,
   },
   taskMinutes: {
     fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.accentDark,
   },
   checkboxContainer: {
     paddingVertical: 0,

@@ -11,8 +11,9 @@ import {
   View,
 } from "react-native";
 
+import { BasicButton } from "@/components/BasicButton";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { Container } from "@/components/ui/Container";
-import { Button } from "@/components/ui/Button";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
@@ -82,9 +83,7 @@ export default function SignUpScreen() {
             <Image source={teddy} style={styles.teddy} />
           </View>
 
-          <Text variant="h1" style={styles.title}>
-            Create Account
-          </Text>
+          <SvgStrokeText text={"Create account"} />
 
           <Spacer size="sm" />
 
@@ -154,14 +153,17 @@ export default function SignUpScreen() {
             </Text>
           )}
 
-          <Button
-            label={isSubmitting ? "Creating..." : "Create account"}
+          <BasicButton
+            text={isSubmitting ? "Creating..." : "Create account"}
             onPress={handleSignUp}
-            size="lg"
-            variant="brown"
-            disabled={isSubmitting}
-            style={styles.primaryButton}
-            labelStyle={styles.primaryButtonLabel}
+            disabled={
+              isSubmitting ||
+              !fullName.trim() ||
+              !email.trim() ||
+              !password ||
+              !confirmPassword
+            }
+            style={styles.sessionButton}
           />
 
           <TouchableOpacity
@@ -188,6 +190,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xl,
     paddingBottom: theme.spacing.xl,
     alignItems: "center",
+    justifyContent: "center",
   },
   hero: {
     alignItems: "center",
@@ -204,9 +207,9 @@ const styles = StyleSheet.create({
     height: 150,
     resizeMode: "contain",
   },
-  title: {
-    color: theme.colors.text,
-    marginTop: theme.spacing.sm,
+  sessionButton: {
+    // width: "100%",
+    marginTop: theme.spacing.lg,
   },
   form: {
     width: "100%",
@@ -217,17 +220,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.sm,
   },
-  primaryButton: {
-    width: "100%",
-    marginTop: theme.spacing.sm,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
-    ...theme.shadow.medium,
-  },
-  primaryButtonLabel: {
-    fontFamily: theme.typography.families.bold,
-    letterSpacing: 0.2,
-  },
+
   linkRow: {
     alignItems: "center",
     marginTop: theme.spacing.lg,

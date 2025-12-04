@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
-import type { Json, WorkSession, Task, SessionSetting, UserProfile } from "@/types/database.types";
+import type { Json, WorkSession, Task, UserProfile } from "@/types/database.types";
 
 export type ReflectionChatMessage = {
   id: string;
@@ -276,7 +276,7 @@ export async function fetchUserProfile(
 ///////////////////////////////
 
 export interface CreateSessionPayload {
-  user_id: string | null;
+  user_id: string;
   title: string;
   has_settings: boolean;
   total_time: number;
@@ -290,18 +290,19 @@ export interface CreateSessionPayload {
  * Creates a new active work session for a user.
  */
 export async function createSession(
-  userId: string | null,    // TODO: Users table
+  userId: string,
+  title: string,
   hasGoal: boolean,
   goal?: string | null,
-  hasTasks: boolean = false
+  hasTasks: boolean = false,
+  totalTime: number = 0,
 ): Promise<WorkSession> {
   const { data, error } = await supabase
     .from("sessions")
     .insert({
       user_id: userId,
-      title: "", // required
-      has_settings: true, // required
-      total_time: 0, // required
+      title: title, // required
+      total_time: totalTime, // required
       status: "active",
       has_goal: hasGoal,
       goal: goal,
@@ -320,7 +321,7 @@ export async function createSession(
  * Used for ARCHIVE.
  */
 export async function createPlan(
-  userId: string | null, // TODO: Users table
+  userId: string,
   hasGoal: boolean,
   hasTasks: boolean = false,
   total_time: number,
@@ -332,7 +333,6 @@ export async function createPlan(
     .insert({
       user_id: userId,
       title: title,
-      has_settings: false, // required
       total_time: total_time, // required
       status: "planned",
       has_goal: hasGoal,
@@ -369,124 +369,73 @@ export async function fetchSessions(userId: string): Promise<WorkSession[]> {
  * Used for ARCHIVE.
  */
 export async function fetchSessionDatesForMonth(
-  month: number, // 1-12
+  month: number,
   year: number,
-  userId?: string
+  userId: string
 ): Promise<string[]> {
-  // Construct the start and end ISO dates for the month
-  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
-  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(
-    new Date(year, month, 0).getDate()
-  ).padStart(2, "0")}`;
+  // 1. Month boundaries in LOCAL TIME
+  const startLocal = new Date(year, month - 1, 1, 0, 0, 0, 0);
+  const endLocal = new Date(year, month, 0, 23, 59, 59, 999);
 
-  // console.log("DEBUG: startDate =", startDate, "endDate =", endDate);
+  // 2. Convert to UTC ISO for Supabase
+  const startDate = startLocal.toISOString();
+  const endDate = endLocal.toISOString();
 
   const { data, error } = await supabase
     .from("sessions")
-    .select("created_at", { count: "exact" })
-    // .eq("user_id", userId)
+    .select("created_at")
+    .eq("user_id", userId)
     .gte("created_at", startDate)
     .lte("created_at", endDate)
     .order("created_at", { ascending: true });
 
-  if (error) {
-    throw new Error(`Failed to fetch session dates: ${error.message}`);
-  }
-
+  if (error) throw new Error(`Failed to fetch session dates: ${error.message}`);
   if (!data) return [];
 
-  // Use a Set to ensure unique dates (YYYY-MM-DD)
+  // 3. Convert each timestamp to LOCAL day string (yyyy-mm-dd)
   const uniqueDates = Array.from(
-    new Set(data.map((row) => row.created_at.slice(0, 10)))
+    new Set(
+      data.map((row) => {
+        const d = new Date(row.created_at);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`; // local day
+      })
+    )
   );
 
   return uniqueDates;
 }
 
-export interface SessionWithSettings extends WorkSession {
-  settings?: SessionSetting | null;
-}
+export async function fetchSessionsForDaySorted(
+  date: string, // "YYYY-MM-DD"
+  userId: string
+) {
+  // Parse local date start and end
+  const [year, month, day] = date.split("-").map(Number);
 
-export async function fetchSessionsForDayWithSettingsSorted(
-  date: string,
-  userId: string | null
-): Promise<SessionWithSettings[]> {
-  const startDate = new Date(`${date}T00:00:00.000Z`).toISOString();
-  const endDate = new Date(`${date}T23:59:59.999Z`).toISOString();
+  const startLocal = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const endLocal = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+  // Convert to UTC for the database query
+  const startDateUTC = startLocal.toISOString();
+  const endDateUTC = endLocal.toISOString();
 
   const { data, error } = await supabase
     .from("sessions")
-    .select(
-      `
-      *,
-      session_settings(*)
-    `
-    )
-    // .eq("user_id", userId)
-    .gte("created_at", startDate)
-    .lte("created_at", endDate)
-    // sort: has_settings = true first, then by timestamp
-    .order("has_settings", { ascending: false })
+    .select("*")
+    .eq("user_id", userId)
+    .gte("created_at", startDateUTC)
+    .lte("created_at", endDateUTC)
     .order("created_at", { ascending: true });
 
   if (error) {
-    throw new Error(
-      `Failed to fetch sessions with settings for ${date}: ${error.message}`
-    );
+    throw new Error(`Failed to fetch sessions for ${date}: ${error.message}`);
   }
 
-  // Map settings into `settings` for convenience
-  const sessionsWithSettings: SessionWithSettings[] = data.map((row) => ({
-    ...row,
-    settings: row.session_settings ?? null,
-  }));
-
-  return sessionsWithSettings;
+  return data ?? [];
 }
-
-// /**
-//  * Fetches all sessions for a specific day with settings.
-//  * @param userId - the user's ID
-//  * @param date - YYYY-MM-DD
-//  * 
-//  * Used for ARCHIVE.
-//  */
-// export async function fetchSessionsForDayWithSettingsSorted(
-//   date: string,
-//   userId: string | null
-// ): Promise<SessionWithSettings[]> {
-//   const startDate = new Date(`${date}T00:00:00.000Z`).toISOString();
-//   const endDate = new Date(`${date}T23:59:59.999Z`).toISOString();
-
-//   const { data, error } = await supabase
-//     .from("sessions")
-//     .select(
-//       `
-//       *,
-//       session_settings(*)
-//     `
-//     )
-//     .eq("user_id", userId)
-//     .gte("created_at", startDate)
-//     .lte("created_at", endDate)
-//     // order by "has settings" first
-//     .order("session_settings(id)", { ascending: false })
-//     .order("created_at", { ascending: true });
-
-//   if (error) {
-//     throw new Error(
-//       `Failed to fetch sessions with settings for ${date}: ${error.message}`
-//     );
-//   }
-
-//   // Map settings into a single field for easier access
-//   const sessionsWithSettings: SessionWithSettings[] = data.map((row) => ({
-//     ...row,
-//     settings: row.session_settings ?? null,
-//   }));
-
-//   return sessionsWithSettings;
-// }
 
 /**
  * Fetches a single session by ID.
@@ -582,7 +531,8 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
-    .eq("session_id", sessionId);
+    .eq("session_id", sessionId)
+    .order("order_index", { ascending: true });
 
   if (error) throw new Error(`Failed to fetch tasks: ${error.message}`);
   return data;
@@ -610,68 +560,59 @@ export async function deleteTask(taskId: string): Promise<void> {
 }
 
 ///////////////////////////////
-// SESSION SETTINGS
+// SESSION SETTINGS --------NOT IN USE ANYMORE
 ///////////////////////////////
 
-export interface CreateSessionSettingPayload {
-  user_id?: string | null;
-  session_id: string;
-  reflection_reminders: boolean;
-  collab_requests: boolean;
-  collab_friends: boolean;
-}
+// export interface CreateSessionSettingPayload {
+//   user_id?: string | null;
+//   session_id: string;
+//   reflection_reminders: boolean;
+//   collab_requests: boolean;
+//   collab_friends: boolean;
+// }
 
-export async function createSessionSetting(payload: CreateSessionSettingPayload): Promise<SessionSetting> {
-  const { data, error } = await supabase
-    .from("session_settings")
-    .insert(payload)
-    .select()
-    .single();
+// export async function createSessionSetting(payload: CreateSessionSettingPayload): Promise<SessionSetting> {
+//   const { data, error } = await supabase
+//     .from("session_settings")
+//     .insert(payload)
+//     .select()
+//     .single();
 
-  if (error) throw new Error(`Failed to create session setting: ${error.message}`);
-  return data;
-}
+//   if (error) throw new Error(`Failed to create session setting: ${error.message}`);
+//   return data;
+// }
 
-export async function fetchSessionSetting(sessionId: string): Promise<SessionSetting | null> {
-  const { data, error } = await supabase
-    .from("session_settings")
-    .select("*")
-    .eq("session_id", sessionId)
-    .maybeSingle();
+// export async function fetchSessionSetting(sessionId: string): Promise<SessionSetting | null> {
+//   const { data, error } = await supabase
+//     .from("session_settings")
+//     .select("*")
+//     .eq("session_id", sessionId)
+//     .maybeSingle();
 
-  if (error) throw new Error(`Failed to fetch session setting: ${error.message}`);
-  return data;
-}
+//   if (error) throw new Error(`Failed to fetch session setting: ${error.message}`);
+//   return data;
+// }
 
-export async function updateSessionSetting(sessionId: string, updates: Partial<CreateSessionSettingPayload>): Promise<SessionSetting> {
-  const { data, error } = await supabase
-    .from("session_settings")
-    .update(updates)
-    .eq("session_id", sessionId)
-    .select()
-    .single();
+// export async function updateSessionSetting(sessionId: string, updates: Partial<CreateSessionSettingPayload>): Promise<SessionSetting> {
+//   const { data, error } = await supabase
+//     .from("session_settings")
+//     .update(updates)
+//     .eq("session_id", sessionId)
+//     .select()
+//     .single();
 
-  if (error) throw new Error(`Failed to update session setting: ${error.message}`);
-  return data;
-}
+//   if (error) throw new Error(`Failed to update session setting: ${error.message}`);
+//   return data;
+// }
 
-export async function deleteSessionSetting(sessionId: string): Promise<void> {
-  const { error } = await supabase
-    .from("session_settings")
-    .delete()
-    .eq("session_id", sessionId);
+// export async function deleteSessionSetting(sessionId: string): Promise<void> {
+//   const { error } = await supabase
+//     .from("session_settings")
+//     .delete()
+//     .eq("session_id", sessionId);
 
-  if (error) throw new Error(`Failed to delete session setting: ${error.message}`);
-}
-
-
-
-
-
-
-
-
-
+//   if (error) throw new Error(`Failed to delete session setting: ${error.message}`);
+// }
 
 // export interface SessionSettingPayload {
 //   userId: string;

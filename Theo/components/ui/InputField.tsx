@@ -1,5 +1,7 @@
 // components/InputField.tsx
 
+import { colors } from "@/assets/themes/colors";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   StyleProp,
@@ -60,7 +62,7 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
       >
         {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
 
-        <View style={styles.inputWrapper}>
+        <View style={[row ? styles.inputWrapperRow : styles.inputWrapper]}>
           <TextInput
             ref={ref}
             style={[
@@ -81,7 +83,21 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
           )}
         </View>
 
-        {error && <Text style={[styles.error, errorStyle]}>{error}</Text>}
+        {error && (
+          <View style={styles.errorRow}>
+            <Text
+              style={[styles.error, errorStyle, small && styles.smallError]}
+            >
+              {error}
+            </Text>
+            <MaterialCommunityIcons
+              name="alert-circle"
+              color={colors.light.error}
+              size={16}
+              style={[{ marginLeft: 6 }, small && styles.smallErrorIcon]}
+            />
+          </View>
+        )}
       </View>
     );
   }
@@ -90,18 +106,23 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    marginBottom: theme.spacing.md + 2,
+    paddingBottom: 20,
     position: "relative",
   },
 
   row: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
   inputWrapper: {
     width: "100%",
     justifyContent: "center",
   },
+  inputWrapperRow: {
+    width: "auto",
+  },
+
   label: {
     fontSize: theme.typography.sizes.lg,
     fontFamily: theme.typography.families.regular,
@@ -110,14 +131,14 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    width: "100%",
+    //width: "100%",
     height: theme.input.height,
     paddingHorizontal: theme.input.paddingHorizontal,
     fontSize: theme.typography.sizes.md,
     backgroundColor: theme.colors.background,
     borderWidth: theme.input.borderWidth,
     borderColor: theme.input.borderColor,
-    borderRadius: theme.input.borderRadius,
+    borderRadius: theme.radii.md,
     color: theme.colors.text,
     fontFamily: theme.typography.families.regular,
     paddingRight: theme.spacing.xl * 1.6,
@@ -135,8 +156,8 @@ const styles = StyleSheet.create({
 
   rowInput: {
     marginLeft: theme.spacing.sm,
-    width: "auto",
-    paddingRight: theme.spacing.md,
+    width: "100%",
+    paddingRight: theme.spacing.sm,
   },
   centeredInput: {
     textAlign: "center",
@@ -154,11 +175,24 @@ const styles = StyleSheet.create({
   },
 
   error: {
-    position: "absolute",
-    marginTop: theme.spacing.xxl,
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.danger,
     fontFamily: theme.typography.families.regular,
+  },
+
+  errorRow: {
+    flexDirection: "row",
+    alignSelf: "flex-end",
+    justifyContent: "flex-start",
+    position: "absolute",
+  },
+
+  smallError: {
+    marginTop: theme.spacing.xxl + theme.spacing.sm,
+  },
+  smallErrorIcon: {
+    //position: "absolute",
+    marginTop: theme.spacing.xxl + theme.spacing.sm + 3,
   },
   rightAccessory: {
     position: "absolute",

@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,8 +12,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 import { InputField } from "@/components";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { ArrowAction } from "@/components/ui/ArrowAction";
@@ -75,6 +72,12 @@ export default function GoalScreen() {
               steps={["Setup", "Customize", "Finalize"]}
               activeCount={2}
               onPressMenu={() => {}}
+              helpMessagept1={
+                "Here, you may enter a goal for your plan or work session. There are text and voice input options for your convenience.\n"
+              }
+              helpMessagept2={
+                "If you would like to skip this step and move to the Task Manager to enter tasks, you may select the 'Skip' option at the bottom of the screen."
+              }
             />
           </View>
 
@@ -89,14 +92,13 @@ export default function GoalScreen() {
             <Spacer size="lg" />
 
             <SvgStrokeText
-              text={"GOAL: "}
-              stroke={colors.light.header2}
+              text="Goal:"
+              stroke={theme.colors.accentDark}
               textStyle={{
-                color: colors.light.header2,
-                fontSize: fonts.sizes.header2,
+                color: theme.colors.accentDark,
               }}
               containerStyle={{ alignSelf: "center" }}
-            />
+            ></SvgStrokeText>
 
             <Spacer size="md" />
 
@@ -123,7 +125,11 @@ export default function GoalScreen() {
                       },
                     ]}
                   >
-                    <Icon name="mic" size={micSize} tint={theme.colors.accentDark} />
+                    <Icon
+                      name="mic"
+                      size={micSize}
+                      tint={theme.colors.accentDark}
+                    />
                   </TouchableOpacity>
                 }
               />

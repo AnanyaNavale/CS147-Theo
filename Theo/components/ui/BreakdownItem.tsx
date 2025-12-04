@@ -19,9 +19,9 @@ export function BreakdownItem({ minutes, text, onDelete }: BreakdownItemProps) {
 
       <View style={styles.taskBox}>
         <Text style={styles.taskText}>{text}</Text>
-        <TouchableOpacity onPress={onDelete} style={styles.grip}>
-          <Icon name="trash" size={24} tint={theme.colors.border} />
-        </TouchableOpacity>
+        <View style={styles.grip}>
+          <Icon name="drag" size={24} tint={theme.colors.border} />
+        </View>
       </View>
     </View>
   );
@@ -40,7 +40,8 @@ const styles = StyleSheet.create({
   timeBox: {
     width: 100,
     backgroundColor: theme.colors.accentDark,
-    borderRadius: theme.radii.md,
+    borderTopLeftRadius: theme.radii.md,
+    borderBottomLeftRadius: theme.radii.md,
     alignItems: "center",
     paddingVertical: theme.spacing.md,
     zIndex: 2,
@@ -58,20 +59,23 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.accentDark,
     borderTopRightRadius: theme.radii.md,
     borderBottomRightRadius: theme.radii.md,
-    marginLeft: -theme.spacing.lg, // overlap the time box to cover its rounded edge
     paddingVertical: theme.spacing.md - 5,
     paddingHorizontal: theme.spacing.xl,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   taskText: {
     color: theme.colors.text,
     fontSize: theme.typography.sizes.sm,
+    width: "100%",
+    textAlign: "left",
     //lineHeight: 22,
   },
 
   grip: {
     position: "absolute",
-    right: theme.spacing.sm,
+    right: theme.spacing.xs,
     top: 0,
     bottom: 0,
     justifyContent: "center",

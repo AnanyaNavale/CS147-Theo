@@ -7,7 +7,6 @@ declare module "success-motivational-quotes" {
   }
   const quotes: {
     getQuote: () => Quote;
-    getAllQuotes: () => Quote[];
   };
   export default quotes;
 }

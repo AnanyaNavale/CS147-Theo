@@ -17,20 +17,25 @@ import { theme } from "@/design/theme";
 const teddy = require("../../../assets/theo/done.png");
 
 export default function EndSessionScreen() {
-  const { goal, tasks } = useLocalSearchParams<{
-    goal?: string;
-    tasks?: string;
-  }>();
+  const { goal, tasks, sessionId } = useLocalSearchParams();
+  const sessionIdParam = Array.isArray(sessionId) ? sessionId[0] : sessionId;
+  const sessionIdValue =
+    sessionIdParam && sessionIdParam !== "null" ? sessionIdParam : null;
   const goalText = goal ?? "";
   const parsedTasks = useMemo(() => {
     if (!tasks) return [];
+
+    // Handle string arrays
+    const tasksString = Array.isArray(tasks) ? tasks[0] : tasks;
+
     try {
-      const data = JSON.parse(tasks);
+      const data = JSON.parse(tasksString);
       return Array.isArray(data) ? data : [];
     } catch {
       return [];
     }
   }, [tasks]);
+
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
   const teddySize = isCompact ? 200 : 260;
@@ -38,7 +43,11 @@ export default function EndSessionScreen() {
   const viewSummary = () => {
     router.push({
       pathname: "./session-summary",
-      params: { goal: goalText, tasks: JSON.stringify(parsedTasks) },
+      params: {
+        goal: goalText,
+        tasks: JSON.stringify(parsedTasks),
+        sessionId: sessionIdValue,
+      },
     });
   };
 
@@ -64,11 +73,7 @@ export default function EndSessionScreen() {
             </>
           ) : (
             <>
-              <SvgStrokeText
-                text="Work session"
-                stroke={theme.colors.accentDark}
-                textStyle={{ color: theme.colors.accentDark }}
-              ></SvgStrokeText>
+              <SvgStrokeText text="Session Complete"></SvgStrokeText>
               <Spacer />
             </>
           )}
@@ -81,7 +86,7 @@ export default function EndSessionScreen() {
           <Spacer size="lg" />
           <Text style={styles.note}>Give yourself a pat on the back.</Text>
         </View>
-        <Spacer size="lg" />
+        <Spacer size="sm" />
 
         <Image
           source={teddy}

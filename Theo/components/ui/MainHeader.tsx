@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   LayoutChangeEvent,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ViewStyle,
 } from "react-native";
 
 import { colors } from "@/assets/themes/colors";
 import { theme } from "@/design/theme";
 import { signOut } from "@/lib/supabase";
 import { useRouter } from "expo-router";
+import { AppModal } from "./AppModal";
 
 const logo = require("@/assets/images/logo.png");
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -46,7 +47,9 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuHeight, setMenuHeight] = useState(0);
+  const [menuTop, setMenuTop] = useState(0);
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     // Reset failure flag when a new avatar URL arrives
@@ -55,6 +58,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
 
   const handleLogout = async () => {
     setMenuOpen(false);
+    setShowLogoutConfirm(false);
     try {
       await signOut();
       router.replace("../auth/login");
@@ -65,13 +69,19 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
 
   const menuOptions = [
     {
-      label: "Settings",
+      label: "Profile",
       onPress: () => {
         setMenuOpen(false);
         router.push("../profile");
       },
     },
-    { label: "Log out", onPress: handleLogout },
+    {
+      label: "Log out",
+      onPress: () => {
+        setMenuOpen(false);
+        setShowLogoutConfirm(true);
+      },
+    },
   ];
 
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -81,20 +91,19 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
   return (
     <View onLayout={handleLayout}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => setMenuOpen((prev) => !prev)}
-          style={styles.menuButton}
-        >
-          <TabBarIcon name="menu" color="#8A5E3C" size={36} />
-        </TouchableOpacity>
-
         <Image
           source={logo}
-          style={{ width: 90, height: 40, marginLeft: 10 }}
+          style={{ width: 90, height: 40 }}
         />
 
-        <TouchableOpacity onPress={() => router.push("../profile")}>
-          <View style={styles.userIcon}>
+        <TouchableOpacity onPress={() => setMenuOpen((prev) => !prev)}>
+          <View
+            style={styles.userIcon}
+            onLayout={(event) => {
+              // Position the menu so its top edge sits against the avatar.
+              setMenuTop(event.nativeEvent.layout.y);
+            }}
+          >
             {avatarUrl && !avatarFailed ? (
               <Image
                 key={avatarUrl}
@@ -109,33 +118,50 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
         </TouchableOpacity>
       </View>
 
-      {/* Overlay */}
+      {/* Overlay + menu card */}
       {menuOpen && (
-        <Pressable
-          style={styles.menuOverlay}
-          onPress={() => setMenuOpen(false)}
-        />
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          onRequestClose={() => setMenuOpen(false)}
+        >
+          <View style={StyleSheet.absoluteFillObject}>
+            <Pressable
+              style={styles.menuOverlay}
+              onPress={() => setMenuOpen(false)}
+            />
+
+            <View style={[styles.menuAnchor, { top: menuTop || menuHeight }]}>
+              <View style={styles.menuCard}>
+                {menuOptions.map((opt, idx) => (
+                  <TouchableOpacity
+                    key={opt.label}
+                    style={styles.menuItem}
+                    onPress={opt.onPress}
+                  >
+                    <Text style={styles.menuLabel}>{opt.label}</Text>
+                    {idx < menuOptions.length - 1 && (
+                      <View style={styles.menuDivider} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
 
-      {/* Menu card */}
-      {menuOpen && (
-        <View style={[styles.menuAnchor, { top: menuHeight }]}>
-          <View style={styles.menuCard}>
-            {menuOptions.map((opt, idx) => (
-              <TouchableOpacity
-                key={opt.label}
-                style={styles.menuItem}
-                onPress={opt.onPress}
-              >
-                <Text style={styles.menuLabel}>{opt.label}</Text>
-                {idx < menuOptions.length - 1 && (
-                  <View style={styles.menuDivider} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )}
+      <AppModal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        variant="alert"
+        title="Log out?"
+        message="Are you sure you want to log out?"
+        cancelLabel="Cancel"
+        confirmLabel="Log out"
+        onConfirm={handleLogout}
+      />
     </View>
   );
 }
@@ -169,7 +195,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   menuButton: {
-    transform: [{ translateY: -4 }],
+    transform: [{ translateY: -4 }, { translateX: -4 }],
   },
   menuOverlay: {
     position: "absolute",
@@ -181,7 +207,7 @@ const styles = StyleSheet.create({
   },
   menuAnchor: {
     position: "absolute",
-    left: 30, // same as header paddingHorizontal
+    right: theme.spacing.md,
     zIndex: 3,
   },
   menuCard: {

@@ -2,25 +2,24 @@ import {
   Dimensions,
   FlatList,
   SectionList, StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { View, Text } from "@/components/Themed";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import SvgStrokeText from "@/components/SvgStrokeText";
 
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
-// import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionsForDayWithSettingsSorted } from "@/lib/supabase";
+import { fetchSessionsForDaySorted } from "@/lib/supabase";
 
 import SessionBox from "@/components/ArchiveSessionBox";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 
-
-// import { Feather } from "@expo/vector-icons";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -28,7 +27,8 @@ export default function SingleDayScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const [year, month, day] = date.split("-").map(Number);
 
-  const { supabase } = useSupabase();
+  const { session } = useSupabase();
+  const userId = session?.user?.id;
   const router = useRouter();
 
   const [sessions, setSessions] = useState<any[]>([]);
@@ -37,9 +37,11 @@ export default function SingleDayScreen() {
   // Parse the string into a Date
   const currentDate = new Date(year, month - 1, day); // works if date is "YYYY-MM-DD"
 
-  const previousDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+  const previousDate = new Date(currentDate);
+  previousDate.setDate(currentDate.getDate() - 1);
 
-  const nextDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
+  const nextDate = new Date(currentDate);
+  nextDate.setDate(currentDate.getDate() + 1);
 
   const displayDate = new Date(year, month - 1, day).toLocaleDateString(
     "en-US",
@@ -62,16 +64,14 @@ export default function SingleDayScreen() {
     day: "2-digit",
     year: "2-digit",
   });
-  // console.log("Previous:", displayPrevious);
-  // console.log("Next:", displayNext);
 
   useEffect(() => {
-    if (!date) return;
+    if (!date || !userId) return; // ⬅️ important
 
     const loadData = async () => {
       setLoading(true);
       try {
-        const data = await fetchSessionsForDayWithSettingsSorted(date, null);
+        const data = await fetchSessionsForDaySorted(date, userId);
         setSessions(data ?? []);
       } catch (err) {
         console.error("Error fetching sessions:", err);
@@ -81,18 +81,20 @@ export default function SingleDayScreen() {
     };
 
     loadData();
-  }, [date]);
+  }, [date, userId]);
 
   const sections = [
-    {
-      title: "Sessions",
-      data: sessions.filter((s) => s.has_settings === true),
-    },
-    {
-      title: "Plans",
-      data: sessions.filter((s) => s.has_settings === false),
-    },
-  ];
+  {
+    title: "Sessions",
+    data: sessions.filter(
+      (s) => s.status !== "planned" // active, incomplete, complete
+    ),
+  },
+  {
+    title: "Plans",
+    data: sessions.filter((s) => s.status === "planned"),
+  },
+];
 
   return (
     <View style={styles.container}>
@@ -108,26 +110,24 @@ export default function SingleDayScreen() {
           />
         </TouchableOpacity>
         <View style={styles.dateContainer}>
-          <SvgStrokeText text={displayDate} />
+          <SvgStrokeText
+            text={displayDate}
+            textStyle={{ fontSize: fonts.sizes.header2 }}
+          />
         </View>
       </View>
 
       <View style={styles.shadowBottom} />
 
-      <View
-        style={{
-          height: "73%",
-          marginBottom: "2%",
-        }}
-      >
+      <View style={styles.topContentWrapper}>
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <SessionBox
               title={item.title}
+              goal={item.goal}
               time={item.total_time}
-              has_settings={item.has_settings}
               status={item.status}
               onPress={() =>
                 router.push({
@@ -148,7 +148,12 @@ export default function SingleDayScreen() {
           )}
           renderSectionFooter={({ section }) =>
             section.data.length === 0 ? (
-              <View style={{ alignItems: "center" }}>
+              <View
+                style={{
+                  alignItems: "center",
+                  backgroundColor: colors.light.background,
+                }}
+              >
                 <Text
                   style={{
                     fontFamily: fonts.typeface.body,
@@ -178,21 +183,10 @@ export default function SingleDayScreen() {
       <View style={styles.bottomNavigator}>
         <TouchableOpacity
           style={{ flexDirection: "row" }}
-          onPress={
-            () =>
-              // router.navigate(
-              //   {
-              //     pathname: "/(tabs)/archive/[date]",
-              //     params: { date: previousDate.toISOString().split("T")[0] },
-              //   },
-              //   {
-              //     animation: "slide_from_left",
-              //   }
-              // )
+          onPress={() =>
             router.push({
               pathname: "/(tabs)/archive/[date]",
-              params: { date: previousDate.toISOString().split("T")[0] }, // "YYYY-MM-DD"
-              // animation: "slide_from_left",
+              params: { date: previousDate.toISOString().split("T")[0] }, // correct local day
             })
           }
         >
@@ -208,7 +202,7 @@ export default function SingleDayScreen() {
           onPress={() =>
             router.push({
               pathname: "/(tabs)/archive/[date]",
-              params: { date: nextDate.toISOString().split("T")[0] }, // "YYYY-MM-DD"
+              params: { date: nextDate.toISOString().split("T")[0] }, // correct local day
             })
           }
         >
@@ -227,20 +221,26 @@ export default function SingleDayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: colors.light.background,
+    justifyContent: "space-between",
+  },
+  topContentWrapper: {
+    flex: 1, // fills all space above bottom navigator
+    marginBottom: 90,
+    backgroundColor: colors.light.background,
+    justifyContent: "space-between",
   },
   header: {
     height: 130,
     flexDirection: "row",
-    alignItems: "center",
     position: "relative",
-    justifyContent: "flex-end",
     backgroundColor: colors.light.background,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 }, // subtle bottom shadow
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderColor: 'red',
   },
   backButton: {
     position: "absolute",
@@ -275,9 +275,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   bottomNavigator: {
-    borderColor: "red",
-    // borderWidth: 1,
-    height: "11%",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
     width: "100%",
     backgroundColor: colors.light.background,
     shadowColor: "#000",
@@ -287,8 +289,8 @@ const styles = StyleSheet.create({
     elevation: 5,
     paddingHorizontal: 20,
     paddingTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   shadowTop: {
     height: 4,

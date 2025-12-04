@@ -1,32 +1,32 @@
+import { Feather } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  View,
-  Image,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
-import * as FileSystem from "expo-file-system";
 
-import { Button } from "@/components/ui/Button";
+import { BasicButton } from "@/components/BasicButton";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { AppModal } from "@/components/ui/AppModal";
 import { Container } from "@/components/ui/Container";
+import { Icon } from "@/components/ui/Icon";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
-import { useSupabase } from "@/providers/SupabaseProvider";
-import {
-  ensureUserProfile,
-  fetchUserProfile,
-  supabase,
-} from "@/lib/supabase";
 import { theme } from "@/design/theme";
+import { fonts } from "@/assets/themes/typography";
+import { ensureUserProfile, fetchUserProfile, supabase } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 // Decode base64 into a Uint8Array without bringing along file metadata.
 const base64ToUint8Array = (base64: string) => {
@@ -70,24 +70,32 @@ export default function ProfileScreen() {
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [initialDisplayName, setInitialDisplayName] = useState("");
+  const [initialEmail, setInitialEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const loadProfile = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
       const profile = await fetchUserProfile(user.id);
-      setDisplayName(
+      const profileDisplayName =
         profile?.display_name ??
-          (user.user_metadata?.display_name as string | undefined) ??
-          ""
-      );
-      setEmail(user.email ?? "");
+        (user.user_metadata?.display_name as string | undefined) ??
+        "";
+      const profileEmail = user.email ?? "";
+
+      setDisplayName(profileDisplayName);
+      setEmail(profileEmail);
+      setInitialDisplayName(profileDisplayName);
+      setInitialEmail(profileEmail);
       setAvatarUrl(
         profile?.avatar_url ??
           (user.user_metadata?.avatar_url as string | undefined) ??
@@ -138,7 +146,11 @@ export default function ProfileScreen() {
         avatarUrl: avatarUrl || null,
       });
 
-      setMessage("Profile updated.");
+      const normalizedEmail = email.trim();
+      setInitialDisplayName(displayName);
+      setInitialEmail(normalizedEmail || "");
+      setEmail(normalizedEmail);
+      setMessage("Profile updated!");
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to update profile.";
@@ -157,23 +169,24 @@ export default function ProfileScreen() {
 
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-    setError("Permission required to access photos.");
-    return;
-  }
+      setError("Permission required to access photos.");
+      return;
+    }
 
-  // Prefer new MediaType API; fall back to legacy MediaTypeOptions for older SDKs.
-  const mediaTypeImageEnum =
-    (ImagePicker as any).MediaType?.Images ??
-    (ImagePicker as any).MediaType?.Image ??
-    null;
-  const mediaTypes =
-    mediaTypeImageEnum != null
-      ? [mediaTypeImageEnum] // new API prefers an array of enums
-      : (ImagePicker as any).MediaTypeOptions?.Images ?? ImagePicker.MediaTypeOptions.Images;
+    // Prefer new MediaType API; fall back to legacy MediaTypeOptions for older SDKs.
+    const mediaTypeImageEnum =
+      (ImagePicker as any).MediaType?.Images ??
+      (ImagePicker as any).MediaType?.Image ??
+      null;
+    const mediaTypes =
+      mediaTypeImageEnum != null
+        ? [mediaTypeImageEnum] // new API prefers an array of enums
+        : (ImagePicker as any).MediaTypeOptions?.Images ??
+          ImagePicker.MediaTypeOptions.Images;
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes,
-    allowsEditing: true,
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes,
+      allowsEditing: true,
       aspect: [1, 1], // keep selection square for circular crop
       quality: 0.8,
     });
@@ -204,7 +217,7 @@ export default function ProfileScreen() {
         }
 
         const base64 = await FileSystem.readAsStringAsync(manip.uri, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: "base64",
         });
         return base64ToUint8Array(base64);
       };
@@ -243,7 +256,7 @@ export default function ProfileScreen() {
         avatarUrl: publicUrl,
       });
       await loadProfile();
-      setMessage("Photo updated.");
+      setMessage("Photo updated!");
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to upload image.";
@@ -254,7 +267,23 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Container padded style={styles.safe}>
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+        >
+          <Feather name={"arrow-left"} size={36} color="#8A5E3C" />
+        </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <SvgStrokeText
+            text={displayName + "'s Profile"}
+            stroke="black"
+            strokeWidth={0.3}
+            textStyle={{ fontSize: fonts.sizes.header2 }}
+          />
+        </View>
+      </View>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -263,18 +292,6 @@ export default function ProfileScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Feather name="arrow-left" size={28} color={theme.colors.text} />
-            </TouchableOpacity>
-            <Text variant="h1" style={styles.title}>
-              Profile
-            </Text>
-            <View style={{ width: 28 }} />
-          </View>
-
-          <Spacer size="lg" />
-
           <View style={styles.avatarRow}>
             <TouchableOpacity
               onPress={pickAndUploadAvatar}
@@ -285,7 +302,11 @@ export default function ProfileScreen() {
                 <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
               ) : (
                 <View style={[styles.avatarImage, styles.avatarFallback]}>
-                  <Feather name="user" size={68} color={theme.solidColors.white} />
+                  <Feather
+                    name="user"
+                    size={68}
+                    color={theme.solidColors.white}
+                  />
                 </View>
               )}
               {uploading && (
@@ -307,7 +328,6 @@ export default function ProfileScreen() {
             editable={!loading && !saving}
             containerStyle={styles.inputContainer}
           />
-
           <InputField
             label="Email"
             placeholder="Email"
@@ -321,7 +341,7 @@ export default function ProfileScreen() {
 
           {error && (
             <View style={[styles.banner, styles.errorBanner]}>
-              <Text style={styles.bannerText}>{error}</Text>
+              <Text style={{ color: theme.colors.danger }}>{error}</Text>
             </View>
           )}
           {message && (
@@ -330,28 +350,76 @@ export default function ProfileScreen() {
             </View>
           )}
 
-          <Button
-            label={saving ? "Saving..." : "Save changes"}
+          <BasicButton
+            text={saving ? "Saving..." : "Save changes"}
             onPress={handleSave}
-            variant="brown"
-            size="lg"
-            disabled={saving}
+            disabled={
+              saving ||
+              loading ||
+              (displayName === initialDisplayName && email === initialEmail)
+            }
             style={styles.saveButton}
           />
+
+          <Spacer size="md" />
+
+          <TouchableOpacity
+            onPress={() => {
+              if (loggingOut) return;
+              setShowLogoutConfirm(true);
+            }}
+            disabled={loggingOut}
+          >
+            <Text style={styles.logoutText}>
+              {loggingOut ? "Logging out..." : "Log out"}
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </Container>
+
+      <AppModal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        variant="alert"
+        title="Log out?"
+        message="Are you sure you want to log out?"
+        cancelLabel="Cancel"
+        confirmLabel="Log out"
+        onConfirm={async () => {
+          if (loggingOut) return;
+          setShowLogoutConfirm(false);
+          setLoggingOut(true);
+          await supabase.auth.signOut();
+          router.replace("/auth/login");
+          setLoggingOut(false);
+        }}
+      />
+
+      {loggingOut && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <Text style={styles.loadingText}>Logging you out...</Text>
+          </View>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  container: {
     flex: 1,
+    padding: 16,
     backgroundColor: theme.colors.background,
   },
   scroll: {
     flexGrow: 1,
-    paddingVertical: theme.spacing.lg,
+    padding: 16,
+    // borderWidth: 1,
+    borderColor: "red",
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
   },
   title: {
     color: theme.colors.text,
@@ -366,21 +434,35 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.sm,
     alignSelf: "center",
     marginTop: theme.spacing.xs,
+    // borderWidth: 1,
   },
   bannerText: {
-    color: theme.solidColors.white,
+    //color: theme.solidColors.white,
+    color: theme.solidColors.text,
     fontFamily: theme.typography.families.regular,
   },
   infoBanner: {
-    backgroundColor: theme.colors.text,
+    //backgroundColor: theme.colors.text,
   },
   errorBanner: {
-    backgroundColor: theme.colors.danger,
+    // backgroundColor: theme.colors.danger,
+    //alignSelf: "center",
+    width: "100%",
   },
-  headerRow: {
+  headerContainer: {
+    width: "100%",
     flexDirection: "row",
+    marginTop: 55,
+    // paddingHorizontal: 16,
+  },
+  titleContainer: {
     alignItems: "center",
+    position: "absolute",
+    paddingTop: 2,
+    left: 0,
+    right: 0,
     justifyContent: "space-between",
+    marginBottom: theme.spacing.lg,
   },
   avatarRow: {
     alignItems: "center",
@@ -427,14 +509,40 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
   },
   inputContainer: {
-    width: "92%",
+    width: "100%",
     alignSelf: "center",
   },
   saveButton: {
     marginTop: theme.spacing.lg,
-    borderRadius: theme.radii.lg,
-    width: "70%",
+    //width: "100%",
     alignSelf: "center",
+  },
+  logoutText: {
+    textDecorationLine: "underline",
+    color: theme.colors.accentDark,
+    textAlign: "center",
+    fontFamily: theme.typography.families.bold,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingCard: {
+    backgroundColor: "#fff",
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radii.lg,
     ...theme.shadow.medium,
+  },
+  loadingText: {
+    fontFamily: theme.typography.families.bold,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text,
   },
 });

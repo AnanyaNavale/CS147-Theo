@@ -28,14 +28,8 @@ const teddyBear = require("@/assets/theo/working.png");
 const HEADER_HEIGHT = 145; // size of main header (fixed) including its padding
 const TAB_OVERLAP = 35; // size of the portion of the "session" circle in the tab bar that exceeds the actual tab bar
 
-// const QUOTES = [
-//   `"You are braver than you believe, stronger than you seem, and smarter than you think." - Christopher Robin`,
-//   `"Success is the sum of small efforts, repeated day in and day out." - Robert Collier`,
-//   `"It always seems impossible until it's done." - Nelson Mandela`,
-// ];
-
 export default function HomeScreen() {
-  const userName = "User";
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const today = formatHomeDate(new Date());
   const [menuOpen, setMenuOpen] = useState(false);
   const hasIncomplete = false; // TODO: Page for incomplete sessions
@@ -81,6 +75,24 @@ export default function HomeScreen() {
   // Refresh when the home screen regains focus (e.g., after updating profile photo)
   useFocusEffect(loadAvatar);
 
+  useEffect(() => {
+    if (!session?.user) return;
+
+    fetchUserProfile(session.user.id)
+      .then((profile) => setDisplayName(profile?.display_name ?? null))
+      .catch((err) => {
+        console.error("Failed to fetch display name:", err);
+        setDisplayName(null);
+      });
+  }, [session]);
+
+  function capitalizeFirst(str: string | null | undefined): string {
+    if (!str || str.length === 0) return "";
+    return str[0].toUpperCase() + str.slice(1);
+  }
+
+  const formattedName = capitalizeFirst(displayName);
+
   function formatHomeDate(date: Date) {
     const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -89,11 +101,6 @@ export default function HomeScreen() {
 
     return `${weekday}, ${month}/${day}/${year}`;
   }
-
-  // const quote = useMemo(() => {
-  //   const idx = Math.floor(Math.random() * QUOTES.length);
-  //   return QUOTES[idx];
-  // }, []);
 
   const usableHeight = screenHeight - HEADER_HEIGHT - TAB_OVERLAP; // subract out header + overlap for height content can occupy
 
@@ -120,7 +127,7 @@ export default function HomeScreen() {
               containerStyle={styles.dateText}
               textAnchor="start"
             />
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               {hasIncomplete ? (
                 <MaterialCommunityIcons
                   name="bell-badge"
@@ -134,10 +141,10 @@ export default function HomeScreen() {
                   color={colors.light.notificationInactive}
                 />
               )}
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           <SvgStrokeText
-            text={`Hi, ${userName}`}
+            text={`Hi, ${formattedName}`}
             containerStyle={styles.hiText}
             textAnchor="start"
           />
@@ -146,7 +153,9 @@ export default function HomeScreen() {
         {/* Section 2: Teddy + quote */}
         <View style={styles.heroBlock}>
           <Image source={teddyBear} style={styles.heroImage} />
-          <QuoteOfTheDay />
+          <View style={{ width: "70%" }}>
+            <QuoteOfTheDay />
+          </View>
         </View>
 
         {/* Section 3: CTA */}
@@ -183,6 +192,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     width: "100%",
     marginTop: theme.spacing.lg,
+    marginLeft: theme.spacing.md,
     alignItems: "flex-start",
   },
   dateContainer: {
@@ -211,20 +221,7 @@ const styles = StyleSheet.create({
   },
   ctaRow: {
     alignItems: "center",
-  },
-  quoteCard: {
-    width: "80%",
-    marginTop: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    alignItems: "center",
-    alignSelf: "center",
-  },
-  quoteText: {
-    fontStyle: "italic",
-    color: "#888",
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    textAlign: "center",
+    marginBottom: "10%",
   },
   menuOverlay: {
     position: "absolute",

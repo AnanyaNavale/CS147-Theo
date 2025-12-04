@@ -1,16 +1,17 @@
-import React from "react";
-import {
-  DimensionValue,
-  Pressable,
-  Text,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-  View,
-} from "react-native";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import { Icon, IconName } from "@/components/ui/Icon";
+import { theme } from "@/design/theme";
+import React from "react";
+import {
+  DimensionValue,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 
 export type BasicButtonProps = {
   text: string;
@@ -24,7 +25,7 @@ export type BasicButtonProps = {
   iconName?: IconName;
   iconSize?: number;
   iconTint?: string;
-} & React.ComponentProps<typeof Pressable>;
+} & React.ComponentProps<typeof TouchableOpacity>;
 
 export const BasicButton = React.forwardRef<View, BasicButtonProps>(
   (
@@ -44,7 +45,8 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
     },
     ref
   ) => {
-    // Inside your component
+    const isDisabled = rest.disabled ?? false;
+
     const getColors = (variant: "primary" | "secondary" | "tertiary") => {
       switch (variant) {
         case "primary":
@@ -68,7 +70,7 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
     const { backgroundColor: bg, shadowColor: sc } = getColors(variant);
 
     return (
-      <Pressable
+      <TouchableOpacity
         ref={ref}
         style={[
           styles.base,
@@ -77,16 +79,22 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
             height,
             backgroundColor: bg,
             shadowColor: sc,
+            opacity: isDisabled ? 0.5 : 1,
           },
           style,
         ]}
         {...rest}
       >
         {iconName && (
-          <Icon name={iconName} size={iconSize} tint={iconTint} style={styles.icon} />
+          <Icon
+            name={iconName}
+            size={iconSize}
+            tint={iconTint}
+            style={styles.icon}
+          />
         )}
         <Text style={[styles.text, textStyle]}>{text}</Text>
-      </Pressable>
+      </TouchableOpacity>
     );
   }
 );
@@ -96,7 +104,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: theme.radii.md,
     margin: 10,
 
     shadowOpacity: 0.5,

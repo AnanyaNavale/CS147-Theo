@@ -29,8 +29,6 @@ import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { generateTasksWithAI } from "@/lib/ai";
-import { createSession, createTask } from "@/lib/supabase";
-import { useSupabase } from "@/providers/SupabaseProvider";
 
 type Task = {
   id: string;
@@ -44,7 +42,6 @@ const teddy = require("../../../assets/theo/waving.png");
 export default function SessionBreakdownScreen() {
   const { goal } = useLocalSearchParams<{ goal?: string }>();
   const initialGoal = goal ?? "";
-  const { session: authSession } = useSupabase();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [goalInput, setGoalInput] = useState(initialGoal);
@@ -54,6 +51,7 @@ export default function SessionBreakdownScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newText, setNewText] = useState("");
   const [newMinutes, setNewMinutes] = useState("");
+  const [newMinutesError, setNewMinutesError] = useState("");
   const [newOrder, setNewOrder] = useState("");
   const [newOrderError, setNewOrderError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -67,6 +65,7 @@ export default function SessionBreakdownScreen() {
 
   const [editText, setEditText] = useState("");
   const [editMinutes, setEditMinutes] = useState("");
+  const [editMinutesError, setEditMinutesError] = useState("");
 
   const { width, height } = useWindowDimensions();
   const isCompact = width < 360 || height < 720;
@@ -84,6 +83,7 @@ export default function SessionBreakdownScreen() {
     setEditingTask(task);
     setEditText(task.text);
     setEditMinutes(String(task.minutes));
+    setEditMinutesError("");
   }
 
   function requestDeleteTask(id: string) {
@@ -112,13 +112,23 @@ export default function SessionBreakdownScreen() {
 
   function saveEdit() {
     if (!editingTask) return;
+    const minutesVal = Number(editMinutes) || 0;
+    if (!Number.isInteger(minutesVal)) {
+      setEditMinutesError("Task length must be a whole number");
+      return;
+    }
+    if (minutesVal > 120) {
+      setEditMinutesError("Task length cannot exceed 120 minutes");
+      return;
+    }
+    setEditMinutesError("");
     setTasks((prev) =>
       prev.map((t) =>
         t.id === editingTask.id
           ? {
               ...t,
               text: editText.trim(),
-              minutes: Number(editMinutes) || 0,
+              minutes: minutesVal,
             }
           : t
       )
@@ -142,9 +152,20 @@ export default function SessionBreakdownScreen() {
       return;
     }
 
+    const minutesVal = Number(newMinutes) || 0;
+    if (!Number.isInteger(minutesVal)) {
+      setNewMinutesError("Task length must be a whole number");
+      return;
+    }
+    if (minutesVal > 120) {
+      setNewMinutesError("Task length cannot exceed 120 minutes");
+      return;
+    }
+    setNewMinutesError("");
+
     const newItem: Task = {
       id: Date.now().toString(),
-      minutes: Number(newMinutes) || 0,
+      minutes: minutesVal,
       text: newText.trim(),
     };
 
@@ -159,6 +180,7 @@ export default function SessionBreakdownScreen() {
     setNewText("");
     setNewMinutes("");
     setNewOrder("");
+    setNewMinutesError("");
     setNewOrderError("");
     setShowAddModal(false);
   }
@@ -189,53 +211,14 @@ export default function SessionBreakdownScreen() {
     }
   }
 
-  async function confirmContinue() {
-    let sessionId: string | undefined = undefined;
-
-    if (authSession?.user) {
-      setPersisting(true);
-      setPersistError(null);
-      try {
-        const session = await createSession(
-          authSession.user.id,
-          !!goalInput,
-          goalInput || null,
-          tasks.length > 0
-        );
-        sessionId = session.id;
-
-        if (tasks.length > 0) {
-          const ordered = tasks.map((t, idx) => ({
-            session_id: session.id,
-            task_name: t.text,
-            order_index: idx + 1,
-            time_allotted: t.minutes,
-            is_completed: false,
-          }));
-
-          for (const payload of ordered) {
-            await createTask(payload as any);
-          }
-        }
-      } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Failed to save tasks.";
-        setPersistError(msg);
-      } finally {
-        setPersisting(false);
-      }
-    }
-
-    const nextRoute = {
+  function confirmContinue() {
+    router.push({
       pathname: "./finalize-session",
       params: {
         tasks: JSON.stringify(tasks),
         goal: goalInput,
-        sessionId,
       },
-    } as const;
-
-    router.push(nextRoute);
+    });
   }
 
   const renderItem = ({
@@ -244,25 +227,37 @@ export default function SessionBreakdownScreen() {
     isActive,
     getIndex,
   }: RenderItemParams<Task>) => {
+    let swipeableRef: Swipeable | null = null;
+    const closeSwipe = () => swipeableRef?.close();
+
     // Use the current list position so numbering stays sequential after reordering
     const position = getIndex?.() ?? 0;
     const taskNumber = position + 1;
 
     return (
       <Swipeable
+        ref={(ref) => {
+          swipeableRef = ref;
+        }}
         overshootRight={false}
         renderRightActions={() => (
           <View style={styles.swipeActions}>
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeEdit]}
-              onPress={() => openEditModal(item)}
+              onPress={() => {
+                closeSwipe();
+                openEditModal(item);
+              }}
             >
               <Icon name="pencil" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.swipeAction, styles.swipeDelete]}
-              onPress={() => requestDeleteTask(item.id)}
+              onPress={() => {
+                closeSwipe();
+                requestDeleteTask(item.id);
+              }}
             >
               <Icon name="trash" size={22} tint={theme.solidColors.white} />
             </TouchableOpacity>
@@ -292,6 +287,36 @@ export default function SessionBreakdownScreen() {
     );
   };
 
+  const deleteTargetText =
+    deleteTargetId && tasks.find((task) => task.id === deleteTargetId)?.text;
+  let helpMessages;
+
+  if (tasks.length === 0) {
+    if (!goal) {
+      // Case 1: no tasks + no goal
+      helpMessages = {
+        helpMessagept1:
+          "Here, you may begin working in the Task Manager with manual input of tasks. Select 'Create your tasks' to manually add task descriptions and timings.",
+      };
+    } else {
+      // Case 2: no tasks + has goal
+      helpMessages = {
+        helpMessagept1:
+          "Here, you may select whether you would like to begin working in the Task Manager with manual input of tasks, or request AI help in generating tasks based on your goal.\n",
+        helpMessagept2:
+          "Select 'Create your tasks' to manually add task descriptions and timings. You may also select 'Create tasks with AI' to get AI suggestions based on your goal.",
+      };
+    }
+  } else {
+    // Case 3: has tasks
+    helpMessages = {
+      helpMessagept1:
+        "Here, you may continue adding tasks to your work session or plan. Use the buttons in the lower bar to add tasks, regenerate tasks using AI, or delete all tasks.\n",
+      helpMessagept2:
+        "Swipe left on tasks to make individual edits to their description and timing or delete the selected task. Drag tasks to reorder them.\n\nWhen you are satisfied with your session, select 'Continue' to proceed.",
+    };
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       {/* TOP BAR WITH BACK + STEP PROGRESS + MENU */}
@@ -301,6 +326,7 @@ export default function SessionBreakdownScreen() {
           activeCount={2}
           style={styles.headerProgress}
           onPressMenu={() => {}}
+          {...helpMessages}
         />
       </View>
 
@@ -310,7 +336,7 @@ export default function SessionBreakdownScreen() {
 
       <View style={styles.goalRow}>
         <Text variant="h1" color="accentDark" style={styles.goalLabel}>
-          GOAL:
+          Goal:
         </Text>
 
         <View style={styles.goalInputWrapper}>
@@ -328,16 +354,18 @@ export default function SessionBreakdownScreen() {
         </View>
       </View>
 
-      <Spacer size="xxl" />
+      <Spacer size="md" />
       {tasks.length === 0 && (
         <>
           {goalInput ? (
             <SvgStrokeText
               text={"Would you like to set\nsome tasks for your goal?"}
+              containerStyle={{ alignSelf: "center", marginTop: "10%" }}
             />
           ) : (
             <SvgStrokeText
               text={"Would you like to create\ntasks for this session?"}
+              containerStyle={{ alignSelf: "center", marginTop: "10%" }}
             />
           )}
 
@@ -355,7 +383,10 @@ export default function SessionBreakdownScreen() {
             fontSize: fonts.sizes.header2,
           }}
           stroke={colors.light.header2}
-          containerStyle={{ alignSelf: "flex-start" }}
+          containerStyle={{
+            //alignSelf: "flex-start",
+            marginLeft: theme.spacing.sm + 4,
+          }}
         />
       )}
 
@@ -374,28 +405,35 @@ export default function SessionBreakdownScreen() {
 
             <Spacer size="lg" />
 
-            <BasicButton
-              text="Create tasks with AI"
-              iconName="ai"
-              iconSize={24}
-              onPress={generateAiTasks}
-              variant="secondary"
-              style={styles.primaryActionButton}
-            />
-            {aiError && (
-              <Text color="danger" style={styles.aiStatus}>
-                {aiError}
-              </Text>
-            )}
-            {persistError && (
-              <Text color="danger" style={styles.aiStatus}>
-                {persistError}
-              </Text>
-            )}
-            {(isGenerating || persisting) && (
-              <Text color="mutedText" style={styles.aiStatus}>
-                {isGenerating ? "Generating tasks..." : "Saving tasks..."}
-              </Text>
+            {goalInput && (
+              <>
+                <BasicButton
+                  text="Create tasks with AI"
+                  iconName="ai"
+                  iconSize={24}
+                  onPress={generateAiTasks}
+                  variant="secondary"
+                  style={styles.primaryActionButton}
+                />
+
+                {aiError && (
+                  <Text color="danger" style={styles.aiStatus}>
+                    {aiError}
+                  </Text>
+                )}
+
+                {persistError && (
+                  <Text color="danger" style={styles.aiStatus}>
+                    {persistError}
+                  </Text>
+                )}
+
+                {(isGenerating || persisting) && (
+                  <Text color="accentDark" style={styles.aiStatus}>
+                    {isGenerating ? "Generating tasks..." : "Saving tasks..."}
+                  </Text>
+                )}
+              </>
             )}
           </>
         ) : (
@@ -418,13 +456,13 @@ export default function SessionBreakdownScreen() {
       )}
 
       {/* SKIP ROW FOR EMPTY STATE */}
-      {tasks.length === 0 && !isGenerating && (
+      {tasks.length === 0 && !isGenerating && goalInput && (
         <ArrowAction label="Skip" onPress={confirmContinue} />
       )}
       {tasks.length > 0 && !isGenerating && (
         <ArrowAction
           label={persisting ? "Saving..." : "Continue"}
-          onPress={persisting ? undefined : confirmContinue}
+          onPress={persisting ? () => {} : confirmContinue}
         />
       )}
 
@@ -502,13 +540,23 @@ export default function SessionBreakdownScreen() {
         />
 
         <InputField
-          label="Length*"
+          label="Length (minutes)*"
           keyboardType="numeric"
           value={editMinutes}
-          onChangeText={setEditMinutes}
-          placeholder="00 : 00"
+          onChangeText={(text) => {
+            setEditMinutes(text);
+            const minutesVal = Number(text) || 0;
+            if (!Number.isInteger(minutesVal)) {
+              setEditMinutesError("Task length must be a whole number");
+            } else if (minutesVal > 120) {
+              setEditMinutesError("Task length cannot exceed 120 minutes");
+            } else {
+              setEditMinutesError("");
+            }
+          }}
+          placeholder="30"
           row
-          inputStyle={{ width: 100 }}
+          error={editMinutesError}
         />
 
         <Spacer size="md" />
@@ -538,7 +586,7 @@ export default function SessionBreakdownScreen() {
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
         variant="bottom-sheet"
-        title="Add Task"
+        title="Add a task"
         height={420}
         //contentStyle={styles.taskModalContent}
         //hideCloseButton
@@ -550,18 +598,38 @@ export default function SessionBreakdownScreen() {
           placeholder="Tap to input task description"
           multiline
           noBorder
+          inputStyle={{
+            paddingLeft: theme.spacing.md + 6, // shift placeholder slightly right
+            paddingRight: theme.spacing.md,
+            textAlignVertical: "top",
+          }}
         />
 
         <Spacer size="md" />
 
         <InputField
-          label="Length*"
+          label="Length (minutes)*"
           keyboardType="numeric"
           value={newMinutes}
-          onChangeText={setNewMinutes}
-          placeholder="00 : 00"
+          onChangeText={(text) => {
+            setNewMinutes(text);
+            const minutesVal = Number(text) || 0;
+            if (!Number.isInteger(minutesVal)) {
+              setNewMinutesError("Task length must be a whole number");
+            } else if (minutesVal > 120) {
+              setNewMinutesError("Task length cannot exceed 120 minutes");
+            } else {
+              setNewMinutesError("");
+            }
+          }}
+          placeholder="30"
           row
-          inputStyle={{ width: 100 }}
+          centered
+          inputStyle={{
+            paddingTop: -3,
+            transform: [{ translateY: -5 }, { translateX: -3 }, { translateY: 1 }],
+          }}
+          error={newMinutesError}
         />
 
         <Spacer size="md" />
@@ -571,12 +639,30 @@ export default function SessionBreakdownScreen() {
           value={newOrder}
           onChangeText={(text) => {
             setNewOrder(text);
-            setNewOrderError("");
+            const trimmed = text.trim();
+            const orderNumber = trimmed ? Number(trimmed) : null;
+            const maxPosition = tasks.length + 1;
+
+            if (
+              orderNumber !== null &&
+              (!Number.isInteger(orderNumber) ||
+                orderNumber < 1 ||
+                orderNumber > maxPosition)
+            ) {
+              setNewOrderError(
+                `You currently have ${tasks.length} task${
+                  tasks.length === 1 ? "" : "s"
+                }, please \nenter a number between 1 and ${maxPosition}`
+              );
+            } else {
+              setNewOrderError("");
+            }
           }}
-          placeholder="e.g. 2"
+          placeholder={`${tasks.length + 1}`}
           row
-          centered
           small
+          centered
+          inputStyle={{ paddingTop: 2, paddingLeft: 8 }}
           error={newOrderError}
           label="(Optional) Order number"
         />
@@ -587,7 +673,9 @@ export default function SessionBreakdownScreen() {
           const canAdd =
             newText.trim().length > 0 &&
             newMinutes.trim().length > 0 &&
-            !newOrderError;
+            !newOrderError &&
+            !newMinutesError &&
+            Number.isInteger(Number(newMinutes));
           return (
             <TouchableOpacity
               onPress={() => {
@@ -620,7 +708,9 @@ export default function SessionBreakdownScreen() {
         message={
           deleteMode === "all"
             ? "This will remove every task in your list."
-            : "This cannot be undone."
+            : `Task: ${
+                deleteTargetText ?? "this task"
+              } \n \nThis cannot be undone.`
         }
         confirmLabel="Delete"
         cancelLabel="Cancel"
@@ -678,12 +768,15 @@ const styles = StyleSheet.create({
   goalInputWrapper: {
     flex: 1,
     marginLeft: theme.spacing.sm,
+    justifyContent: "center",
   },
   goalInputContainer: {
     marginBottom: 0,
+    paddingBottom: 0,
   },
   goalInput: {
     textAlignVertical: "center",
+    paddingRight: theme.spacing.md,
   },
 
   taskHeader: {
@@ -691,7 +784,7 @@ const styles = StyleSheet.create({
   },
 
   goalText: {
-    textAlign: "center",
+    textAlign: "left",
     paddingHorizontal: theme.spacing.md,
     lineHeight: 28,
   },
@@ -705,6 +798,8 @@ const styles = StyleSheet.create({
   taskRow: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
+    paddingHorizontal: theme.spacing.sm,
     marginBottom: theme.spacing.md,
   },
 
@@ -715,7 +810,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.accentDark,
     alignItems: "center",
-    justifyContent: "center",
     marginRight: theme.spacing.md,
   },
 
@@ -728,7 +822,7 @@ const styles = StyleSheet.create({
 
   bottomBar: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
     backgroundColor: theme.colors.background,
     shadowColor: theme.colors.accentDark,
     shadowOpacity: 0.12,

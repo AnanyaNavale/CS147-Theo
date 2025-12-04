@@ -12,9 +12,10 @@ import {
 import { theme } from "@/design/theme";
 import { transcribeAudioFile } from "@/lib/voice";
 
+import { BasicButton } from "../BasicButton";
 import { AppModal } from "./AppModal";
-import { Button } from "./Button";
 import { Icon } from "./Icon";
+import { Spacer } from "./Spacer";
 import { Text } from "./Text";
 
 type RecorderStatus = "idle" | "recording" | "transcribing" | "ready";
@@ -244,12 +245,12 @@ export function VoiceRecorderModal({
             {error}
           </Text>
         )}
-
+        <Spacer />
         <View style={styles.controlsRow}>
-          <Button
-            label={primaryLabel}
+          <BasicButton
+            text={primaryLabel}
             onPress={status === "recording" ? stopRecording : startRecording}
-            variant="brown"
+            //variant="brown"
             disabled={!canRecord}
             style={styles.controlButton}
           />
@@ -277,9 +278,9 @@ export function VoiceRecorderModal({
         )}
 
         <View style={styles.footerActions}>
-          <Button
-            label={confirmLabel}
-            variant="brown"
+          <BasicButton
+            text={confirmLabel}
+            //variant="brown"
             onPress={handleUseTranscript}
             disabled={!transcript || status === "transcribing" || submitting}
             style={styles.footerButton}
@@ -335,6 +336,7 @@ const styles = StyleSheet.create({
   controlsRow: {
     width: "100%",
     alignItems: "center",
+    marginBottom: -theme.spacing.md,
   },
   controlButton: {
     width: "100%",

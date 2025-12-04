@@ -1,21 +1,21 @@
-import { Dimensions, StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Dimensions, StyleSheet } from "react-native";
 
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionDatesForMonth } from "@/lib/supabase";
+import { fetchSessionDatesForMonth, getCurrentSession } from "@/lib/supabase";
 
 // import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from "@/components/Themed";
+import { View } from "@/components/Themed";
 
-import { Calendar, LocaleConfig } from "react-native-calendars";
-import { Feather } from "@expo/vector-icons";
-import SvgStrokeText from "@/components/SvgStrokeText";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
-import MainHeader from "@/components/ui/MainHeader";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { theme } from "@/design/theme";
+import { Feather } from "@expo/vector-icons";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -64,38 +64,48 @@ LocaleConfig.defaultLocale = "custom";
 
 export default function ArchiveScreen() {
   // STATES
-  const [monthSessions, setMonthSessions] = useState<{ [date: string]: any }>({});
-  const [currentMonth, setCurrentMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
-  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [monthSessions, setMonthSessions] = useState<{ [date: string]: any }>(
+    {}
+  );
+  const [currentMonth, setCurrentMonth] = useState<number>(
+    new Date().getMonth() + 1
+  ); // 1-12
+  const [currentYear, setCurrentYear] = useState<number>(
+    new Date().getFullYear()
+  );
   const [loading, setLoading] = useState(false);
 
   const { supabase, session: authSession } = useSupabase();
-  // const opacity = useRef(new Animated.Value(1)).current;
-  // const prevMonth = useRef(currentMonth);
   const router = useRouter();
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
+
   useEffect(() => {
-    // console.log("authSession inside useEffect:", authSession);
-    // if (!authSession) return;
     const fetchMonthSessionsData = async () => {
       setLoading(true);
       try {
+        const userId = authSession?.user?.id;
+        if (!userId) {
+          setMonthSessions({});
+          return;
+        }
 
-        const data = await fetchSessionDatesForMonth(currentMonth, currentYear);
+        // 1. Fetch local-day strings from Supabase
+        const sessionDays = await fetchSessionDatesForMonth(
+          currentMonth,
+          currentYear,
+          userId
+        );
 
-        const marked: { [date: string]: any } = {};
-
-        // Mark month session dates
-        data.forEach((dateString) => {
-          const day = dateString.split("T")[0]; // strip time
-          marked[day] = {
+        // 2. Build marked object
+        const marked: Record<string, any> = {};
+        sessionDays.forEach((localDay) => {
+          marked[localDay] = {
             customStyles: {
               container: {
                 borderColor: colors.light.markedDates,
                 borderWidth: 2,
                 borderRadius: 50,
-                // paddingBottom: 5,
                 justifyContent: "center",
                 alignItems: "center",
               },
@@ -107,18 +117,16 @@ export default function ArchiveScreen() {
           };
         });
 
+        // 3. Set state
         setMonthSessions(marked);
-
       } catch (error) {
         console.error("Error fetching month sessions:", error);
       } finally {
         setLoading(false);
       }
-
     };
 
     fetchMonthSessionsData();
-
   }, [authSession, currentMonth, currentYear]);
 
   const today = new Date().toLocaleDateString("en-CA"); // outputs YYYY-MM-DD
@@ -155,14 +163,11 @@ export default function ArchiveScreen() {
                   paddingVertical: 4,
                   paddingTop: 7,
                   paddingHorizontal: 16,
-                  // paddingRight: 20,
-                  borderRadius: 12,
+                  borderRadius: theme.radii.md,
                   justifyContent: "center",
                   alignItems: "center",
-                  // borderWidth: 2,
-                  // borderColor: "#B28F6D",
                   alignSelf: "center",
-                  // marginBottom: 10,
+
                 }}
               >
                 <SvgStrokeText

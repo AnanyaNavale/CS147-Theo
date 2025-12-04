@@ -11,8 +11,9 @@ import {
   View,
 } from "react-native";
 
+import { BasicButton } from "@/components/BasicButton";
+import SvgStrokeText from "@/components/SvgStrokeText";
 import { Container } from "@/components/ui/Container";
-import { Button } from "@/components/ui/Button";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
@@ -72,43 +73,41 @@ export default function LoginScreen() {
             <Image source={teddy} style={styles.teddy} />
           </View>
 
-          <Text variant="h1" style={styles.title}>
-            Log In
-          </Text>
+          <SvgStrokeText text={"Log in"} />
 
           <Spacer size="sm" />
 
-        <View style={styles.form}>
-          <InputField
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
+          <View style={styles.form}>
+            <InputField
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
               returnKeyType="next"
             />
-          <InputField
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            autoComplete="password"
-            returnKeyType="done"
-            rightAccessory={
-              <TouchableOpacity
-                onPress={() => setShowPassword((prev) => !prev)}
-                hitSlop={10}
-              >
-                <Feather
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={20}
-                  color={theme.colors.accentDark}
-                />
-              </TouchableOpacity>
-            }
-          />
-        </View>
+            <InputField
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoComplete="password"
+              returnKeyType="done"
+              rightAccessory={
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  hitSlop={10}
+                >
+                  <Feather
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={20}
+                    color={theme.colors.accentDark}
+                  />
+                </TouchableOpacity>
+              }
+            />
+          </View>
 
           {error && (
             <Text color="danger" style={styles.errorText}>
@@ -116,14 +115,12 @@ export default function LoginScreen() {
             </Text>
           )}
 
-          <Button
-            label={isSubmitting ? "Logging in..." : "Log in"}
+          <BasicButton
+            text={isSubmitting ? "Logging in..." : "Log in"}
             onPress={handleLogin}
-            size="lg"
-            variant="brown"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !email.trim() || !password}
             style={styles.sessionButton}
-            labelStyle={styles.sessionButtonLabel}
+            //labelStyle={styles.sessionButtonLabel}
           />
 
           <View style={styles.linkRow}>
@@ -161,11 +158,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xl,
     paddingBottom: theme.spacing.xl,
     alignItems: "center",
+    justifyContent: "center",
   },
   hero: {
     alignItems: "center",
+    justifyContent: "center",
     marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xl,
   },
   logo: {
     width: 120,
@@ -191,11 +190,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   sessionButton: {
-    width: "100%",
     marginTop: theme.spacing.lg,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.sm,
-    ...theme.shadow.medium,
   },
   sessionButtonLabel: {
     fontFamily: theme.typography.families.medium,
