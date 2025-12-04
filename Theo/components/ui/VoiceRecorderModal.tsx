@@ -12,9 +12,10 @@ import {
 import { theme } from "@/design/theme";
 import { transcribeAudioFile } from "@/lib/voice";
 
+import { BasicButton } from "../BasicButton";
 import { AppModal } from "./AppModal";
-import { Button } from "./Button";
 import { Icon } from "./Icon";
+import { Spacer } from "./Spacer";
 import { Text } from "./Text";
 
 type RecorderStatus = "idle" | "recording" | "transcribing" | "ready";
@@ -184,7 +185,10 @@ export function VoiceRecorderModal({
     }
   };
 
-  const canRecord = useMemo(() => status !== "transcribing" && !submitting, [status, submitting]);
+  const canRecord = useMemo(
+    () => status !== "transcribing" && !submitting,
+    [status, submitting]
+  );
   const showTranscriptBox = transcript.length > 0 || status === "transcribing";
   const primaryLabel = useMemo(() => {
     if (status === "recording") return "Stop recording";
@@ -208,11 +212,20 @@ export function VoiceRecorderModal({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.statusRow}>
-          <View style={[styles.statusPill, status === "recording" ? styles.pillRecording : styles.pillIdle]}>
+          <View
+            style={[
+              styles.statusPill,
+              status === "recording" ? styles.pillRecording : styles.pillIdle,
+            ]}
+          >
             <Icon
               name="mic"
               size={20}
-              tint={status === "recording" ? theme.solidColors.white : theme.colors.text}
+              tint={
+                status === "recording"
+                  ? theme.solidColors.white
+                  : theme.colors.text
+              }
             />
             <Text
               style={[
@@ -231,12 +244,12 @@ export function VoiceRecorderModal({
             {error}
           </Text>
         )}
-
+        <Spacer />
         <View style={styles.controlsRow}>
-          <Button
-            label={primaryLabel}
+          <BasicButton
+            text={primaryLabel}
             onPress={status === "recording" ? stopRecording : startRecording}
-            variant="brown"
+            //variant="brown"
             disabled={!canRecord}
             style={styles.controlButton}
           />
@@ -246,7 +259,12 @@ export function VoiceRecorderModal({
           <View style={styles.transcriptBox}>
             <View style={styles.transcriptHeader}>
               <Text style={styles.transcriptTitle}>Transcript</Text>
-              {status === "transcribing" && <ActivityIndicator size="small" color={theme.colors.accentDark} />}
+              {status === "transcribing" && (
+                <ActivityIndicator
+                  size="small"
+                  color={theme.colors.accentDark}
+                />
+              )}
             </View>
             <ScrollView style={styles.transcriptScroll}>
               <Text style={styles.transcriptText}>
@@ -259,9 +277,9 @@ export function VoiceRecorderModal({
         )}
 
         <View style={styles.footerActions}>
-          <Button
-            label={confirmLabel}
-            variant="brown"
+          <BasicButton
+            text={confirmLabel}
+            //variant="brown"
             onPress={handleUseTranscript}
             disabled={!transcript || status === "transcribing" || submitting}
             style={styles.footerButton}
@@ -317,6 +335,7 @@ const styles = StyleSheet.create({
   controlsRow: {
     width: "100%",
     alignItems: "center",
+    marginBottom: -theme.spacing.md,
   },
   controlButton: {
     width: "100%",
