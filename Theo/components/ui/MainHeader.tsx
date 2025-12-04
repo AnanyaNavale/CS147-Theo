@@ -90,19 +90,12 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
   return (
     <View onLayout={handleLayout}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => setMenuOpen((prev) => !prev)}
-          style={styles.menuButton}
-        >
-          <TabBarIcon name="menu" color="#8A5E3C" size={36} />
-        </TouchableOpacity>
-
         <Image
           source={logo}
-          style={{ width: 90, height: 40, marginLeft: 10 }}
+          style={{ width: 90, height: 40 }}
         />
 
-        <TouchableOpacity onPress={() => router.push("../profile")}>
+        <TouchableOpacity onPress={() => setMenuOpen((prev) => !prev)}>
           <View style={styles.userIcon}>
             {avatarUrl && !avatarFailed ? (
               <Image
@@ -207,7 +200,7 @@ const styles = StyleSheet.create({
   },
   menuAnchor: {
     position: "absolute",
-    left: theme.spacing.md,
+    right: theme.spacing.md,
     zIndex: 3,
   },
   menuCard: {
