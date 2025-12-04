@@ -115,7 +115,9 @@ export default function HomeScreen() {
         {/* Section 2: Teddy + quote */}
         <View style={styles.heroBlock}>
           <Image source={teddyBear} style={styles.heroImage} />
-          <QuoteOfTheDay />
+          <View style={{ width: "70%" }}>
+            <QuoteOfTheDay />
+          </View>
         </View>
 
         {/* Section 3: CTA */}
@@ -182,20 +184,6 @@ const styles = StyleSheet.create({
   ctaRow: {
     alignItems: "center",
     marginBottom: "10%",
-  },
-  quoteCard: {
-    width: "80%",
-    marginTop: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    alignItems: "center",
-    alignSelf: "center",
-  },
-  quoteText: {
-    fontStyle: "italic",
-    color: "#888",
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    textAlign: "center",
   },
   menuOverlay: {
     position: "absolute",
