@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 import type {
+  Database,
   Json,
   WorkSession,
   Task,
@@ -39,14 +40,25 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
  * Creates a Supabase client configured for Expo with AsyncStorage-backed
  * auth session persistence.
  */
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-  },
-});
+let supabase: ReturnType<typeof createTypedClient> | null = null;
+
+function createTypedClient() {
+  return createClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+  });
+}
+
+export function getSupabase() {
+  if (!supabase) {
+    supabase = createTypedClient();
+  }
+  return supabase;
+}
 
 ///////////////////////////////////////////////// USER ACCOUNT SETUP
 
@@ -66,7 +78,7 @@ export interface EmailSignInPayload {
  */
 export async function signUpWithEmail(payload: EmailSignUpPayload) {
   const { email, password, displayName } = payload;
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await getSupabase().auth.signUp({
     email,
     password,
     options: {
@@ -101,7 +113,7 @@ export async function signInWithEmail(
   payload: EmailSignInPayload
 ): Promise<Session | null> {
   const { email, password } = payload;
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await getSupabase().auth.signInWithPassword({
     email,
     password,
   });
@@ -125,7 +137,7 @@ export async function signInWithEmail(
  * Signs out the active user session.
  */
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await getSupabase().auth.signOut();
 
   if (error) {
     throw new Error(`Failed to sign out: ${error.message}`);
@@ -136,7 +148,9 @@ export async function signOut() {
  * Retrieves the current cached session, if available.
  */
 export async function getCurrentSession(): Promise<Session | null> {
-  const { data, error } = await supabase.auth.getSession();
+  if (typeof window === "undefined") return null; // skip on Node/EAS build
+
+  const { data, error } = await getSupabase().auth.getSession();
 
   if (error) {
     const normalized = error.message?.toLowerCase?.() ?? "";
@@ -146,8 +160,10 @@ export async function getCurrentSession(): Promise<Session | null> {
 
     if (isInvalidRefreshToken) {
       // Clear any stale session data quietly so the app can continue logged-out.
-      await supabase.auth.signOut({ scope: "local" });
-      console.info("Cleared invalid refresh token and continued without a session.");
+      await getSupabase().auth.signOut({ scope: "local" });
+      console.info(
+        "Cleared invalid refresh token and continued without a session."
+      );
       return null;
     }
 
@@ -163,7 +179,7 @@ export async function getCurrentSession(): Promise<Session | null> {
 export function onAuthStateChange(
   callback: (event: AuthChangeEvent, session: Session | null) => void
 ) {
-  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+  const { data } = getSupabase().auth.onAuthStateChange((event, session) => {
     callback(event, session);
   });
 
@@ -192,11 +208,13 @@ export interface UpsertUserSettingsPayload {
  */
 export async function ensureUserProfile(payload: UpsertUserProfilePayload) {
   const { id, displayName, avatarUrl } = payload;
-  const { error } = await supabase.from("user_profiles").upsert({
-    id,
-    display_name: displayName ?? null,
-    avatar_url: avatarUrl ?? null,
-  });
+  const { error } = await getSupabase()
+    .from("user_profiles")
+    .upsert({
+      id,
+      display_name: displayName ?? null,
+      avatar_url: avatarUrl ?? null,
+    });
 
   if (error) {
     throw new Error(`Failed to upsert user profile: ${error.message}`);
@@ -209,7 +227,7 @@ export async function ensureUserProfile(payload: UpsertUserProfilePayload) {
 export async function fetchUserProfile(
   userId: string
 ): Promise<UserProfile | null> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("user_profiles")
     .select("*")
     .eq("id", userId)
@@ -303,7 +321,7 @@ export async function createSession(
   hasTasks: boolean = false,
   totalTime: number = 0,
 ): Promise<WorkSession> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("sessions")
     .insert({
       user_id: userId,
@@ -334,7 +352,7 @@ export async function createPlan(
   title?: string,
   goal?: string | null
 ): Promise<WorkSession> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("sessions")
     .insert({
       user_id: userId,
@@ -356,7 +374,7 @@ export async function createPlan(
  * Fetches all sessions for a user.
  */
 export async function fetchSessions(userId: string): Promise<WorkSession[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("sessions")
     .select("*")
     .eq("user_id", userId);
@@ -387,7 +405,7 @@ export async function fetchSessionDatesForMonth(
   const startDate = startLocal.toISOString();
   const endDate = endLocal.toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("sessions")
     .select("created_at")
     .eq("user_id", userId)
@@ -428,7 +446,7 @@ export async function fetchSessionsForDaySorted(
   const startDateUTC = startLocal.toISOString();
   const endDateUTC = endLocal.toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("sessions")
     .select("*")
     .eq("user_id", userId)
@@ -447,7 +465,7 @@ export async function fetchSessionsForDaySorted(
  * Fetches a single session by ID.
  */
 export async function fetchSessionById(sessionId: string): Promise<WorkSession | null> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("sessions")
     .select("*")
     .eq("id", sessionId)
@@ -464,7 +482,7 @@ export async function updateSession(
   sessionId: string,
   updates: Partial<Omit<WorkSession, "id" | "created_at" | "user_id">>
 ): Promise<WorkSession> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("sessions")
     .update(updates)
     .eq("id", sessionId)
@@ -491,7 +509,7 @@ export async function saveReflectionChat(
     displayText: m.displayText ?? (m.isVoice ? "Voice message" : null),
   })) as unknown as Json[];
 
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from("sessions")
     .update({ reflection_chat: sanitized })
     .eq("id", sessionId);
@@ -505,7 +523,10 @@ export async function saveReflectionChat(
  * Deletes a session and optionally related tasks and settings.
  */
 export async function deleteSession(sessionId: string): Promise<void> {
-  const { error } = await supabase.from("sessions").delete().eq("id", sessionId);
+  const { error } = await getSupabase()
+    .from("sessions")
+    .delete()
+    .eq("id", sessionId);
   if (error) throw new Error(`Failed to delete session: ${error.message}`);
 }
 
@@ -523,7 +544,7 @@ export interface CreateTaskPayload {
 }
 
 export async function createTask(payload: CreateTaskPayload): Promise<Task> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("tasks")
     .insert(payload)
     .select()
@@ -534,7 +555,7 @@ export async function createTask(payload: CreateTaskPayload): Promise<Task> {
 }
 
 export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("tasks")
     .select("*")
     .eq("session_id", sessionId)
@@ -545,7 +566,7 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
 }
 
 export async function updateTask(taskId: string, updates: Partial<CreateTaskPayload>): Promise<Task> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("tasks")
     .update(updates)
     .eq("id", taskId)
@@ -557,10 +578,7 @@ export async function updateTask(taskId: string, updates: Partial<CreateTaskPayl
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
-  const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", taskId);
+  const { error } = await getSupabase().from("tasks").delete().eq("id", taskId);
 
   if (error) throw new Error(`Failed to delete task: ${error.message}`);
 }
@@ -582,7 +600,7 @@ export async function createReport(
   problem: string,
 ): Promise<Report> {
   console.log("In createReport");
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("reports")
     .insert({
       user_id: userId,
