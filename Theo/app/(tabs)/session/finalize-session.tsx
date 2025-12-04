@@ -137,9 +137,14 @@ export default function FinalizeSessionScreen() {
       // 1. CREATE THE SESSION
       const hasGoal = Boolean(goalText && goalText.trim());
       const hasTasks = parsedTasks.length > 0;
+      let title = "Session";
+      if (hasGoal) {
+        title = goalText;
+      }
 
       const newSession = await createSession(
         session.user.id,
+        title,
         hasGoal,
         goalText || null,
         hasTasks,

@@ -405,7 +405,7 @@ export default function SessionBreakdownScreen() {
 
             <Spacer size="lg" />
 
-            {goal && (
+            {goalInput && (
               <>
                 <BasicButton
                   text="Create tasks with AI"

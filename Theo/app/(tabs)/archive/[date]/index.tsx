@@ -125,9 +125,9 @@ export default function SingleDayScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <SessionBox
-              title={item.goal}
+              title={item.title}
+              goal={item.goal}
               time={item.total_time}
-              // has_settings={item.has_settings}
               status={item.status}
               onPress={() =>
                 router.push({

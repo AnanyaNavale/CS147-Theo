@@ -6,11 +6,16 @@ import quotes from "success-motivational-quotes";
 
 // Simple hash function to turn date string into a number
 function getDayIndex(date: Date, total: number) {
-  const dayString = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+
+  const dayString = `${year}-${month}-${day}`; // local YYYY-MM-DD
+
   let hash = 0;
   for (let i = 0; i < dayString.length; i++) {
     hash = (hash << 5) - hash + dayString.charCodeAt(i);
-    hash |= 0; // convert to 32-bit integer
+    hash |= 0;
   }
   return Math.abs(hash) % total;
 }
