@@ -8,16 +8,23 @@ import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
 import { fetchSessionsForDaySorted } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { fonts } from "@/assets/themes/typography";
 
 interface SessionBoxProps {
   title: string;
+  goal: string;
   time: string;
   status: string;
   onPress?: () => void;
 }
 
-export default function SessionBox({ title, time, status, onPress }: SessionBoxProps) {
+export default function SessionBox({ title, goal, time, status, onPress }: SessionBoxProps) {
   const timeDisplay = formatMinutes(Number(time));
+
+  const hasTitle = title?.trim() !== "";
+  if (!hasTitle) {
+    title = goal;
+  }
 
   return (
     <TouchableOpacity
@@ -25,16 +32,42 @@ export default function SessionBox({ title, time, status, onPress }: SessionBoxP
       onPress={onPress}
     >
       <View style={[styles.timeContainer, getTimeStyle(status)]}>
-        {timeDisplay !== "0 min." ? (<Text style={styles.time}>{timeDisplay}</Text>) 
-        : 
-        (
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "transparent" }}>
-            <MaterialCommunityIcons name="clock-plus-outline" size={36} color={"white"}/>
+        {timeDisplay !== "0 min." ? (
+          <Text style={styles.time}>{timeDisplay}</Text>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "transparent",
+            }}
+          >
+            <MaterialCommunityIcons
+              name="clock-plus-outline"
+              size={36}
+              color={"white"}
+            />
           </View>
         )}
       </View>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{title}</Text>
+        {/* {title === "null" || !title ? (
+          <Text style={styles.title}>{title}</Text>
+        ) : status === "planned" ? (
+          <Text
+            style={[styles.title, { fontFamily: fonts.typeface.bodyItalic }]}
+          >
+            Plan
+          </Text>
+        ) : (
+          <Text
+            style={[styles.title, { fontFamily: fonts.typeface.bodyItalic }]}
+          >
+            Session
+          </Text>
+        )} */}
       </View>
     </TouchableOpacity>
   );
@@ -54,6 +87,7 @@ function formatMinutes(totalMinutes: number) {
 }
 
 function getBoxStyle(status: string) {
+  console.log(status);
   if (status === "complete")
     return styles.containerCompleted;
   if (status !== "complete" && status !== "planned") return styles.containerSession;
@@ -62,7 +96,7 @@ function getBoxStyle(status: string) {
 
 function getTimeStyle(status: string) {
   if (status === "complete") return styles.timeContainerCompleted;
-  if (status !== "incomplete" && status !== "planned")
+  if (status !== "complete" && status !== "planned")
     return styles.timeContainerSession;
   return styles.timeContainerPlan;
 }

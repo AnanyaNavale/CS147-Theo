@@ -279,6 +279,7 @@ export interface CreateSessionPayload {
  */
 export async function createSession(
   userId: string,
+  title: string,
   hasGoal: boolean,
   goal?: string | null,
   hasTasks: boolean = false,
@@ -288,7 +289,7 @@ export async function createSession(
     .from("sessions")
     .insert({
       user_id: userId,
-      title: "", // required
+      title: title, // required
       total_time: totalTime, // required
       status: "active",
       has_goal: hasGoal,
