@@ -40,6 +40,7 @@ export default function FinalizeSessionScreen() {
 
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
@@ -127,9 +128,8 @@ export default function FinalizeSessionScreen() {
   const totalTime = parsedTasks.reduce((sum, t) => sum + t.minutes, 0);
 
   const handleStartSession = async () => {
-    console.log("handleStartSession called");
     if (!session?.user) {
-      console.error("No authenticated user");
+      setStartError("Please sign in to start a session.");
       return;
     }
 
@@ -234,6 +234,12 @@ export default function FinalizeSessionScreen() {
           onPress={() => setShowStartModal(true)}
           style={styles.button}
         />
+
+        {startError && (
+          <Text color="danger" style={{ textAlign: "center" }}>
+            {startError}
+          </Text>
+        )}
 
         <Spacer size="md" />
 

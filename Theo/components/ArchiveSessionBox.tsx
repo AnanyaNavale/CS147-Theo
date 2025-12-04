@@ -80,7 +80,7 @@ function formatMinutes(totalMinutes: number) {
 }
 
 function getBoxStyle(status: string) {
-  console.log(status);
+  // console.log(status);
   if (status === "complete")
     return styles.containerCompleted;
   if (status !== "complete" && status !== "planned") return styles.containerSession;
