@@ -12,10 +12,14 @@ import {
 
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
-import { AppModal } from "@/components";
+import { AppModal, InputField } from "@/components";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { Button, ButtonVariant } from "./Button";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { createReport } from "@/lib/supabase";
 // import { Button } from "react-native/Libraries/Components/Button";
 
 type StepProgressIndicatorProps = {
@@ -48,10 +52,13 @@ export function StepProgressIndicator({
   helpMessagept1,
   helpMessagept2,
 }: StepProgressIndicatorProps) {
+  const { session } = useSupabase();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [showSubmitBanner, setShowSubmitBanner] = useState(false);
   const navigation = useNavigation();
 
   const toggleMenu = () => {
@@ -82,6 +89,28 @@ export function StepProgressIndicator({
   const handleMenuAction = (action: () => void) => () => {
     setMenuOpen(false);
     action();
+  };
+
+  const handleSubmitReport = async () => {
+    console.log("calling handleSubmitReport");
+    if (!session?.user) {
+      console.error("Not an authenticated user.");
+      return;
+    }
+
+    console.log("User is valid");
+
+    try {
+      const data = await createReport(session.user.id, reportText);
+
+      console.log("Report submitted");
+      setReportText("");
+      setShowSubmitBanner(true);
+
+    } catch (err) {
+      console.error("Error submitting report:", err);
+    }
+
   };
 
   return (
@@ -237,10 +266,23 @@ export function StepProgressIndicator({
         onClose={() => setShowReportModal(false)}
         variant="custom"
         title={"Report a\nProblem"}
+        message="Please describe the issue you are encountering."
       >
-        <Text style={styles.modalBody}>
-          Reporting will be available shortly.
-        </Text>
+        <InputField
+          placeholder="Describe the issue"
+          inputStyle={{ paddingRight: theme.input.paddingHorizontal }}
+          value={reportText}
+          onChangeText={setReportText}
+        />
+        {showSubmitBanner && (
+          <Text style={styles.submitBanner}>{"Report submitted.\nThank you for your feedback."}</Text>
+        )}
+        <Button
+          label="Submit report"
+          variant="danger"
+          disabled={reportText.trim().length === 0}
+          onPress={handleSubmitReport}
+        />
       </AppModal>
     </>
   );
@@ -378,5 +420,15 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+  },
+
+  submitBanner: {
+    textAlign: "center",
+    marginBottom: 10,
+    padding: 7,
+    fontSize: fonts.sizes.body,
+    backgroundColor: "#B28F6D75",
+    borderRadius: 10,
+    color: "black",
   },
 });

@@ -4,7 +4,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
-import type { Json, WorkSession, Task, UserProfile } from "@/types/database.types";
+import type {
+  Json,
+  WorkSession,
+  Task,
+  UserProfile,
+  Report
+} from "@/types/database.types";
 
 export type ReflectionChatMessage = {
   id: string;
@@ -545,6 +551,36 @@ export async function deleteTask(taskId: string): Promise<void> {
     .eq("id", taskId);
 
   if (error) throw new Error(`Failed to delete task: ${error.message}`);
+}
+
+///////////////////////////////
+// REPORTS
+///////////////////////////////
+
+export interface CreateReportPayload {
+  user_id: string;
+  problem: string;
+}
+
+/**
+ * Creates a new active work session for a user.
+ */
+export async function createReport(
+  userId: string,
+  problem: string,
+): Promise<Report> {
+  console.log("In createReport");
+  const { data, error } = await supabase
+    .from("reports")
+    .insert({
+      user_id: userId,
+      problem: problem, // required
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create report: ${error.message}`);
+  return data;
 }
 
 ///////////////////////////////

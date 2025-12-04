@@ -53,7 +53,14 @@ export interface Database {
           summary?: Json | null;
           reflection_chat?: Json[] | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "sessions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
 
       // ------------------ TASKS TABLE ------------------
@@ -168,7 +175,39 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_id_fkey";
+            columns: ["id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      // ------------------ REPORTS TABLE ------------------
+      reports: {
+        Row: {
+          id: string;
+          created_at: string;
+          user_id: string;
+          problem: string;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          user_id: string;
+          problem: string;
+        };
+        Update: {};
+        Relationships: [
+          {
+            foreignKeyName: "reports_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "auth.users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
     };
     Views: {};
@@ -188,3 +227,4 @@ export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 // export type SessionSetting =
 //   Database["public"]["Tables"]["session_settings"]["Row"];
 export type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
+export type Report = Database["public"]["Tables"]["reports"]["Row"];
