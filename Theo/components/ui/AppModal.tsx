@@ -104,6 +104,7 @@ export function AppModal({
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
+                marginTop: theme.spacing.md,
               }}
             >
               {title && <SvgStrokeText text={title} />}
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   closeBtnFloating: {
     position: "absolute",
     right: -12,
-    top: -12,
+    top: -theme.spacing.lg,
   },
 
   customContent: {
