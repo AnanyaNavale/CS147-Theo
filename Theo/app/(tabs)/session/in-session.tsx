@@ -708,7 +708,15 @@ export default function SessionScreen() {
               textStyle={{ color: theme.colors.accentDark }}
             ></SvgStrokeText>
 
-            <Text variant="h3">{sessionGoal}</Text>
+            <Text
+              variant="h3"
+              style={{
+                textAlign: "center",
+                paddingHorizontal: theme.spacing.lg,
+              }}
+            >
+              {sessionGoal}
+            </Text>
           </>
         ) : (
           <>
@@ -731,7 +739,13 @@ export default function SessionScreen() {
             ></SvgStrokeText>
 
             <View style={styles.taskRow}>
-              <Text variant="h3">
+              <Text
+                variant="h3"
+                style={{
+                  textAlign: "center",
+                  paddingHorizontal: theme.spacing.lg,
+                }}
+              >
                 {isBreak
                   ? "Take a break. You've been working hard."
                   : currentTask.name}
@@ -1129,18 +1143,19 @@ export default function SessionScreen() {
           value={editedTaskName}
           onChangeText={setEditedTaskName}
           placeholder="Task name"
+          style={{ paddingRight: theme.spacing.md }}
         />
 
         <TouchableOpacity
           onPress={() => {
             if (canRenameTask) handleSaveTaskEdit();
           }}
-          disabled={!canAddTime}
+          disabled={!canRenameTask}
           style={[
             styles.actionCircle,
             styles.actionCircleNeutral,
             styles.smallActionCircle,
-            !canAddTime && { opacity: 0.4 },
+            !canRenameTask && { opacity: 0.4 },
           ]}
         >
           <Icon name="check" size={30} tint={theme.solidColors.white} />

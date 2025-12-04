@@ -68,7 +68,9 @@ export default function EndSessionScreen() {
                 textStyle={{ color: theme.colors.accentDark }}
               ></SvgStrokeText>
 
-              <Text variant="h3">{goalText}</Text>
+              <Text variant="h3" style={{ textAlign: "center" }}>
+                {goalText}
+              </Text>
               <Spacer />
             </>
           ) : (

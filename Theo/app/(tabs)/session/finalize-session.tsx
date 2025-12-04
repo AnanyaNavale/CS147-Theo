@@ -206,6 +206,7 @@ export default function FinalizeSessionScreen() {
         <SvgStrokeText
           text="Ready to get started?"
           containerStyle={{ alignSelf: "center" }}
+          textStyle={{ alignSelf: "center" }}
         />
 
         <Spacer size="lg" />
@@ -337,6 +338,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: theme.spacing.xs,
+    textAlign: "center",
   },
   goalLabel: {
     color: theme.colors.accentDark,
@@ -345,6 +347,8 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+    alignSelf: "center",
+    textAlign: "center",
   },
   button: {
     alignSelf: "center",
