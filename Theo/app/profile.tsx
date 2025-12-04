@@ -28,6 +28,41 @@ import { fonts } from "@/assets/themes/typography";
 import { ensureUserProfile, fetchUserProfile, supabase } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
+// Decode base64 into a Uint8Array without bringing along file metadata.
+const base64ToUint8Array = (base64: string) => {
+  if (typeof atob === "function") {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  // Minimal manual decoder for environments without atob.
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const cleaned = base64.replace(/[^A-Za-z0-9+/=]/g, "");
+  const output: number[] = [];
+
+  for (let i = 0; i < cleaned.length; i += 4) {
+    const enc1 = chars.indexOf(cleaned.charAt(i));
+    const enc2 = chars.indexOf(cleaned.charAt(i + 1));
+    const enc3 = chars.indexOf(cleaned.charAt(i + 2));
+    const enc4 = chars.indexOf(cleaned.charAt(i + 3));
+
+    const chr1 = (enc1 << 2) | (enc2 >> 4);
+    const chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+    const chr3 = ((enc3 & 3) << 6) | enc4;
+
+    if (enc1 !== -1) output.push(chr1);
+    if (enc3 !== -1 && enc3 !== 64) output.push(chr2);
+    if (enc4 !== -1 && enc4 !== 64) output.push(chr3);
+  }
+
+  return new Uint8Array(output);
+};
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { session } = useSupabase();
@@ -138,13 +173,19 @@ export default function ProfileScreen() {
       return;
     }
 
-    const mediaTypeImages =
-      // Expo SDK compatibility: MediaType may not exist on older versions
-      (ImagePicker as any).MediaType?.Images ||
-      ImagePicker.MediaTypeOptions.Images;
+    // Prefer new MediaType API; fall back to legacy MediaTypeOptions for older SDKs.
+    const mediaTypeImageEnum =
+      (ImagePicker as any).MediaType?.Images ??
+      (ImagePicker as any).MediaType?.Image ??
+      null;
+    const mediaTypes =
+      mediaTypeImageEnum != null
+        ? [mediaTypeImageEnum] // new API prefers an array of enums
+        : (ImagePicker as any).MediaTypeOptions?.Images ??
+          ImagePicker.MediaTypeOptions.Images;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: mediaTypeImages,
+      mediaTypes,
       allowsEditing: true,
       aspect: [1, 1], // keep selection square for circular crop
       quality: 0.8,
@@ -165,24 +206,30 @@ export default function ProfileScreen() {
       const fileName = `avatar-${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      let fileBlob: Blob | null = null;
-      try {
-        const response = await fetch(manip.uri);
-        fileBlob = await response.blob();
-      } catch {
-        fileBlob = null;
-      }
+      const loadImageBytes = async () => {
+        try {
+          const response = await fetch(manip.uri);
+          // Prefer raw bytes from the processed image (avoids uploading the wrapper object)
+          const buffer = await response.arrayBuffer();
+          if (buffer.byteLength > 0) return new Uint8Array(buffer);
+        } catch {
+          // fall through to FileSystem
+        }
 
-      // Fallback: read via FileSystem if blob was unavailable or empty
-      if (!fileBlob || (fileBlob as any).size === 0) {
         const base64 = await FileSystem.readAsStringAsync(manip.uri, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: "base64",
         });
-        const byteArray = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-        fileBlob = new Blob([byteArray], { type: "image/jpeg" });
+        return base64ToUint8Array(base64);
+      };
+
+      let fileBytes: Uint8Array | null = null;
+      try {
+        fileBytes = await loadImageBytes();
+      } catch (err) {
+        console.error("Failed to read image bytes", err);
       }
 
-      if (!fileBlob || (fileBlob as any).size === 0) {
+      if (!fileBytes || fileBytes.byteLength === 0) {
         throw new Error(
           "Image data was empty after processing. Please try again."
         );
@@ -190,7 +237,8 @@ export default function ProfileScreen() {
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, fileBlob as any, {
+        // Upload only the raw image bytes (no extra file object wrapper)
+        .upload(filePath, fileBytes, {
           upsert: true,
           contentType: "image/jpeg",
         });
@@ -326,9 +374,7 @@ export default function ProfileScreen() {
               {loggingOut ? "Logging out..." : "Log out"}
             </Text>
           </TouchableOpacity>
-
         </ScrollView>
-
       </KeyboardAvoidingView>
 
       <AppModal
@@ -356,22 +402,21 @@ export default function ProfileScreen() {
           </View>
         </View>
       )}
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 16, 
+  container: {
+    flex: 1,
+    padding: 16,
     backgroundColor: theme.colors.background,
   },
   scroll: {
     flexGrow: 1,
     padding: 16,
     // borderWidth: 1,
-    borderColor: 'red',
+    borderColor: "red",
     paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
@@ -423,9 +468,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   avatarButton: {
-    width: 168,
-    height: 168,
-    borderRadius: 84,
+    width: 192,
+    height: 192,
+    borderRadius: 96,
     overflow: "hidden",
     ...theme.shadow.medium,
   },

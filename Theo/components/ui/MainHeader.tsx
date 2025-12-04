@@ -47,6 +47,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuHeight, setMenuHeight] = useState(0);
+  const [menuTop, setMenuTop] = useState(0);
   const [avatarFailed, setAvatarFailed] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -96,7 +97,13 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
         />
 
         <TouchableOpacity onPress={() => setMenuOpen((prev) => !prev)}>
-          <View style={styles.userIcon}>
+          <View
+            style={styles.userIcon}
+            onLayout={(event) => {
+              // Position the menu so its top edge sits against the avatar.
+              setMenuTop(event.nativeEvent.layout.y);
+            }}
+          >
             {avatarUrl && !avatarFailed ? (
               <Image
                 key={avatarUrl}
@@ -125,7 +132,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
               onPress={() => setMenuOpen(false)}
             />
 
-            <View style={[styles.menuAnchor, { top: menuHeight }]}>
+            <View style={[styles.menuAnchor, { top: menuTop || menuHeight }]}>
               <View style={styles.menuCard}>
                 {menuOptions.map((opt, idx) => (
                   <TouchableOpacity

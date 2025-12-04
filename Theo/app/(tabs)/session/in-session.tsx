@@ -1040,6 +1040,11 @@ export default function SessionScreen() {
           placeholder="Tap to input task description"
           multiline
           noBorder
+          inputStyle={{
+            paddingLeft: theme.spacing.md + 6,
+            paddingRight: theme.spacing.md,
+            textAlignVertical: "top",
+          }}
         />
 
         <Spacer size="md" />
@@ -1061,6 +1066,8 @@ export default function SessionScreen() {
           }}
           placeholder="30"
           row
+          centered
+          inputStyle={{ transform: [{ translateX: -3 }, { translateY: 1 }] }}
           error={newTaskMinutesError}
         />
 
@@ -1073,6 +1080,8 @@ export default function SessionScreen() {
           placeholder="2"
           row
           small
+          centered
+          inputStyle={{ transform: [{ translateX: 3 }] }}
           error={newTaskOrderError}
           label="(Optional) Order number"
         />

@@ -20,7 +20,7 @@ export function BreakdownItem({ minutes, text, onDelete }: BreakdownItemProps) {
       <View style={styles.taskBox}>
         <Text style={styles.taskText}>{text}</Text>
         <View style={styles.grip}>
-          <Icon name="drag" size={24} tint={theme.colors.border}/>
+          <Icon name="drag" size={24} tint={theme.colors.border} />
         </View>
       </View>
     </View>
@@ -60,13 +60,16 @@ const styles = StyleSheet.create({
     borderTopRightRadius: theme.radii.md,
     borderBottomRightRadius: theme.radii.md,
     paddingVertical: theme.spacing.md - 5,
-    paddingRight: theme.spacing.xl,
-    paddingLeft: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   taskText: {
     color: theme.colors.text,
     fontSize: theme.typography.sizes.sm,
+    width: "100%",
+    textAlign: "left",
     //lineHeight: 22,
   },
 

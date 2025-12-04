@@ -133,6 +133,18 @@ export async function getCurrentSession(): Promise<Session | null> {
   const { data, error } = await supabase.auth.getSession();
 
   if (error) {
+    const normalized = error.message?.toLowerCase?.() ?? "";
+    const isInvalidRefreshToken =
+      normalized.includes("invalid refresh token") ||
+      normalized.includes("refresh token not found");
+
+    if (isInvalidRefreshToken) {
+      // Clear any stale session data quietly so the app can continue logged-out.
+      await supabase.auth.signOut({ scope: "local" });
+      console.info("Cleared invalid refresh token and continued without a session.");
+      return null;
+    }
+
     throw new Error(`Failed to get current session: ${error.message}`);
   }
 

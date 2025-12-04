@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -22,7 +22,7 @@ import { theme } from "@/design/theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchUserProfile } from "@/lib/supabase";
-
+import { useFocusEffect } from "@react-navigation/native";
 
 const teddyBear = require("@/assets/theo/working.png");
 const HEADER_HEIGHT = 145; // size of main header (fixed) including its padding
@@ -36,6 +36,44 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const { session } = useSupabase();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  const loadAvatar = useCallback(() => {
+    let isActive = true;
+
+    if (!session?.user) {
+      setAvatarUrl(null);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const fromMetadata =
+      (session.user.user_metadata?.avatar_url as string | undefined) ?? null;
+    setAvatarUrl(fromMetadata);
+
+    fetchUserProfile(session.user.id)
+      .then((profile) => {
+        if (isActive && profile?.avatar_url) {
+          setAvatarUrl(profile.avatar_url);
+        }
+      })
+      .catch((error) => {
+        console.warn("Failed to load avatar", error);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [session?.user?.id]);
+
+  // Refresh when auth session changes
+  useEffect(() => {
+    return loadAvatar();
+  }, [loadAvatar]);
+
+  // Refresh when the home screen regains focus (e.g., after updating profile photo)
+  useFocusEffect(loadAvatar);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -68,7 +106,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      <MainHeader />
+      <MainHeader avatarUrl={avatarUrl} />
 
       <View
         style={[

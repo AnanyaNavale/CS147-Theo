@@ -500,7 +500,7 @@ Goal/context: ${goal || "None provided"}
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.35,
-      maxOutputTokens: 512,
+      maxOutputTokens: 4096,
       responseMimeType: "application/json",
       responseSchema,
     },
@@ -526,7 +526,7 @@ Goal/context: ${goal || "None provided"}
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.45,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 6144,
       },
     });
     console.log("[Gemini][tasks] fallback response", {

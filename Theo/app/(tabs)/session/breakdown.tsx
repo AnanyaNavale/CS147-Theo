@@ -598,6 +598,11 @@ export default function SessionBreakdownScreen() {
           placeholder="Tap to input task description"
           multiline
           noBorder
+          inputStyle={{
+            paddingLeft: theme.spacing.md + 6, // shift placeholder slightly right
+            paddingRight: theme.spacing.md,
+            textAlignVertical: "top",
+          }}
         />
 
         <Spacer size="md" />
@@ -619,6 +624,11 @@ export default function SessionBreakdownScreen() {
           }}
           placeholder="30"
           row
+          centered
+          inputStyle={{
+            paddingTop: -3,
+            transform: [{ translateY: -5 }, { translateX: -3 }, { translateY: 1 }],
+          }}
           error={newMinutesError}
         />
 
@@ -651,6 +661,8 @@ export default function SessionBreakdownScreen() {
           placeholder={`${tasks.length + 1}`}
           row
           small
+          centered
+          inputStyle={{ paddingTop: 2, paddingLeft: 8 }}
           error={newOrderError}
           label="(Optional) Order number"
         />
@@ -772,7 +784,7 @@ const styles = StyleSheet.create({
   },
 
   goalText: {
-    textAlign: "center",
+    textAlign: "left",
     paddingHorizontal: theme.spacing.md,
     lineHeight: 28,
   },
@@ -786,6 +798,8 @@ const styles = StyleSheet.create({
   taskRow: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
+    paddingHorizontal: theme.spacing.sm,
     marginBottom: theme.spacing.md,
   },
 
