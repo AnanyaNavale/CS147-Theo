@@ -9,6 +9,7 @@ import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchSessionsForDaySorted } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fonts } from "@/assets/themes/typography";
+import { colors } from "@/assets/themes/colors";
 
 interface SessionBoxProps {
   title: string;
@@ -52,22 +53,14 @@ export default function SessionBox({ title, goal, time, status, onPress }: Sessi
         )}
       </View>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>{title}</Text>
-        {/* {title === "null" || !title ? (
-          <Text style={styles.title}>{title}</Text>
-        ) : status === "planned" ? (
-          <Text
-            style={[styles.title, { fontFamily: fonts.typeface.bodyItalic }]}
-          >
-            Plan
-          </Text>
-        ) : (
-          <Text
-            style={[styles.title, { fontFamily: fonts.typeface.bodyItalic }]}
-          >
-            Session
-          </Text>
-        )} */}
+        <Text
+          style={[
+            styles.title,
+            (title === "Session" || title === "Plan") && styles.italicTitle,
+          ]}
+        >
+          {title}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -106,7 +99,7 @@ const styles = StyleSheet.create({
     height: 100,
     marginHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: "white",
+    backgroundColor: colors.light.background,
     borderWidth: 2,
     marginBottom: 12,
     flexDirection: "row",
@@ -118,15 +111,15 @@ const styles = StyleSheet.create({
   containerSession: {
     borderColor: "#B28F6D",
     borderStyle: "dashed",
-    shadowColor: "#B28F6D80",
+    shadowColor: colors.light.shadowPrimary,
   },
   containerCompleted: {
-    borderColor: "#8A5E3C",
-    shadowColor: "#8A5E3C80",
+    borderColor: colors.light.primary,
+    shadowColor: colors.light.shadowPrimary,
   },
   containerPlan: {
-    borderColor: "#CF9841",
-    shadowColor: "#CF984180",
+    borderColor: colors.light.secondary,
+    shadowColor: colors.light.shadowSecondary,
   },
   timeContainer: {
     width: "25%",
@@ -139,24 +132,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#B28F6D",
   },
   timeContainerCompleted: {
-    backgroundColor: "#8A5E3C",
+    backgroundColor: colors.light.primary,
   },
   timeContainerPlan: {
-    backgroundColor: "#CF9841",
+    backgroundColor: colors.light.secondary,
   },
   titleContainer: {
     flex: 1,
     flexShrink: 1,
     padding: 10,
-    backgroundColor: "white",
+    backgroundColor: colors.light.background,
 
   },
   title: {
     fontSize: 16,
-    fontFamily: "Raleway-Regular",
-    color: "black",
+    fontFamily: fonts.typeface.body,
+    color: colors.light.body,
     width: "100%",
     flexWrap: "wrap",
+  },
+  italicTitle: {
+    fontFamily: fonts.typeface.bodyItalic,
   },
   time: {
     fontSize: 16,
