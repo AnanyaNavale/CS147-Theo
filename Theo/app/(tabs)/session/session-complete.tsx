@@ -43,11 +43,8 @@ export default function SessionCompleteScreen() {
             stroke={theme.colors.accentDark}
             textStyle={{ color: theme.colors.accentDark }}
           ></SvgStrokeText>
-
-          <View style={{ width: 22 }} />
+          <Text style={styles.goalText}>{goal}</Text>
         </View>
-
-        <Text style={styles.goal}>{goal}</Text>
 
         <TouchableOpacity activeOpacity={0.9} onPress={handleAllDone}>
           <View style={styles.doneButton}>
@@ -112,6 +109,18 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
     textAlign: "center",
+    marginBottom: theme.spacing.lg,
+  },
+  goalText: {
+    textAlign: "center",
+    width: "100%",
+    alignSelf: "center",
+    paddingHorizontal: theme.spacing.lg,
+  },
+  goalTextWrapper: {
+    width: "100%",
+    alignSelf: "stretch",
+    alignItems: "center",
     marginBottom: theme.spacing.lg,
   },
   doneButton: {
