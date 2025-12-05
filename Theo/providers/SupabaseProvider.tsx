@@ -22,23 +22,31 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    let hasHydrated = false;
+
+    const finishHydration = () => {
+      if (!isMounted || hasHydrated) return;
+      hasHydrated = true;
+      setIsSessionLoading(false);
+    };
 
     getCurrentSession()
       .then((currentSession) => {
         if (isMounted) {
           setSession(currentSession);
-          setIsSessionLoading(false);
         }
       })
       .catch((error) => {
         console.error("Failed to hydrate session", error);
-        if (isMounted) {
-          setIsSessionLoading(false);
-        }
+      })
+      .finally(() => {
+        finishHydration();
       });
 
     const unsubscribe = onAuthStateChange((_, nextSession) => {
       setSession(nextSession);
+      // Prevent the UI from getting stuck on the loader if the initial session event arrives before getCurrentSession resolves.
+      finishHydration();
     });
 
     return () => {
