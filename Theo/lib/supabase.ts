@@ -60,6 +60,8 @@ export function getSupabase() {
   return supabase;
 }
 
+export const supabaseClient = getSupabase();
+
 ///////////////////////////////////////////////// USER ACCOUNT SETUP
 
 export interface EmailSignUpPayload {

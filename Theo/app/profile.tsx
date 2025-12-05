@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { SplashScreen, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,7 +25,7 @@ import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { fonts } from "@/assets/themes/typography";
-import { ensureUserProfile, fetchUserProfile, supabase } from "@/lib/supabase";
+import { supabaseClient, ensureUserProfile, fetchUserProfile } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 // Decode base64 into a Uint8Array without bringing along file metadata.
@@ -135,7 +135,7 @@ export default function ProfileScreen() {
         updatePayload.email = email.trim();
       }
 
-      const { error: authError } = await supabase.auth.updateUser(
+      const { error: authError } = await supabaseClient.auth.updateUser(
         updatePayload
       );
       if (authError) throw authError;
@@ -235,7 +235,7 @@ export default function ProfileScreen() {
         );
       }
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabaseClient.storage
         .from("avatars")
         // Upload only the raw image bytes (no extra file object wrapper)
         .upload(filePath, fileBytes, {
@@ -246,7 +246,7 @@ export default function ProfileScreen() {
 
       const {
         data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      } = supabaseClient.storage.from("avatars").getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
       // Persist to profile immediately and reload to reflect any server-side transforms
@@ -387,12 +387,27 @@ export default function ProfileScreen() {
         confirmLabel="Log out"
         onConfirm={async () => {
           if (loggingOut) return;
-          setShowLogoutConfirm(false);
           setLoggingOut(true);
-          await supabase.auth.signOut();
-          router.replace("/auth/login");
-          setLoggingOut(false);
+          setShowLogoutConfirm(false);
+
+          try {
+            await supabaseClient.auth.signOut();
+            // Do NOT call router.replace here
+            // AppNavigator will render the auth stack automatically
+          } catch (err) {
+            console.error("Failed to log out:", err);
+          } finally {
+            setLoggingOut(false);
+          }
         }}
+        // onConfirm={async () => {
+        //   if (loggingOut) return;
+        //   setShowLogoutConfirm(false);
+        //   setLoggingOut(true);
+        //   await supabaseClient.auth.signOut();
+        //   // router.replace("/auth/login");
+        //   setLoggingOut(false);
+        // }}
       />
 
       {loggingOut && (
