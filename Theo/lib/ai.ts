@@ -637,8 +637,8 @@ ${recent
     const primary = await callGemini({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.45,
-        maxOutputTokens: 320,
+        temperature: 0,
+        maxOutputTokens: 2048,
       },
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -692,8 +692,8 @@ ${recent
     const fallback = await callGemini({
       contents: [{ role: "user", parts: [{ text: minimalPrompt }] }],
       generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 120,
+        temperature: 0.1,
+        maxOutputTokens: 2048,
       },
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
