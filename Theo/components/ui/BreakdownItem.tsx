@@ -1,6 +1,6 @@
 import { theme } from "@/design/theme";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
 
@@ -60,8 +60,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: theme.radii.md,
     borderBottomRightRadius: theme.radii.md,
     paddingVertical: theme.spacing.md - 5,
-    paddingHorizontal: theme.spacing.xl,
-    justifyContent: "center",
+    paddingRight: theme.spacing.xl,
+    paddingLeft: theme.spacing.md,
+    //justifyContent: "center",
     alignItems: "center",
   },
 

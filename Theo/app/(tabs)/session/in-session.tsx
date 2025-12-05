@@ -1055,7 +1055,7 @@ export default function SessionScreen() {
           multiline
           noBorder
           inputStyle={{
-            paddingLeft: theme.spacing.md + 6,
+            paddingLeft: 0,
             paddingRight: theme.spacing.md,
             textAlignVertical: "top",
           }}
@@ -1081,7 +1081,10 @@ export default function SessionScreen() {
           placeholder="30"
           row
           centered
-          inputStyle={{ transform: [{ translateX: -3 }, { translateY: 1 }] }}
+          inputStyle={{
+            paddingLeft: 8,
+            transform: [{ translateX: -3 }, { translateY: 1 }],
+          }}
           error={newTaskMinutesError}
         />
 
@@ -1095,7 +1098,7 @@ export default function SessionScreen() {
           row
           small
           centered
-          inputStyle={{ transform: [{ translateX: 3 }] }}
+          inputStyle={{ paddingLeft: 8, transform: [{ translateX: 3 }] }}
           error={newTaskOrderError}
           label="(Optional) Order number"
         />

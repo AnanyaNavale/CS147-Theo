@@ -536,7 +536,7 @@ export default function SessionBreakdownScreen() {
           value={editText}
           onChangeText={setEditText}
           placeholder="Tap to input task description"
-          noBorder={true}
+          noBorder
         />
 
         <InputField
@@ -599,7 +599,7 @@ export default function SessionBreakdownScreen() {
           multiline
           noBorder
           inputStyle={{
-            paddingLeft: theme.spacing.md + 6, // shift placeholder slightly right
+            // paddingLeft: theme.spacing.md + 6, // shift placeholder slightly right
             paddingRight: theme.spacing.md,
             textAlignVertical: "top",
           }}
@@ -627,7 +627,12 @@ export default function SessionBreakdownScreen() {
           centered
           inputStyle={{
             paddingTop: -3,
-            transform: [{ translateY: -5 }, { translateX: -3 }, { translateY: 1 }],
+            paddingLeft: 8,
+            transform: [
+              { translateY: -5 },
+              { translateX: -3 },
+              { translateY: 1 },
+            ],
           }}
           error={newMinutesError}
         />
