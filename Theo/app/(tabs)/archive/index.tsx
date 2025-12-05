@@ -75,7 +75,7 @@ export default function ArchiveScreen() {
   );
   const [loading, setLoading] = useState(false);
 
-  const { supabase, session: authSession } = useSupabase();
+  const { session: authSession } = useSupabase();
   const router = useRouter();
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE

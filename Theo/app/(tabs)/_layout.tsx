@@ -1,13 +1,14 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 // import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Tabs, usePathname, useRouter } from "expo-router";
+import { Redirect, Tabs, usePathname, useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import { useColorScheme } from "@/components/useColorScheme";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 type MaterialCommunityIconsName = React.ComponentProps<
@@ -34,6 +35,14 @@ export default function TabLayout() {
   const router = useRouter();
   const image = require("@/assets/images/logo.png");
   const pathname = usePathname();
+  const { session, isSessionLoading } = useSupabase();
+
+  if (isSessionLoading) return null;
+
+  if (!session) {
+    // User is NOT logged in → force them out of tabs
+    return <Redirect href="/auth/login" />;
+  }
 
   // Hide on entire session stack
   const inSessionStack = pathname.startsWith("/session");

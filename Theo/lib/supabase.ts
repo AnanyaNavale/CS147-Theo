@@ -60,6 +60,8 @@ export function getSupabase() {
   return supabase;
 }
 
+export const supabaseClient = getSupabase();
+
 ///////////////////////////////////////////////// USER ACCOUNT SETUP
 
 export interface EmailSignUpPayload {
@@ -458,6 +460,21 @@ export async function fetchSessionsForDaySorted(
     throw new Error(`Failed to fetch sessions for ${date}: ${error.message}`);
   }
 
+  return data ?? [];
+}
+
+/**
+ * Fetches the 10 most recent sessions for a user.
+ */
+export async function fetchRecentSessions(userId: string): Promise<WorkSession[]> {
+  const { data, error } = await getSupabase()
+    .from("sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) throw new Error(`Failed to fetch recent sessions: ${error.message}`);
   return data ?? [];
 }
 

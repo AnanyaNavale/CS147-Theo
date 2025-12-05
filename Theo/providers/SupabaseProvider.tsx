@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { supabase, getCurrentSession, onAuthStateChange } from "@/lib/supabase";
+import { supabaseClient, getCurrentSession, onAuthStateChange } from "@/lib/supabase";
 
 interface SupabaseContextValue {
-  supabase: typeof supabase;
+  supabase: typeof supabaseClient;
   session: Session | null;
   isSessionLoading: boolean;
 }
@@ -56,7 +56,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ supabase, session, isSessionLoading }),
+    () => ({ supabase: supabaseClient, session, isSessionLoading }),
     [session, isSessionLoading]
   );
 
