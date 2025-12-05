@@ -98,8 +98,6 @@ export function StepProgressIndicator({
       return;
     }
 
-    console.log("User is valid");
-
     try {
       const data = await createReport(session.user.id, reportText);
 
