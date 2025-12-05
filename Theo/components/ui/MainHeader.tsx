@@ -16,6 +16,7 @@ import { theme } from "@/design/theme";
 import { signOut } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { AppModal } from "./AppModal";
+import { Icon } from "@/components/ui/Icon";
 
 const logo = require("@/assets/images/logo.png");
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -84,6 +85,11 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
     },
   ];
 
+  const handleMenuAction = (action: () => void) => () => {
+    setMenuOpen(false);
+    action();
+  };
+
   const handleLayout = (event: LayoutChangeEvent) => {
     setMenuHeight(event.nativeEvent.layout.height);
   };
@@ -91,10 +97,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
   return (
     <View onLayout={handleLayout}>
       <View style={styles.header}>
-        <Image
-          source={logo}
-          style={{ width: 90, height: 40 }}
-        />
+        <Image source={logo} style={{ width: 90, height: 40 }} />
 
         <TouchableOpacity onPress={() => setMenuOpen((prev) => !prev)}>
           <View
@@ -134,18 +137,15 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
 
             <View style={[styles.menuAnchor, { top: menuTop || menuHeight }]}>
               <View style={styles.menuCard}>
-                {menuOptions.map((opt, idx) => (
-                  <TouchableOpacity
-                    key={opt.label}
-                    style={styles.menuItem}
-                    onPress={opt.onPress}
-                  >
-                    <Text style={styles.menuLabel}>{opt.label}</Text>
-                    {idx < menuOptions.length - 1 && (
-                      <View style={styles.menuDivider} />
-                    )}
-                  </TouchableOpacity>
-                ))}
+                <MenuItem
+                  label="Profile"
+                  onPress={handleMenuAction(() => router.push("../profile"))}
+                />
+                <View style={styles.menuDivider} />
+                <MenuItem
+                  label="Log out"
+                  onPress={handleMenuAction(() => setShowLogoutConfirm(true))}
+                />
               </View>
             </View>
           </View>
@@ -163,6 +163,23 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
         onConfirm={handleLogout}
       />
     </View>
+  );
+}
+
+type MenuItemProps = {
+  label: string;
+  onPress: () => void;
+};
+
+function MenuItem({ label, onPress }: MenuItemProps) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.menuItem}
+      activeOpacity={0.85}
+    >
+      <Text style={styles.menuLabel}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -214,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.primary,
     borderRadius: theme.radii.lg,
     paddingVertical: theme.spacing.xs,
-    minWidth: 200,
+    minWidth: 150,
     ...theme.shadow.medium,
   },
   menuItem: {
@@ -231,7 +248,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.border,
     opacity: 0.6,
     marginHorizontal: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
   },
 });
 

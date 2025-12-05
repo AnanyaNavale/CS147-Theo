@@ -73,7 +73,7 @@ export default function LoginScreen() {
             <Image source={teddy} style={styles.teddy} />
           </View>
 
-          <SvgStrokeText text={"Log in"} />
+          <SvgStrokeText text={"Log In"} />
 
           <Spacer size="sm" />
 
@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
   teddy: {
     width: 140,
     height: 150,
+    marginLeft: 20,
     resizeMode: "contain",
   },
   title: {
