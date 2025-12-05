@@ -83,7 +83,7 @@ export default function SignUpScreen() {
             <Image source={teddy} style={styles.teddy} />
           </View>
 
-          <SvgStrokeText text={"Create account"} />
+          <SvgStrokeText text={"Create Account"} />
 
           <Spacer size="sm" />
 
@@ -172,7 +172,7 @@ export default function SignUpScreen() {
             disabled={isSubmitting}
           >
             <Text style={styles.linkPrompt}>Already have an account?</Text>
-            <Text style={styles.linkAction}>Log in</Text>
+            <Text style={styles.linkAction}>Log in!</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
