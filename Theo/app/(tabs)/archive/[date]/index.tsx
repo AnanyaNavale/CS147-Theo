@@ -19,6 +19,7 @@ import SessionBox from "@/components/ArchiveSessionBox";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
+import ArchiveSessionBox from "@/components/ArchiveSessionBox";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -124,7 +125,7 @@ export default function SingleDayScreen() {
           sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <SessionBox
+            <ArchiveSessionBox
               title={item.title}
               goal={item.goal}
               time={item.total_time}

@@ -4,6 +4,7 @@ export default function SessionStackLayout() {
   return (
     <Stack screenOptions={{ headerShown: false, presentation: "card" }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="copy-session" />
       <Stack.Screen name="goal" />
       <Stack.Screen name="breakdown" />
       <Stack.Screen name="finalize-session" />

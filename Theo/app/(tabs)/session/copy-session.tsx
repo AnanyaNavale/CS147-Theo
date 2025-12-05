@@ -1,6 +1,7 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+    FlatList,
   ScrollView,
   StyleSheet,
   View,
@@ -8,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { fetchRecentSessions } from "@/lib/supabase"; // adjust path
 import { colors } from "@/assets/themes/colors";
 import { Spacer } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
@@ -16,12 +18,34 @@ import { AppModal } from "@/components/ui/AppModal";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import CopySessionBox from "@/components/CopySessionBox";
+import { WorkSession } from "@/types/database.types";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 export default function StartSessionScreen() {
-  const handleCreateNew = () => router.push("../(tabs)/session/goal");
-  const handleCopy = () => router.push("../(tabs)/session/copy-session");
-  const { width } = useWindowDimensions();
-  const [showComingSoon, setShowComingSoon] = React.useState(false);
+  const { session } = useSupabase();
+  const userId = session?.user?.id;
+  const handleCopy = () => router.push("../(tabs)/session/goal");
+  const [sessions, setSessions] = useState<WorkSession[]>([]);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+
+  useEffect(() => {
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+
+    async function load() {
+        try {
+        const data = await fetchRecentSessions(userId!);
+        setSessions(data);
+        } catch (e) {
+        console.error("Failed to load sessions:", e);
+        }
+    }
+
+    load();
+  }, [userId]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -30,8 +54,8 @@ export default function StartSessionScreen() {
           steps={["Setup", "Customize", "Finalize"]}
           activeCount={1}
           style={styles.headerProgress}
+          onPressBack={() => router.back()}
           onPressMenu={() => {}}
-          firstPage={true}
           helpMessagept1={
             "This is the first step of your session setup.\nHere, you may choose from one of three options:\n"
           }
@@ -42,18 +66,46 @@ export default function StartSessionScreen() {
       </View>
 
       <Spacer size="lg" />
-      <ScrollView
+      {/* <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-      >
-        <SvgStrokeText
-          text={"How would you like to\nget started?"}
-          containerStyle={{ alignSelf: "center" }}
-        />
+      > */}
+      <SvgStrokeText
+        text={"Select a recent session"}
+        containerStyle={{ alignSelf: "center" }}
+      />
+      <Spacer size="md" />
+      <Text style={styles.actionDescription}>
+        Choose from up to 10 of your most recent sessions listed below.
+      </Text>
 
-        <Spacer size="xxl" />
+      <Spacer size="lg" />
 
-        <View style={styles.actionBlock}>
+      {/* <ScrollView
+        style={{ borderColor: "red", borderWidth: 1, width: "90%" }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={true}
+      > */}
+      {/* <FlatList data={undefined} renderItem={undefined}> */}
+      <FlatList
+        data={sessions}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <CopySessionBox
+            title={item.title}
+            goal={item.goal}
+            time={item.total_time}
+            onPress={() => setShowSessionModal(true)}
+          />
+        )}
+        style={{ width: "100%" }}
+        contentContainerStyle={{ padding: 16 }}
+      />
+      {/* <CopySessionBox title={"title"} goal={"goal"} time={"45 min."} />
+      <CopySessionBox title={"title"} goal={"goal"} time={"45 min."} /> */}
+      {/* </FlatList> */}
+      {/* </ScrollView> */}
+      {/* <View style={styles.actionBlock}>
           <BasicButton text="Create a new session" onPress={handleCreateNew} />
           <Spacer size="md" />
           <Text style={styles.actionDescription}>
@@ -68,7 +120,7 @@ export default function StartSessionScreen() {
         <View style={styles.actionBlock}>
           <BasicButton
             text="Copy a recent session"
-            onPress={handleCopy}
+            onPress={() => setShowComingSoon(true)}
             variant="secondary"
           />
           <Spacer size="md" />
@@ -92,9 +144,9 @@ export default function StartSessionScreen() {
           <Text style={styles.actionDescription}>
             Use saved plans from the archive to begin a new session.
           </Text>
-        </View>
-      </ScrollView>
-      <AppModal
+        </View> */}
+      {/* </ScrollView> */}
+      {/* <AppModal
         visible={showComingSoon}
         onClose={() => setShowComingSoon(false)}
         variant="custom"
@@ -118,7 +170,7 @@ export default function StartSessionScreen() {
           }}
           textStyle={{ flexWrap: "nowrap" }}
         />
-      </AppModal>
+      </AppModal> */}
     </SafeAreaView>
   );
 }
@@ -127,11 +179,13 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    alignItems: "center",
   },
   content: {
     flexGrow: 1,
-    paddingVertical: theme.spacing.lg,
+    // paddingVertical: theme.spacing.sm,
     paddingBottom: theme.spacing.xxl * 1.5,
+    alignItems: "center",
   },
   headerRow: {
     flexDirection: "row",
@@ -158,8 +212,9 @@ const styles = StyleSheet.create({
   actionDescription: {
     textAlign: "center",
     fontSize: theme.typography.sizes.sm + 2,
-
     paddingHorizontal: theme.spacing.xl,
+    width: "80%",
+    alignSelf: "center",
   },
   divider: {
     height: 1,

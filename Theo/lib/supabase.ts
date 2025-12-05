@@ -462,6 +462,21 @@ export async function fetchSessionsForDaySorted(
 }
 
 /**
+ * Fetches the 10 most recent sessions for a user.
+ */
+export async function fetchRecentSessions(userId: string): Promise<WorkSession[]> {
+  const { data, error } = await getSupabase()
+    .from("sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) throw new Error(`Failed to fetch recent sessions: ${error.message}`);
+  return data ?? [];
+}
+
+/**
  * Fetches a single session by ID.
  */
 export async function fetchSessionById(sessionId: string): Promise<WorkSession | null> {
