@@ -1,8 +1,19 @@
-<img width="400" height="auto" alt="Screenshot 2025-12-06 at 5 15 45 PM" src="https://github.com/user-attachments/assets/597ddf49-c218-4e71-980c-e70bd49a18e0" />
+<p align="center">
+  <img 
+    width="400"
+    alt="Screenshot 2025-12-06 at 5 15 45 PM"
+    src="https://github.com/user-attachments/assets/597ddf49-c218-4e71-980c-e70bd49a18e0"
+  />
+  <img width="1576" height="527" alt="all-screens" src="https://github.com/user-attachments/assets/5fc64638-99e4-4acc-a431-c0e194525219" />
 
-# Gentle nudges. Real progress.
+</p>
 
-**Ananya N. | Ayana G. | Anthony C. | Felix Z.**
+<h1 align="center">
+  Gentle nudges. Real progress.
+</h1>
+
+
+
 
 ## Introduction:
 
