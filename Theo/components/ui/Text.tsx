@@ -1,5 +1,10 @@
 import React from "react";
-import { Text as RNText, StyleSheet, TextProps } from "react-native";
+import {
+  Text as RNText,
+  StyleSheet,
+  TextProps,
+  TextStyle,
+} from "react-native";
 import { theme } from "../../design/theme";
 
 type Variant = "h1" | "h2" | "h3" | "body" | "subtle" | "small" | "label";
@@ -22,9 +27,11 @@ export function Text({
   color = "text",
   ...props
 }: AppTextProps) {
-  const flattened = StyleSheet.flatten(style) || {};
-  const needsAutoLineHeight =
-    flattened.fontSize != null && flattened.lineHeight == null;
+  const flattened = StyleSheet.flatten<TextStyle>(style);
+  const autoLineHeightStyle =
+    typeof flattened?.fontSize === "number" && flattened.lineHeight == null
+      ? { lineHeight: flattened.fontSize * 1.2 }
+      : null;
 
   return (
     <RNText
@@ -34,7 +41,7 @@ export function Text({
         variantStyles[variant],
         weightStyles[weight],
         { color: theme.solidColors[color] },
-        needsAutoLineHeight && { lineHeight: flattened.fontSize * 1.2 },
+        autoLineHeightStyle,
         style,
       ]}
     />

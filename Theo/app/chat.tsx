@@ -283,9 +283,9 @@ export default function ChatScreen() {
       try {
         const newSession = await createSession(
           session.user.id,
+          "false",
           false,
-          null,
-          false
+          "false"
         );
         if (!cancelled) setSessionId(newSession.id);
       } catch (err) {

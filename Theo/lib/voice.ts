@@ -27,12 +27,14 @@ export async function transcribeAudioFile(uri: string): Promise<string> {
   const mimeType = guessMimeType(uri);
 
   const form = new FormData();
-  form.append("file", {
-    // @ts-expect-error React Native File shim
+  const file: { uri: string; name: string; type: string } = {
     uri,
     name: fileName,
     type: mimeType,
-  });
+  };
+
+  // RN FormData accepts file objects with a URI; cast to satisfy TS DOM typings
+  form.append("file", file as unknown as Blob);
   form.append("model", DEFAULT_MODEL);
   form.append("response_format", "json");
 
