@@ -10,7 +10,10 @@
   Gentle nudges. Real progress.
 </h1>
   <img width="1576" height="527" alt="all-screens" src="https://github.com/user-attachments/assets/5fc64638-99e4-4acc-a431-c0e194525219" />
-
+  <br> </br>
+  <p align="center">
+ <a href="https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/" target="_blank">Visit our website!</a>
+  </p>
 </p>
 
 </br>
