@@ -1,9 +1,11 @@
 <p align="center">
+  <a href="https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/" target="_blank">
   <img 
     width="400"
     alt="Screenshot 2025-12-06 at 5 15 45 PM"
     src="https://github.com/user-attachments/assets/597ddf49-c218-4e71-980c-e70bd49a18e0"
   />
+  </a>
   <h1 align="center">
   Gentle nudges. Real progress.
 </h1>
