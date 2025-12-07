@@ -4,16 +4,14 @@
     alt="Screenshot 2025-12-06 at 5 15 45 PM"
     src="https://github.com/user-attachments/assets/597ddf49-c218-4e71-980c-e70bd49a18e0"
   />
+  <h1 align="center">
+  Gentle nudges. Real progress.
+</h1>
   <img width="1576" height="527" alt="all-screens" src="https://github.com/user-attachments/assets/5fc64638-99e4-4acc-a431-c0e194525219" />
 
 </p>
 
-<h1 align="center">
-  Gentle nudges. Real progress.
-</h1>
-
-
-
+</br>
 
 ## Introduction:
 
