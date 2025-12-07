@@ -1,8 +1,17 @@
-<img width="400" height="auto" alt="Screenshot 2025-12-06 at 5 15 45 PM" src="https://github.com/user-attachments/assets/597ddf49-c218-4e71-980c-e70bd49a18e0" />
+<p align="center">
+  <img 
+    width="400"
+    alt="Screenshot 2025-12-06 at 5 15 45 PM"
+    src="https://github.com/user-attachments/assets/597ddf49-c218-4e71-980c-e70bd49a18e0"
+  />
+  <h1 align="center">
+  Gentle nudges. Real progress.
+</h1>
+  <img width="1576" height="527" alt="all-screens" src="https://github.com/user-attachments/assets/5fc64638-99e4-4acc-a431-c0e194525219" />
 
-# Gentle nudges. Real progress.
+</p>
 
-**Ananya N. | Ayana G. | Anthony C. | Felix Z.**
+</br>
 
 ## Introduction:
 
@@ -20,7 +29,9 @@ For quick prototype access on your mobile device, please follow the instructions
 
 2. Scan the Expo QR code provided below with your mobile device’s camera or QR code reader to open the project.
 
+<p align="center">
 <img width="253" height="258" alt="QRcode" src="https://github.com/user-attachments/assets/fe221c80-130c-4db0-b620-d7adab2108c3" />
+</p>
 
 3. After opening the app on your device, please create an account by providing a name, email address, and password. Once the account is created, all work completed in the app will be saved to this account.
 
