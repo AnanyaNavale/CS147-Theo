@@ -168,6 +168,11 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     paddingLeft: 0,
     marginTop: -theme.spacing.sm,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
 
   inputError: {
