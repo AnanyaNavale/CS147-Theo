@@ -40,10 +40,32 @@ type DeleteMode = "single" | "all" | null;
 const teddy = require("../../../assets/theo/waving.png");
 
 export default function SessionBreakdownScreen() {
-  const { goal } = useLocalSearchParams<{ goal?: string }>();
-  const initialGoal = goal ?? "";
+  const { goal, tasks: tasksParam } = useLocalSearchParams<{
+    goal?: string | string[];
+    tasks?: string | string[];
+  }>();
+  const goalParam = Array.isArray(goal) ? goal[0] : goal;
+  const tasksParamValue = Array.isArray(tasksParam) ? tasksParam[0] : tasksParam;
+  const initialGoal = goalParam ?? "";
 
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    if (!tasksParamValue) return [];
+    try {
+      const parsed = JSON.parse(tasksParamValue);
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed
+        .map((t) => ({
+          id: String(t.id ?? `temp-${Math.random().toString(36).slice(2)}`),
+          text: typeof t.text === "string" ? t.text : "",
+          minutes: Number(t.minutes) || 0,
+        }))
+        .filter((t) => t.text.trim().length > 0 || t.minutes > 0);
+    } catch (err) {
+      console.error("Failed to parse tasks param:", err);
+      return [];
+    }
+  });
   const [goalInput, setGoalInput] = useState(initialGoal);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);

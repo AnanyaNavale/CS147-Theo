@@ -1,20 +1,13 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-    FlatList,
-  ScrollView,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fetchRecentSessions } from "@/lib/supabase"; // adjust path
+import { fetchRecentSessions, fetchTasksForSession } from "@/lib/supabase";
 import { colors } from "@/assets/themes/colors";
 import { Spacer } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
-import { AppModal } from "@/components/ui/AppModal";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
@@ -22,30 +15,87 @@ import CopySessionBox from "@/components/CopySessionBox";
 import { WorkSession } from "@/types/database.types";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
-export default function StartSessionScreen() {
+const PAGE_SIZE = 5;
+
+export default function CopySessionScreen() {
   const { session } = useSupabase();
   const userId = session?.user?.id;
-  const handleCopy = () => router.push("../(tabs)/session/goal");
   const [sessions, setSessions] = useState<WorkSession[]>([]);
-  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
+  const [isLoadingList, setIsLoadingList] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     if (!userId) {
       console.error("User not logged in.");
+      setSessions([]);
+      setHasMore(false);
+      setIsLoadingList(false);
       return;
     }
 
     async function load() {
-        try {
-        const data = await fetchRecentSessions(userId!);
+      setIsLoadingList(true);
+      setHasMore(true);
+      try {
+        const data = await fetchRecentSessions(userId!, PAGE_SIZE, 0);
         setSessions(data);
-        } catch (e) {
+        setHasMore(data.length === PAGE_SIZE);
+      } catch (e) {
         console.error("Failed to load sessions:", e);
-        }
+      } finally {
+        setIsLoadingList(false);
+      }
     }
 
     load();
   }, [userId]);
+
+  const loadMoreSessions = async () => {
+    if (!userId || isLoadingList || !hasMore) return;
+    setIsLoadingList(true);
+
+    try {
+      const data = await fetchRecentSessions(
+        userId,
+        PAGE_SIZE,
+        sessions.length
+      );
+
+      setSessions((prev) => [...prev, ...data]);
+      setHasMore(data.length === PAGE_SIZE);
+    } catch (e) {
+      console.error("Failed to load more sessions:", e);
+    } finally {
+      setIsLoadingList(false);
+    }
+  };
+
+  const handleSelectSession = async (session: WorkSession) => {
+    if (loadingSessionId) return;
+    setLoadingSessionId(session.id);
+
+    try {
+      const tasks = await fetchTasksForSession(session.id);
+      const mappedTasks = tasks.map((t) => ({
+        id: String(t.id),
+        text: t.task_name,
+        minutes: Number(t.time_allotted) || 0,
+      }));
+
+      router.push({
+        pathname: "./breakdown",
+        params: {
+          goal: session.goal ?? "",
+          tasks: JSON.stringify(mappedTasks),
+        },
+      });
+    } catch (e) {
+      console.error("Failed to load session tasks:", e);
+    } finally {
+      setLoadingSessionId(null);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -57,10 +107,7 @@ export default function StartSessionScreen() {
           onPressBack={() => router.back()}
           onPressMenu={() => {}}
           helpMessagept1={
-            "This is the first step of your session setup.\nHere, you may choose from one of three options:\n"
-          }
-          helpMessagept2={
-            "(1) Create a new session: This allows you to input a goal or set of tasks you would like to complete.\n\n(2) Copy a recent session: This allows you to select from your 10 most recent completed sessions to duplicate its goals and/or tasks.\n\n(3) Complete a session: This allows you to select a plan from your archive to convert into a session."
+            "Here, you'll see a list of your recent sessions. You can select one of these plans to begin this new session."
           }
         />
       </View>
@@ -76,35 +123,39 @@ export default function StartSessionScreen() {
       />
       <Spacer size="md" />
       <Text style={styles.actionDescription}>
-        Choose from up to 10 of your most recent sessions listed below.
+        Choose from your most recent sessions listed below.
       </Text>
 
       <Spacer size="lg" />
+      <View style={styles.listContainer}>
+        <ScrollView
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {sessions.map((item) => (
+            <CopySessionBox
+              key={item.id}
+              title={item.title}
+              goal={item.goal}
+              time={item.total_time}
+              onPress={() => handleSelectSession(item)}
+            />
+          ))}
+        </ScrollView>
 
-      {/* <ScrollView
-        style={{ borderColor: "red", borderWidth: 1, width: "90%" }}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={true}
-      > */}
-      {/* <FlatList data={undefined} renderItem={undefined}> */}
-      <FlatList
-        data={sessions}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <CopySessionBox
-            title={item.title}
-            goal={item.goal}
-            time={item.total_time}
-            onPress={() => setShowSessionModal(true)}
-          />
-        )}
-        style={{ width: "100%" }}
-        contentContainerStyle={{ padding: 16 }}
-      />
-      {/* <CopySessionBox title={"title"} goal={"goal"} time={"45 min."} />
-      <CopySessionBox title={"title"} goal={"goal"} time={"45 min."} /> */}
-      {/* </FlatList> */}
-      {/* </ScrollView> */}
+        <View style={styles.loadMoreWrapper}>
+          {hasMore ? (
+            <BasicButton
+              text={isLoadingList ? "Loading more..." : "Load more"}
+              onPress={loadMoreSessions}
+              disabled={isLoadingList}
+            />
+          ) : (
+            <Text style={styles.noMoreText}>No more sessions</Text>
+          )}
+        </View>
+      </View>
       {/* <View style={styles.actionBlock}>
           <BasicButton text="Create a new session" onPress={handleCreateNew} />
           <Spacer size="md" />
@@ -179,7 +230,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    alignItems: "center",
   },
   content: {
     flexGrow: 1,
@@ -199,7 +249,7 @@ const styles = StyleSheet.create({
   },
   headerProgress: {
     flex: 1,
-    marginHorizontal: theme.spacing.md,
+    marginHorizontal: theme.spacing.lg,
     paddingHorizontal: 0,
   },
   actionBlock: {
@@ -212,8 +262,7 @@ const styles = StyleSheet.create({
   actionDescription: {
     textAlign: "center",
     fontSize: theme.typography.sizes.sm + 2,
-    paddingHorizontal: theme.spacing.xl,
-    width: "80%",
+    paddingHorizontal: theme.spacing.lg,
     alignSelf: "center",
   },
   divider: {
@@ -231,5 +280,29 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
     maxWidth: "100%",
+  },
+  listContainer: {
+    flex: 1,
+    width: "100%",
+  },
+  list: {
+    flex: 1,
+    width: "100%",
+  },
+  listContent: {
+    paddingTop: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  loadMoreWrapper: {
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+  },
+  noMoreText: {
+    color: theme.colors.mutedText,
+    fontFamily: theme.typography.families.medium,
   },
 });

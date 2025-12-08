@@ -10,6 +10,7 @@ import { fetchSessionsForDaySorted } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fonts } from "@/assets/themes/typography";
 import { colors } from "@/assets/themes/colors";
+import { theme } from "@/design/theme";
 
 interface CopySessionBoxProps {
   title: string;
@@ -31,10 +32,7 @@ export default function CopySessionBox({
   }
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={onPress}
-    >
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.timeContainer}>
         {timeDisplay !== "0 min." ? (
           <Text style={styles.time}>{timeDisplay}</Text>
@@ -61,6 +59,8 @@ export default function CopySessionBox({
             styles.title,
             (title === "Session" || title === "Plan") && styles.italicTitle,
           ]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
         >
           {title}
         </Text>
@@ -99,14 +99,13 @@ function formatMinutes(totalMinutes: number) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 70,
-    width: "80%",
-    marginHorizontal: 20,
+    height: 100,
+    width: "100%",
     borderRadius: 10,
     backgroundColor: colors.light.background,
     borderWidth: 2,
     borderColor: colors.light.secondary,
-    marginBottom: 12,
+    marginBottom: theme.spacing.sm,
     flexDirection: "row",
     overflow: "hidden",
   },
@@ -118,7 +117,6 @@ const styles = StyleSheet.create({
   timeContainer: {
     width: "30%",
     height: "100%",
-    borderRadius: 5,
     padding: 10,
     backgroundColor: colors.light.secondary,
     alignItems: "center",
