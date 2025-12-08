@@ -9,7 +9,7 @@
   <h1 align="center">
   Gentle nudges. Real progress.
 </h1>
-  <img width="1576" height="527" alt="all-screens" src="Theo/assets/images/screens-2.png" />
+  <img width="1576" height="527" alt="all-screens" src="Theo/assets/images/screens.png" />
   <br> </br>
   <p align="center">
  <a href="https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/" target="_blank">Visit our website!</a>
