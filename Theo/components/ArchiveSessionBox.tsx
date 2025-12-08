@@ -4,6 +4,7 @@ import { View, Text } from "@/components/Themed";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fonts } from "@/assets/themes/typography";
 import { colors } from "@/assets/themes/colors";
+import { theme } from "@/design/theme";
 
 interface ArchiveSessionBoxProps {
   title: string | null;
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.background,
   },
   title: {
-    fontSize: 16,
+    fontSize: theme.typography.sizes.sm + 2,
     fontFamily: fonts.typeface.body,
     color: colors.light.body,
     width: "100%",
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.typeface.bodyItalic,
   },
   time: {
-    fontSize: 16,
+    fontSize: theme.typography.sizes.md,
     fontFamily: "Raleway-Regular",
     color: "white",
   },

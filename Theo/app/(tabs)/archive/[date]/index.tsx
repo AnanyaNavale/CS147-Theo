@@ -164,9 +164,9 @@ export default function SingleDayScreen() {
               </View>
             ) : null
           }
-          ItemSeparatorComponent={() => (
-            <View style={{ height: 10, backgroundColor: "white" }} />
-          )}
+          // ItemSeparatorComponent={() => (
+          //   <View style={{ height: 10, backgroundColor: "white" }} />
+          // )}
           contentContainerStyle={{
             paddingHorizontal: 16,
           }}

@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   title: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.sm + 2,
     fontFamily: fonts.typeface.body,
     color: colors.light.body,
     width: "100%",
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   time: {
-    fontSize: 16,
+    fontSize: theme.typography.sizes.md,
     fontFamily: "Raleway-Regular",
     color: "white",
   },
