@@ -483,6 +483,29 @@ export async function fetchRecentSessions(
 }
 
 /**
+ * Fetches recent sessions that are incomplete or planned for a user.
+ */
+export async function fetchPlannedOrIncompleteSessions(
+  userId: string,
+  limit = 10,
+  offset = 0
+): Promise<WorkSession[]> {
+  const { data, error } = await getSupabase()
+    .from("sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .in("status", ["planned", "incomplete"])
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error)
+    throw new Error(
+      `Failed to fetch planned/incomplete sessions: ${error.message}`
+    );
+  return data ?? [];
+}
+
+/**
  * Fetches a single session by ID.
  */
 export async function fetchSessionById(sessionId: string): Promise<WorkSession | null> {

@@ -152,6 +152,7 @@ export default function SessionScreen() {
   const [showStartBreakConfirm, setShowStartBreakConfirm] = useState(false);
   const [showEndBreakConfirm, setShowEndBreakConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isSavingForLater, setIsSavingForLater] = useState(false);
   const sessionEndLoggedRef = useRef(false);
 
   /* ANIMATION VALUES */
@@ -212,6 +213,23 @@ export default function SessionScreen() {
         sessionId: sessionId ?? null,
       },
     });
+  };
+
+  const handleSaveSessionForLater = async () => {
+    if (!sessionId || isSavingForLater) return;
+    setIsSavingForLater(true);
+    try {
+      await updateSession(sessionId, {
+        status: "incomplete",
+        completed_at: null,
+      });
+      setShowStopModal(false);
+      router.replace("../../");
+    } catch (err) {
+      console.error("Failed to save session for later:", err);
+    } finally {
+      setIsSavingForLater(false);
+    }
   };
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
@@ -880,13 +898,23 @@ export default function SessionScreen() {
       <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
-        variant="alert"
+        variant="custom"
         title="End session?"
-        message="Are you sure you want to end your work session?"
-        cancelLabel="Cancel"
-        confirmLabel="End"
-        onConfirm={confirmStop}
-      />
+        message={
+          "Are you sure you want to end your work session?\n\nYou may also mark the session 'Incomplete' to return to it later."
+        }
+      >
+        <View style={{ width: "100%", marginTop: theme.spacing.lg }}>
+          <Button
+            variant="ghost"
+            label={isSavingForLater ? "Saving..." : "Save session for later"}
+            onPress={handleSaveSessionForLater}
+            disabled={isSavingForLater}
+            style={{ marginBottom: theme.spacing.sm }}
+          />
+          <Button variant="danger" label="End session" onPress={confirmStop} />
+        </View>
+      </AppModal>
 
       <AppModal
         visible={showStartBreakConfirm}

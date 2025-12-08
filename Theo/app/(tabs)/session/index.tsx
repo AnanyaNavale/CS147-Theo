@@ -20,6 +20,8 @@ import { theme } from "@/design/theme";
 export default function StartSessionScreen() {
   const handleCreateNew = () => router.push("../(tabs)/session/goal");
   const handleCopy = () => router.push("../(tabs)/session/copy-session");
+  const handleComplete = () =>
+    router.push("../(tabs)/session/complete-session");
   const { width } = useWindowDimensions();
   const [showComingSoon, setShowComingSoon] = React.useState(false);
 
@@ -84,7 +86,7 @@ export default function StartSessionScreen() {
         <View style={styles.actionBlock}>
           <BasicButton
             text="Complete a session"
-            onPress={() => setShowComingSoon(true)}
+            onPress={handleComplete}
             variant="tertiary"
             //style={[styles.actionButton, { width: buttonWidth }]}
           />

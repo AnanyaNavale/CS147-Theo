@@ -3,7 +3,10 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fetchRecentSessions, fetchTasksForSession } from "@/lib/supabase";
+import {
+  fetchPlannedOrIncompleteSessions,
+  fetchTasksForSession,
+} from "@/lib/supabase";
 import { colors } from "@/assets/themes/colors";
 import { Spacer } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
@@ -16,6 +19,7 @@ import { WorkSession } from "@/types/database.types";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 const PAGE_SIZE = 5;
+
 const mapTasksForBreakdown = (tasks: Awaited<ReturnType<typeof fetchTasksForSession>>) =>
   tasks.map((t) => ({
     id: String(t.id),
@@ -23,7 +27,7 @@ const mapTasksForBreakdown = (tasks: Awaited<ReturnType<typeof fetchTasksForSess
     minutes: Number(t.time_allotted ?? t.time_completed) || 0,
   }));
 
-export default function CopySessionScreen() {
+export default function CompleteSessionScreen() {
   const { session } = useSupabase();
   const userId = session?.user?.id;
   const [sessions, setSessions] = useState<WorkSession[]>([]);
@@ -44,7 +48,11 @@ export default function CopySessionScreen() {
       setIsLoadingList(true);
       setHasMore(true);
       try {
-        const data = await fetchRecentSessions(userId!, PAGE_SIZE, 0);
+        const data = await fetchPlannedOrIncompleteSessions(
+          userId!,
+          PAGE_SIZE,
+          0
+        );
         setSessions(data);
         setHasMore(data.length === PAGE_SIZE);
       } catch (e) {
@@ -62,7 +70,7 @@ export default function CopySessionScreen() {
     setIsLoadingList(true);
 
     try {
-      const data = await fetchRecentSessions(
+      const data = await fetchPlannedOrIncompleteSessions(
         userId,
         PAGE_SIZE,
         sessions.length
@@ -120,12 +128,12 @@ export default function CopySessionScreen() {
         showsVerticalScrollIndicator={false}
       > */}
       <SvgStrokeText
-        text={"Select a recent session"}
+        text={"Complete a session"}
         containerStyle={{ alignSelf: "center" }}
       />
       <Spacer size="md" />
       <Text style={styles.actionDescription}>
-        Choose from your most recent sessions listed below.
+        Choose from your planned or incomplete sessions listed below.
       </Text>
 
       <Spacer size="lg" />
@@ -141,6 +149,9 @@ export default function CopySessionScreen() {
               title={item.title}
               goal={item.goal}
               time={item.total_time}
+              status={item.status}
+              createdAt={item.created_at}
+              showStatusMeta
               onPress={() => handleSelectSession(item)}
             />
           ))}

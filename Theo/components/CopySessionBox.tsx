@@ -1,21 +1,18 @@
-import { Dimensions, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { View, Text } from "@/components/Themed";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-
-// SUPABASE
-import { useSupabase } from "@/providers/SupabaseProvider";
-// import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionsForDaySorted } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fonts } from "@/assets/themes/typography";
 import { colors } from "@/assets/themes/colors";
 import { theme } from "@/design/theme";
+import { WorkSession } from "@/types/database.types";
 
 interface CopySessionBoxProps {
   title: string;
   goal: string | null;
   time: number;
+  status?: WorkSession["status"];
+  createdAt?: string;
+  showStatusMeta?: boolean;
   onPress?: () => void;
 }
 
@@ -23,9 +20,21 @@ export default function CopySessionBox({
   title,
   goal,
   time,
+  status,
+  createdAt,
+  showStatusMeta,
   onPress,
 }: CopySessionBoxProps) {
   const timeDisplay = formatMinutes(time);
+
+  const statusLabel =
+    status === "planned"
+      ? "Planned"
+      : status === "incomplete"
+      ? "Incomplete"
+      : null;
+  const startedLabel =
+    status === "incomplete" && createdAt ? formatShortDate(createdAt) : null;
 
   if (goal) {
     title = goal;
@@ -64,6 +73,23 @@ export default function CopySessionBox({
         >
           {title}
         </Text>
+        {showStatusMeta && (statusLabel || startedLabel) && (
+          <View style={styles.metaRow}>
+            {statusLabel && (
+              <View
+                style={[
+                  styles.statusPill,
+                  status === "incomplete" && styles.statusPillIncomplete,
+                ]}
+              >
+                <Text style={styles.statusText}>{statusLabel}</Text>
+              </View>
+            )}
+            {startedLabel && (
+              <Text style={styles.metaText}>Started {startedLabel}</Text>
+            )}
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -80,6 +106,17 @@ function formatMinutes(totalMinutes: number) {
     return `${hours} hr.`;
   }
   return `${minutes} min.`;
+}
+
+function formatShortDate(dateString: string) {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 // function getBoxStyle(status: string) {
@@ -99,7 +136,7 @@ function formatMinutes(totalMinutes: number) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 100,
+    minHeight: 100,
     width: "100%",
     borderRadius: 10,
     backgroundColor: colors.light.background,
@@ -127,8 +164,10 @@ const styles = StyleSheet.create({
   titleContainer: {
     flex: 1,
     flexShrink: 1,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
     backgroundColor: colors.light.background,
+    justifyContent: "space-between",
   },
   title: {
     fontSize: 16,
@@ -139,6 +178,32 @@ const styles = StyleSheet.create({
   },
   italicTitle: {
     fontFamily: fonts.typeface.bodyItalic,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
+    backgroundColor: "transparent",
+  },
+  statusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: colors.light.secondary,
+  },
+  statusPillIncomplete: {
+    backgroundColor: colors.light.shadowPrimary,
+  },
+  statusText: {
+    color: colors.light.body,
+    fontFamily: fonts.typeface.body,
+    fontSize: 12,
+  },
+  metaText: {
+    color: colors.light.body,
+    fontFamily: fonts.typeface.body,
+    fontSize: 12,
   },
   time: {
     fontSize: 16,

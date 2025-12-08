@@ -88,23 +88,11 @@ export default function FinalizeSessionScreen() {
 
     setSavingPlan(true);
     try {
-      // Determine if we have a goal
       const hasGoal = Boolean(goal && goal.trim());
-
-      // Determine if we have tasks
       const hasTasks = parsedTasks.length > 0;
-
-      // Sum total minutes from tasks
-      const total_time = parsedTasks.reduce(
-        (sum, task) => sum + task.minutes,
-        0
-      );
-
-      // Title can be anything you want; for now, we can default it
-      console.log(goal);
+      const total_time = parsedTasks.reduce((sum, task) => sum + task.minutes, 0);
       const title = hasGoal ? goal! : "Plan";
 
-      // Call your createPlan function with the authenticated user id
       const newPlan = await createPlan(
         session.user.id,
         hasGoal,
@@ -114,7 +102,21 @@ export default function FinalizeSessionScreen() {
         goal ?? null
       );
 
-      console.log("Plan saved:", newPlan);
+      if (hasTasks) {
+        for (let i = 0; i < parsedTasks.length; i++) {
+          const t = parsedTasks[i];
+          const payload: CreateTaskPayload = {
+            session_id: newPlan.id,
+            task_name: t.text,
+            order_index: i + 1,
+            time_allotted: t.minutes,
+            is_completed: false,
+          };
+
+          await createTask(payload);
+        }
+      }
+
       setShowSuccessModal(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save plan.";
