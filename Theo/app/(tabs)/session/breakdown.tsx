@@ -795,7 +795,7 @@ export default function SessionBreakdownScreen() {
         }\n\nMarking incomplete will return it to your list.`}
         cancelLabel="Cancel"
         confirmLabel="Confirm"
-        confirmVariant="gold"
+        confirmVariant="brown"
         onConfirm={() => {
           if (!markIncompleteId) return;
           setTasks((prev) =>

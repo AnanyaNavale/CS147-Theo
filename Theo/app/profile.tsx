@@ -67,6 +67,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { session } = useSupabase();
   const user = session?.user;
+  const isTestUser = user?.email?.toLowerCase() === "test@test.com";
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -131,7 +132,7 @@ export default function ProfileScreen() {
         },
       };
 
-      if (email && email !== user.email) {
+      if (!isTestUser && email && email !== user.email) {
         updatePayload.email = email.trim();
       }
 
@@ -140,17 +141,19 @@ export default function ProfileScreen() {
       );
       if (authError) throw authError;
 
-      await ensureUserProfile({
-        id: user.id,
-        displayName: displayName || null,
-        avatarUrl: avatarUrl || null,
-      });
+      if (!isTestUser) {
+        await ensureUserProfile({
+          id: user.id,
+          displayName: displayName || null,
+          avatarUrl: avatarUrl || null,
+        });
+      }
 
       const normalizedEmail = email.trim();
       setInitialDisplayName(displayName);
       setInitialEmail(normalizedEmail || "");
       setEmail(normalizedEmail);
-      setMessage("Profile updated!");
+      setMessage(isTestUser ? "Avatar updated!" : "Profile updated!");
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to update profile.";
@@ -325,7 +328,7 @@ export default function ProfileScreen() {
             placeholder="Your name"
             value={displayName}
             onChangeText={setDisplayName}
-            editable={!loading && !saving}
+            editable={!loading && !saving && !isTestUser}
             containerStyle={styles.inputContainer}
           />
           <InputField
@@ -335,9 +338,17 @@ export default function ProfileScreen() {
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
-            editable={!loading && !saving}
+            editable={!loading && !saving && !isTestUser}
             containerStyle={styles.inputContainer}
           />
+
+          {isTestUser && (
+            <View style={[styles.banner, styles.infoBanner]}>
+              <Text style={styles.bannerText}>
+                The test account's name and email are locked.
+              </Text>
+            </View>
+          )}
 
           {error && (
             <View style={[styles.banner, styles.errorBanner]}>
@@ -357,6 +368,7 @@ export default function ProfileScreen() {
               saving ||
               loading ||
               (displayName === initialDisplayName && email === initialEmail)
+            || isTestUser
             }
             style={styles.saveButton}
           />

@@ -116,28 +116,42 @@ export default function FinalizeSessionScreen() {
         ? new Date(`${planDate}T00:00:00`).toISOString()
         : undefined;
 
-      const newPlan = await createPlan(
-        session.user.id,
-        hasGoal,
-        hasTasks,
-        total_time,
-        title,
-        goal ?? null,
-        created_at
-      );
+      if (existingSessionId) {
+        await updateSession(existingSessionId, {
+          title,
+          has_goal: hasGoal,
+          goal: goal ?? null,
+          has_tasks: hasTasks,
+          total_time,
+          status: "planned",
+          completed_at: null,
+        });
 
-      if (hasTasks) {
-        for (let i = 0; i < parsedTasks.length; i++) {
-          const t = parsedTasks[i];
-          const payload: CreateTaskPayload = {
-            session_id: newPlan.id,
-            task_name: t.text,
-            order_index: i + 1,
-            time_allotted: t.minutes,
-            is_completed: false,
-          };
+        await replaceTasksForSession(existingSessionId, parsedTasks);
+      } else {
+        const newPlan = await createPlan(
+          session.user.id,
+          hasGoal,
+          hasTasks,
+          total_time,
+          title,
+          goal ?? null,
+          created_at
+        );
 
-          await createTask(payload);
+        if (hasTasks) {
+          for (let i = 0; i < parsedTasks.length; i++) {
+            const t = parsedTasks[i];
+            const payload: CreateTaskPayload = {
+              session_id: newPlan.id,
+              task_name: t.text,
+              order_index: i + 1,
+              time_allotted: t.minutes,
+              is_completed: false,
+            };
+
+            await createTask(payload);
+          }
         }
       }
 
@@ -408,7 +422,7 @@ export default function FinalizeSessionScreen() {
                   variant="brown"
                   onPress={() => {
                     setShowSuccessModal(false);
-                    router.push(`../archive/index`);
+                    router.push(`../archive`);
                   }}
                 />
               </View>

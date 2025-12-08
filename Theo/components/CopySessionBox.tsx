@@ -36,6 +36,8 @@ export default function CopySessionBox({
   const startedLabel =
     status === "incomplete" && createdAt ? formatShortDate(createdAt) : null;
 
+  const plannedLabel =
+    status === "planned" && createdAt ? formatShortDate(createdAt) : null;
   if (goal) {
     title = goal;
   }
@@ -87,6 +89,9 @@ export default function CopySessionBox({
             )}
             {startedLabel && (
               <Text style={styles.metaText}>Started {startedLabel}</Text>
+            )}
+            {plannedLabel && (
+              <Text style={styles.metaText}>Planned for {plannedLabel}</Text>
             )}
           </View>
         )}
@@ -142,6 +147,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: colors.light.secondary,
     alignItems: "center",
+    fontSize: theme.typography.sizes.md,
   },
   timeContainerSession: {
     backgroundColor: "#B28F6D",
@@ -155,7 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   title: {
-    fontSize: 16,
+    fontSize: theme.typography.sizes.sm,
     fontFamily: fonts.typeface.body,
     color: colors.light.body,
     width: "100%",
@@ -175,10 +181,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: colors.light.secondary,
+    backgroundColor: theme.solidColors.accentLight,
   },
   statusPillIncomplete: {
-    backgroundColor: colors.light.shadowPrimary,
+    backgroundColor: theme.colors.ghost,
   },
   statusText: {
     color: colors.light.body,

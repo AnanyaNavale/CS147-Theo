@@ -37,6 +37,7 @@ export default function CompleteSessionScreen() {
   const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const showEmpty = !isLoadingList && sessions.length === 0;
 
   useEffect(() => {
     if (!userId) {
@@ -111,6 +112,10 @@ export default function CompleteSessionScreen() {
     }
   };
 
+  const handleCreateNew = () => {
+    router.replace("./goal");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerRow}>
@@ -147,31 +152,50 @@ export default function CompleteSessionScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         >
-          {sessions.map((item) => (
-            <CopySessionBox
-              key={item.id}
-              title={item.title}
-              goal={item.goal}
-              time={item.total_time}
-              status={item.status}
-              createdAt={item.created_at}
-              showStatusMeta
-              onPress={() => handleSelectSession(item)}
-            />
-          ))}
+          {showEmpty ? (
+            <View style={styles.emptyState}>
+              <Text variant="h3" style={styles.emptyTitle}>
+                No sessions to complete
+              </Text>
+              <Spacer size="sm" />
+              <Text style={styles.emptyBody}>
+                Create a new session to get started.
+              </Text>
+              <Spacer size="md" />
+              <BasicButton
+                text="Create a new session"
+                onPress={handleCreateNew}
+              />
+            </View>
+          ) : (
+            sessions.map((item) => (
+              <CopySessionBox
+                key={item.id}
+                title={item.title}
+                goal={item.goal}
+                time={item.total_time}
+                status={item.status}
+                createdAt={item.created_at}
+                showStatusMeta
+                onPress={() => handleSelectSession(item)}
+              />
+            ))
+          )}
         </ScrollView>
 
-        <View style={styles.loadMoreWrapper}>
-          {hasMore ? (
-            <BasicButton
-              text={isLoadingList ? "Loading more..." : "Load more"}
-              onPress={loadMoreSessions}
-              disabled={isLoadingList}
-            />
-          ) : (
-            <Text style={styles.noMoreText}>No more sessions</Text>
-          )}
-        </View>
+        {!showEmpty && (
+          <View style={styles.loadMoreWrapper}>
+            {hasMore ? (
+              <BasicButton
+                text={isLoadingList ? "Loading more..." : "Load more"}
+                onPress={loadMoreSessions}
+                disabled={isLoadingList}
+              />
+            ) : (
+              <Text style={styles.noMoreText}>Loaded all sessions</Text>
+            )}
+          </View>
+        )}
       </View>
       {/* <View style={styles.actionBlock}>
           <BasicButton text="Create a new session" onPress={handleCreateNew} />
@@ -321,5 +345,18 @@ const styles = StyleSheet.create({
   noMoreText: {
     color: theme.colors.mutedText,
     fontFamily: theme.typography.families.medium,
+  },
+  emptyState: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: theme.spacing.xl,
+  },
+  emptyTitle: {
+    color: theme.colors.text,
+    textAlign: "center",
+  },
+  emptyBody: {
+    color: theme.colors.mutedText,
+    textAlign: "center",
   },
 });

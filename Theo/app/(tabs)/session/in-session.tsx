@@ -243,11 +243,30 @@ export default function SessionScreen() {
   const goToEndSession = async () => {
     await persistTaskCompletion();
     await markSessionCompleted();
+
+    const summaryTasks = sessionTasks.map((t, idx) => {
+      const spentSeconds =
+        typeof t.actualSeconds === "number"
+          ? Math.max(0, t.actualSeconds)
+          : idx === currentTaskIndex
+          ? currentTaskTimeSpent()
+          : 0;
+
+      return {
+        id: t.id,
+        text: t.name,
+        status: t.status,
+        actualSeconds: spentSeconds,
+        timeSeconds: Math.max(0, typeof t.time === "number" ? t.time : 0),
+        minutes: Math.max(0, Math.round(spentSeconds / 60)),
+      };
+    });
+
     router.push({
       pathname: "./end-session",
       params: {
         goal: sessionGoal,
-        tasks: JSON.stringify(sessionTasks),
+        tasks: JSON.stringify(summaryTasks),
         sessionId: sessionId ?? null,
       },
     });
