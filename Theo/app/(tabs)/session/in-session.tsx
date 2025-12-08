@@ -107,8 +107,9 @@ export default function SessionScreen() {
    * --------------------------------------------------------- */
   const initialCurrentIndex =
     firstIncompleteIndex === -1 ? 0 : Math.max(0, firstIncompleteIndex);
-  const [sessionTasks, setSessionTasks] =
-    useState<SessionTask[]>(convertedSessionTasks);
+  const [sessionTasks, setSessionTasks] = useState<SessionTask[]>(
+    convertedSessionTasks
+  );
 
   const [currentTaskIndex, setCurrentTaskIndex] = useState(initialCurrentIndex);
   const currentTask: SessionTask | null =
@@ -263,6 +264,9 @@ export default function SessionScreen() {
         completed_at: null,
       });
       setShowStopModal(false);
+      setIsRunning(false);
+      setIsBreak(false);
+      router.replace("/(tabs)/session");
       router.replace("../../");
     } catch (err) {
       console.error("Failed to save session for later:", err);

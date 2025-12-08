@@ -71,7 +71,7 @@ export default function CopySessionBox({
           numberOfLines={2}
           ellipsizeMode="tail"
         >
-          {title}
+          {title === "Session" ? "Session (no goal set)" : title}
         </Text>
         {showStatusMeta && (statusLabel || startedLabel) && (
           <View style={styles.metaRow}>

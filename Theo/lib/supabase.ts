@@ -351,7 +351,8 @@ export async function createPlan(
   hasTasks: boolean = false,
   total_time: number,
   title?: string,
-  goal?: string | null
+  goal?: string | null,
+  created_at?: string
 ): Promise<WorkSession> {
   const { data, error } = await getSupabase()
     .from("sessions")
@@ -363,6 +364,7 @@ export async function createPlan(
       has_goal: hasGoal,
       goal: goal,
       has_tasks: hasTasks,
+      created_at,
     })
     .select()
     .single();

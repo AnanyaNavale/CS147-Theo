@@ -9,7 +9,11 @@ import SvgStrokeText from "@/components/SvgStrokeText";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
+import { Calendar } from "react-native-calendars";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import { theme } from "@/design/theme";
+import { Feather } from "@expo/vector-icons";
 import {
   createPlan,
   createSession,
@@ -30,6 +34,11 @@ type Task = {
   completed?: boolean;
 };
 
+const formatLocalDate = (date: Date) => {
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().split("T")[0];
+};
+
 export default function FinalizeSessionScreen() {
   const { goal, tasks, sessionId } = useLocalSearchParams<{
     goal?: string;
@@ -42,13 +51,15 @@ export default function FinalizeSessionScreen() {
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
   const teddySize = isCompact ? 180 : 220;
+  const todayLocal = formatLocalDate(new Date());
 
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
+  const [showPlanDateModal, setShowPlanDateModal] = useState(false);
+  const [selectedPlanDate, setSelectedPlanDate] = useState(todayLocal);
 
   const parsedTasks: Task[] = useMemo(() => {
     if (!tasks) return [];
@@ -82,7 +93,7 @@ export default function FinalizeSessionScreen() {
 
   // const handleSelectSettings = () => setShowSettings(true);
 
-  const handleSavePlan = async () => {
+  const handleSavePlan = async (planDate?: string) => {
     if (savingPlan) return;
     setSaveError(null);
 
@@ -101,13 +112,18 @@ export default function FinalizeSessionScreen() {
       );
       const title = hasGoal ? goal! : "Plan";
 
+      const created_at = planDate
+        ? new Date(`${planDate}T00:00:00`).toISOString()
+        : undefined;
+
       const newPlan = await createPlan(
         session.user.id,
         hasGoal,
         hasTasks,
         total_time,
         title,
-        goal ?? null
+        goal ?? null,
+        created_at
       );
 
       if (hasTasks) {
@@ -291,7 +307,7 @@ export default function FinalizeSessionScreen() {
         <BasicButton
           text={savingPlan ? "Saving..." : "Save plan to archive"}
           disabled={savingPlan}
-          onPress={() => setShowConfirmationModal(true)}
+          onPress={() => setShowPlanDateModal(true)}
           variant="secondary"
           style={styles.button}
         />
@@ -302,18 +318,79 @@ export default function FinalizeSessionScreen() {
           </Text>
         )}
 
-        {showConfirmationModal && (
+        {showPlanDateModal && (
           <AppModal
-            visible={showConfirmationModal}
-            onClose={() => setShowConfirmationModal(false)}
-            variant="alert"
-            showClose={false}
-            title="Save plan?"
-            message="Do you want to save this plan now?"
-            confirmLabel="Save"
-            confirmVariant="brown"
-            onConfirm={handleSavePlan}
-          />
+            visible={showPlanDateModal}
+            onClose={() => setShowPlanDateModal(false)}
+            variant="bottom-sheet"
+            title="Pick a date"
+            height={420}
+          >
+            <Calendar
+              current={selectedPlanDate}
+              renderHeader={(date) => {
+                const month = date.toString("MMMM yyyy");
+                return (
+                  <View
+                    style={{
+                      backgroundColor: colors.light.primary,
+                      paddingVertical: 4,
+                      paddingTop: 7,
+                      paddingHorizontal: 16,
+                      borderRadius: theme.radii.md,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      alignSelf: "center",
+                    }}
+                  >
+                    <SvgStrokeText
+                      text={month}
+                      stroke={colors.light.month}
+                      strokeWidth={0.5}
+                      textStyle={{ fontSize: 20, color: colors.light.month }}
+                    />
+                  </View>
+                );
+              }}
+              style={styles.planCalendar}
+              renderArrow={(direction) => (
+                <Feather
+                  name={direction === "left" ? "arrow-left" : "arrow-right"}
+                  size={24}
+                  color={colors.light.iconsStandalone}
+                />
+              )}
+              minDate={todayLocal}
+              markedDates={{
+                [selectedPlanDate]: {
+                  selected: true,
+                  selectedColor: theme.colors.accentDark,
+                  selectedTextColor: theme.solidColors.white,
+                },
+              }}
+              onDayPress={(day) => setSelectedPlanDate(day.dateString)}
+              theme={{
+                textDayFontFamily: fonts.typeface.body,
+                textDayHeaderFontFamily: fonts.typeface.header,
+                textDayHeaderFontSize: 18,
+                textDisabledColor: colors.light.inactive,
+                backgroundColor: colors.light.background,
+                todayTextColor: colors.light.body,
+                arrowColor: colors.light.iconsStandalone,
+              }}
+            />
+            <Spacer size="md" />
+            <Button
+              label={savingPlan ? "Saving..." : "Save plan"}
+              variant="gold"
+              onPress={() => {
+                setShowPlanDateModal(false);
+                handleSavePlan(selectedPlanDate);
+              }}
+              disabled={savingPlan}
+            />
+            <Spacer size="md" />
+          </AppModal>
         )}
 
         {showSuccessModal && (
@@ -330,15 +407,8 @@ export default function FinalizeSessionScreen() {
                   label="Visit archive"
                   variant="brown"
                   onPress={() => {
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
-                    const dd = String(today.getDate()).padStart(2, "0");
-                    const todayStr = `${yyyy}-${mm}-${dd}`;
-
                     setShowSuccessModal(false);
-
-                    router.push(`../archive/${todayStr}`);
+                    router.push(`../archive/index`);
                   }}
                 />
               </View>
@@ -408,6 +478,9 @@ const styles = StyleSheet.create({
   },
   button: {
     alignSelf: "center",
+  },
+  planCalendar: {
+    width: "100%",
   },
   divider: {
     height: 1,

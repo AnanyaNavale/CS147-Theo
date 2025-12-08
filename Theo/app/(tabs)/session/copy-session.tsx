@@ -128,7 +128,7 @@ export default function CopySessionScreen() {
       />
       <Spacer size="md" />
       <Text style={styles.actionDescription}>
-        Choose from your most recent sessions listed below.
+        Choose from your most recent sessions listed below to copy.
       </Text>
 
       <Spacer size="lg" />
