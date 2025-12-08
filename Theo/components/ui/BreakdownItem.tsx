@@ -7,18 +7,21 @@ import { Text } from "./Text";
 export type BreakdownItemProps = {
   minutes: number;
   text: string;
+  completed?: boolean;
   onDelete?: () => void;
 };
 
-export function BreakdownItem({ minutes, text, onDelete }: BreakdownItemProps) {
+export function BreakdownItem({ minutes, text, completed }: BreakdownItemProps) {
   return (
-    <View style={styles.row}>
-      <View style={styles.timeBox}>
+    <View style={[styles.row, completed && styles.rowCompleted]}>
+      <View style={[styles.timeBox, completed && styles.timeBoxCompleted]}>
         <Text style={styles.timeText}>{minutes} min.</Text>
       </View>
 
       <View style={styles.taskBox}>
-        <Text style={styles.taskText}>{text}</Text>
+        <Text style={[styles.taskText, completed && styles.taskTextCompleted]}>
+          {text}
+        </Text>
         <View style={styles.grip}>
           <Icon name="drag" size={24} tint={theme.colors.border} />
         </View>
@@ -37,6 +40,10 @@ const styles = StyleSheet.create({
     ...theme.shadow.soft,
   },
 
+  rowCompleted: {
+    opacity: 0.6,
+  },
+
   timeBox: {
     width: 100,
     backgroundColor: theme.colors.accentDark,
@@ -45,6 +52,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: theme.spacing.md,
     zIndex: 2,
+  },
+
+  timeBoxCompleted: {
+    backgroundColor: theme.colors.border,
   },
 
   timeText: {
@@ -72,6 +83,11 @@ const styles = StyleSheet.create({
     width: "100%",
     textAlign: "left",
     //lineHeight: 22,
+  },
+
+  taskTextCompleted: {
+    color: theme.colors.mutedText,
+    textDecorationLine: "line-through",
   },
 
   grip: {

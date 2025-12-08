@@ -20,11 +20,14 @@ import { useSupabase } from "@/providers/SupabaseProvider";
 
 const PAGE_SIZE = 5;
 
-const mapTasksForBreakdown = (tasks: Awaited<ReturnType<typeof fetchTasksForSession>>) =>
+const mapTasksForBreakdown = (
+  tasks: Awaited<ReturnType<typeof fetchTasksForSession>>
+) =>
   tasks.map((t) => ({
     id: String(t.id),
     text: t.task_name,
     minutes: Number(t.time_allotted ?? t.time_completed) || 0,
+    completed: Boolean(t.is_completed),
   }));
 
 export default function CompleteSessionScreen() {
@@ -98,6 +101,7 @@ export default function CompleteSessionScreen() {
         params: {
           goal: session.goal ?? "",
           tasks: JSON.stringify(mappedTasks),
+          sessionId: session.id,
         },
       });
     } catch (e) {

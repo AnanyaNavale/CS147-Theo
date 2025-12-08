@@ -34,18 +34,21 @@ type Task = {
   id: string;
   minutes: number;
   text: string;
+  completed?: boolean;
 };
 
 type DeleteMode = "single" | "all" | null;
 const teddy = require("../../../assets/theo/waving.png");
 
 export default function SessionBreakdownScreen() {
-  const { goal, tasks: tasksParam } = useLocalSearchParams<{
+  const { goal, tasks: tasksParam, sessionId } = useLocalSearchParams<{
     goal?: string | string[];
     tasks?: string | string[];
+    sessionId?: string | string[];
   }>();
   const goalParam = Array.isArray(goal) ? goal[0] : goal;
   const tasksParamValue = Array.isArray(tasksParam) ? tasksParam[0] : tasksParam;
+  const sessionIdParam = Array.isArray(sessionId) ? sessionId[0] : sessionId;
   const initialGoal = goalParam ?? "";
 
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -59,6 +62,7 @@ export default function SessionBreakdownScreen() {
           id: String(t.id ?? `temp-${Math.random().toString(36).slice(2)}`),
           text: typeof t.text === "string" ? t.text : "",
           minutes: Number(t.minutes) || 0,
+          completed: Boolean(t.completed),
         }))
         .filter((t) => t.text.trim().length > 0 || t.minutes > 0);
     } catch (err) {
@@ -67,6 +71,8 @@ export default function SessionBreakdownScreen() {
     }
   });
   const [goalInput, setGoalInput] = useState(initialGoal);
+  const [showMarkIncomplete, setShowMarkIncomplete] = useState(false);
+  const [markIncompleteId, setMarkIncompleteId] = useState<string | null>(null);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -239,6 +245,7 @@ export default function SessionBreakdownScreen() {
       params: {
         tasks: JSON.stringify(tasks),
         goal: goalInput,
+        sessionId: sessionIdParam ?? undefined,
       },
     });
   }
@@ -268,7 +275,12 @@ export default function SessionBreakdownScreen() {
               style={[styles.swipeAction, styles.swipeEdit]}
               onPress={() => {
                 closeSwipe();
-                openEditModal(item);
+                if (item.completed) {
+                  setMarkIncompleteId(item.id);
+                  setShowMarkIncomplete(true);
+                } else {
+                  openEditModal(item);
+                }
               }}
             >
               <Icon name="pencil" size={22} tint={theme.solidColors.white} />
@@ -288,7 +300,14 @@ export default function SessionBreakdownScreen() {
       >
         <TouchableOpacity
           onLongPress={drag}
-          onPress={() => openEditModal(item)}
+          onPress={() => {
+            if (item.completed) {
+              setMarkIncompleteId(item.id);
+              setShowMarkIncomplete(true);
+            } else {
+              openEditModal(item);
+            }
+          }}
           disabled={isActive}
         >
           <View style={styles.taskRow}>
@@ -300,6 +319,7 @@ export default function SessionBreakdownScreen() {
               <BreakdownItem
                 minutes={item.minutes}
                 text={item.text}
+                completed={item.completed}
                 onDelete={() => requestDeleteTask(item.id)}
               />
             </View>
@@ -311,6 +331,8 @@ export default function SessionBreakdownScreen() {
 
   const deleteTargetText =
     deleteTargetId && tasks.find((task) => task.id === deleteTargetId)?.text;
+  const markIncompleteText =
+    markIncompleteId && tasks.find((task) => task.id === markIncompleteId)?.text;
   let helpMessages;
 
   if (tasks.length === 0) {
@@ -742,6 +764,29 @@ export default function SessionBreakdownScreen() {
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={confirmDelete}
+      />
+
+      <AppModal
+        visible={showMarkIncomplete}
+        onClose={() => {
+          setShowMarkIncomplete(false);
+          setMarkIncompleteId(null);
+        }}
+        variant="alert"
+        title="Mark as incomplete?"
+        message={`Task: ${markIncompleteText ?? "this task"}\n\nMarking incomplete will return it to your list.`}
+        cancelLabel="Cancel"
+        confirmLabel="Mark incomplete"
+        onConfirm={() => {
+          if (!markIncompleteId) return;
+          setTasks((prev) =>
+            prev.map((t) =>
+              t.id === markIncompleteId ? { ...t, completed: false } : t
+            )
+          );
+          setShowMarkIncomplete(false);
+          setMarkIncompleteId(null);
+        }}
       />
 
       {isGenerating && (

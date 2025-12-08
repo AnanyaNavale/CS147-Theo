@@ -15,6 +15,9 @@ import {
   createSession,
   createTask,
   CreateTaskPayload,
+  updateSession,
+  replaceTasksForSession,
+  fetchTasksForSession,
 } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
@@ -24,6 +27,7 @@ type Task = {
   id: string;
   minutes: number;
   text: string;
+  completed?: boolean;
 };
 
 export default function FinalizeSessionScreen() {
@@ -32,6 +36,7 @@ export default function FinalizeSessionScreen() {
     tasks?: string;
     sessionId?: string;
   }>();
+  const existingSessionId = Array.isArray(sessionId) ? sessionId[0] : sessionId;
   const { session } = useSupabase();
   const goalText = goal ?? "";
   const { width } = useWindowDimensions();
@@ -136,14 +141,43 @@ export default function FinalizeSessionScreen() {
     }
 
     try {
-      // 1. CREATE THE SESSION
       const hasGoal = Boolean(goalText && goalText.trim());
       const hasTasks = parsedTasks.length > 0;
-      let title = "Session";
-      if (hasGoal) {
-        title = goalText;
+      const title = hasGoal ? goalText : "Session";
+
+      if (existingSessionId) {
+        await updateSession(existingSessionId, {
+          title,
+          has_goal: hasGoal,
+          goal: goalText || null,
+          has_tasks: hasTasks,
+          total_time: totalTime,
+          status: "active",
+          completed_at: null,
+        });
+
+        await replaceTasksForSession(existingSessionId, parsedTasks);
+
+        const refreshedTasks = await fetchTasksForSession(existingSessionId);
+        const tasksForClient = refreshedTasks.map((t) => ({
+          id: String(t.id),
+          text: t.task_name,
+          minutes: Number(t.time_allotted ?? t.time_completed) || 0,
+          completed: Boolean(t.is_completed),
+        }));
+
+        router.push({
+          pathname: "./in-session",
+          params: {
+            goal: goalText,
+            tasks: JSON.stringify(tasksForClient),
+            sessionId: existingSessionId,
+          },
+        });
+        return;
       }
 
+      // 1. CREATE THE SESSION
       const newSession = await createSession(
         session.user.id,
         title,
@@ -157,6 +191,7 @@ export default function FinalizeSessionScreen() {
       const newSessionId = newSession.id;
 
       // 2. CREATE TASK ROWS (ordered)
+      const tasksForClient: Task[] = [];
       if (parsedTasks.length > 0) {
         for (let i = 0; i < parsedTasks.length; i++) {
           const t = parsedTasks[i];
@@ -169,7 +204,13 @@ export default function FinalizeSessionScreen() {
             is_completed: false,
           };
 
-          await createTask(payload);
+          const created = await createTask(payload);
+          tasksForClient.push({
+            id: String(created.id),
+            text: created.task_name,
+            minutes: Number(created.time_allotted ?? 0),
+            completed: Boolean(created.is_completed),
+          });
         }
       }
 
@@ -180,7 +221,7 @@ export default function FinalizeSessionScreen() {
         pathname: "./in-session",
         params: {
           goal: goalText,
-          tasks: JSON.stringify(parsedTasks),
+          tasks: JSON.stringify(tasksForClient.length ? tasksForClient : parsedTasks),
           sessionId: newSessionId,
         },
       });

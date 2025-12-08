@@ -609,6 +609,65 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   return data;
 }
 
+/**
+ * Updates completion flags for tasks (used when ending or saving a session).
+ */
+export async function updateTaskCompletionStates(
+  sessionId: string,
+  tasks: { id: string; is_completed: boolean }[]
+): Promise<void> {
+  if (tasks.length === 0) return;
+
+  const client = getSupabase();
+
+  for (const task of tasks) {
+    const { error } = await client
+      .from("tasks")
+      .update({ is_completed: task.is_completed })
+      .eq("id", task.id)
+      .eq("session_id", sessionId);
+
+    if (error)
+      throw new Error(`Failed to update task completion: ${error.message}`);
+  }
+}
+
+/**
+ * Replaces all tasks for a session with the provided list, preserving order.
+ */
+export async function replaceTasksForSession(
+  sessionId: string,
+  tasks: {
+    text: string;
+    minutes: number;
+    completed?: boolean;
+  }[]
+): Promise<void> {
+  const client = getSupabase();
+
+  const { error: deleteError } = await client
+    .from("tasks")
+    .delete()
+    .eq("session_id", sessionId);
+
+  if (deleteError)
+    throw new Error(`Failed to delete existing tasks: ${deleteError.message}`);
+
+  if (tasks.length === 0) return;
+
+  const payload = tasks.map((t, idx) => ({
+    session_id: sessionId,
+    task_name: t.text,
+    order_index: idx + 1,
+    time_allotted: t.minutes,
+    is_completed: Boolean(t.completed),
+  }));
+
+  const { error: insertError } = await client.from("tasks").insert(payload);
+  if (insertError)
+    throw new Error(`Failed to insert updated tasks: ${insertError.message}`);
+}
+
 export async function updateTask(taskId: string, updates: Partial<CreateTaskPayload>): Promise<Task> {
   const { data, error } = await getSupabase()
     .from("tasks")
