@@ -22,12 +22,13 @@ import { Timer } from "@/components/ui/Timer";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
-import { updateSession } from "@/lib/supabase";
+import { updateSession, updateTaskCompletionStates } from "@/lib/supabase";
 
 type Task = {
   id: string;
   text: string;
   minutes: number;
+  completed?: boolean;
 };
 
 type TaskStatus = "pending" | "in_progress" | "completed" | "skipped";
@@ -79,22 +80,37 @@ export default function SessionScreen() {
 
   const hasTasks = parsedTasks.length > 0;
 
-  // Convert incoming tasks to SessionTask format
-  const convertedSessionTasks: SessionTask[] = parsedTasks.map((t, idx) => ({
-    id: t.id,
-    name: t.text,
-    time: t.minutes * 60,
-    status: idx === 0 ? "in_progress" : "pending",
-  }));
+  // Convert incoming tasks to SessionTask format, keeping completed tasks marked
+  const firstIncompleteIndex = parsedTasks.findIndex((t) => !t.completed);
+  const convertedSessionTasks: SessionTask[] = parsedTasks.map((t, idx) => {
+    let status: TaskStatus;
+    if (t.completed) {
+      status = "completed";
+    } else if (firstIncompleteIndex === -1) {
+      status = "completed";
+    } else if (idx === firstIncompleteIndex) {
+      status = "in_progress";
+    } else {
+      status = "pending";
+    }
+
+    return {
+      id: t.id,
+      name: t.text,
+      time: t.minutes * 60,
+      status,
+    };
+  });
 
   /* ---------------------------------------------------------
    * INITIAL STATE
    * --------------------------------------------------------- */
-  const [sessionTasks, setSessionTasks] = useState<SessionTask[]>(
-    convertedSessionTasks
-  );
+  const initialCurrentIndex =
+    firstIncompleteIndex === -1 ? 0 : Math.max(0, firstIncompleteIndex);
+  const [sessionTasks, setSessionTasks] =
+    useState<SessionTask[]>(convertedSessionTasks);
 
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(initialCurrentIndex);
   const currentTask: SessionTask | null =
     hasTasks && sessionTasks[currentTaskIndex]
       ? sessionTasks[currentTaskIndex]
@@ -108,7 +124,9 @@ export default function SessionScreen() {
     currentTask ? currentTask.time : 0
   );
 
-  const [isRunning, setIsRunning] = useState(hasTasks);
+  const [isRunning, setIsRunning] = useState(
+    hasTasks && currentTask?.status !== "completed"
+  );
   const [isBreak, setIsBreak] = useState(false);
   const [breakAfterTaskComplete, setBreakAfterTaskComplete] = useState(false);
   const [workSecondsSinceBreak, setWorkSecondsSinceBreak] = useState(0);
@@ -153,6 +171,7 @@ export default function SessionScreen() {
   const [showEndBreakConfirm, setShowEndBreakConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSavingForLater, setIsSavingForLater] = useState(false);
+  const [isPersistingTasks, setIsPersistingTasks] = useState(false);
   const sessionEndLoggedRef = useRef(false);
 
   /* ANIMATION VALUES */
@@ -190,6 +209,23 @@ export default function SessionScreen() {
     return spent;
   };
 
+  const persistTaskCompletion = async () => {
+    if (!sessionId || isPersistingTasks) return;
+    setIsPersistingTasks(true);
+    try {
+      const payload = sessionTasks.map((t) => ({
+        id: t.id,
+        is_completed:
+          t.status === "completed" || t.status === "skipped" ? true : false,
+      }));
+      await updateTaskCompletionStates(sessionId, payload);
+    } catch (err) {
+      console.error("Failed to persist task completion states:", err);
+    } finally {
+      setIsPersistingTasks(false);
+    }
+  };
+
   const markSessionCompleted = async () => {
     if (!sessionId || sessionEndLoggedRef.current) return;
     sessionEndLoggedRef.current = true;
@@ -203,8 +239,9 @@ export default function SessionScreen() {
     }
   };
 
-  const goToEndSession = () => {
-    markSessionCompleted();
+  const goToEndSession = async () => {
+    await persistTaskCompletion();
+    await markSessionCompleted();
     router.push({
       pathname: "./end-session",
       params: {
@@ -219,6 +256,8 @@ export default function SessionScreen() {
     if (!sessionId || isSavingForLater) return;
     setIsSavingForLater(true);
     try {
+      await persistTaskCompletion();
+
       await updateSession(sessionId, {
         status: "incomplete",
         completed_at: null,
@@ -1174,6 +1213,7 @@ export default function SessionScreen() {
               checked={done}
               onChange={() => {}}
               label={t.name + (t.status === "skipped" ? " (skipped)" : "")}
+              labelStyle={done ? styles.completedTaskLabel : undefined}
               containerStyle={{ width: "100%" }}
             />
           );
@@ -1312,5 +1352,8 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     width: 50,
     height: 50,
+  },
+  completedTaskLabel: {
+    color: theme.colors.mutedText,
   },
 });
