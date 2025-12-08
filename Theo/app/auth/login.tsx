@@ -22,6 +22,8 @@ import { signInWithEmail } from "@/lib/supabase";
 
 const logo = require("@/assets/images/logo.png");
 const teddy = require("@/assets/theo/working.png");
+const TEST_EMAIL = "test@test.com";
+const TEST_PASSWORD = "testtest";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -32,18 +34,24 @@ export default function LoginScreen() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async () => {
+  const performLogin = async (credentials: {
+    email: string;
+    password: string;
+  }) => {
     if (isSubmitting) return;
     setError(null);
 
-    if (!email.trim() || !password) {
+    if (!credentials.email.trim() || !credentials.password) {
       setError("Enter both email and password to log in.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await signInWithEmail({ email: email.trim(), password });
+      await signInWithEmail({
+        email: credentials.email.trim(),
+        password: credentials.password,
+      });
       setIsRedirecting(true);
       router.replace("/(tabs)");
     } catch (err) {
@@ -55,6 +63,14 @@ export default function LoginScreen() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleLogin = async () => performLogin({ email, password });
+
+  const handleTestLogin = async () => {
+    setEmail(TEST_EMAIL);
+    setPassword(TEST_PASSWORD);
+    await performLogin({ email: TEST_EMAIL, password: TEST_PASSWORD });
   };
 
   return (
@@ -130,6 +146,17 @@ export default function LoginScreen() {
               disabled={isSubmitting}
             >
               <Text style={styles.linkAction}>Create one!</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.linkRow}>
+            <Text style={styles.linkPrompt}>Here to just try it out?</Text>
+
+            <TouchableOpacity
+              onPress={handleTestLogin}
+              disabled={isSubmitting}
+              style={styles.linkAction}
+            >
+              <Text style={styles.linkAction}>Log in with test account</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -210,6 +237,21 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.bold,
     marginTop: 4,
     textDecorationLine: "underline",
+  },
+  testAccountButton: {
+    alignItems: "center",
+    marginTop: theme.spacing.md,
+  },
+  testAccountText: {
+    color: theme.solidColors.accentDark,
+    fontFamily: theme.typography.families.bold,
+    textDecorationLine: "underline",
+  },
+  testAccountHint: {
+    marginTop: 4,
+    color: theme.solidColors.textSecondary,
+    fontFamily: theme.typography.families.regular,
+    fontSize: theme.typography.sizes.sm,
   },
   loadingOverlay: {
     position: "absolute",
