@@ -197,60 +197,18 @@ export default function CopySessionScreen() {
         <View style={styles.divider} />
         <Spacer size="xl" />
 
-        <View style={styles.actionBlock}>
-          <BasicButton
-            text="Copy a recent session"
-            onPress={() => setShowComingSoon(true)}
-            variant="secondary"
+      {showSessionModal && (
+        <View>
+          <AppModal
+            visible={showSessionModal}
+            variant="custom"
+            onClose={() => setShowSessionModal(false)}
+            showClose={true}
+            title="Under construction!"
+            message={"Ah, you got us!\n\nWe're still working on implementing this, so we have a placeholder for now.\n\nStay tuned for when we do!"}
           />
-          <Spacer size="md" />
-          <Text style={styles.actionDescription}>
-            Duplicate & edit a past session&apos;s goals, tasks, and timings.
-          </Text>
         </View>
-
-        <Spacer size="xl" />
-        <View style={styles.divider} />
-        <Spacer size="xl" />
-
-        <View style={styles.actionBlock}>
-          <BasicButton
-            text="Complete a session"
-            onPress={() => setShowComingSoon(true)}
-            variant="tertiary"
-            //style={[styles.actionButton, { width: buttonWidth }]}
-          />
-          <Spacer size="md" />
-          <Text style={styles.actionDescription}>
-            Use saved plans from the archive to begin a new session.
-          </Text>
-        </View> */}
-      {/* </ScrollView> */}
-      {/* <AppModal
-        visible={showComingSoon}
-        onClose={() => setShowComingSoon(false)}
-        variant="custom"
-        title="Coming soon!"
-        showClose
-      >
-        <Text style={styles.modalMessage}>
-          Copying and completing sessions isn't ready yet.
-        </Text>
-        <Spacer size="md" />
-        <Text style={styles.modalMessage}>
-          Please create a new session to get started.
-        </Text>
-        <Spacer size="md" />
-        <BasicButton
-          style={styles.center}
-          text="Create a new session"
-          onPress={() => {
-            setShowComingSoon(false);
-            handleCreateNew();
-          }}
-          textStyle={{ flexWrap: "nowrap" }}
-        />
-      </AppModal> */}
+      )}
     </SafeAreaView>
   );
 }

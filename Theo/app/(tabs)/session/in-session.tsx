@@ -152,7 +152,9 @@ export default function SessionScreen() {
   }, []);
 
   /* MODALS */
+  type StopModalSource = "bottomButton" | "lastTaskLabel" | null;
   const [showStopModal, setShowStopModal] = useState(false);
+  const [stopModalSource, setStopModalSource] = useState<StopModalSource>(null);
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
   const [newTimeError, setNewTimeError] = useState("");
@@ -203,10 +205,24 @@ export default function SessionScreen() {
   const currentTaskTimeSpent = () =>
     Math.max(0, Math.round(savedTime - secondsLeft));
 
-  const closeOutCurrentTask = (status: TaskStatus) => {
+  const closeOutCurrentTask = async (status: TaskStatus) => {
     if (!currentTask) return 0;
     const spent = currentTaskTimeSpent();
     updateTaskStatus(currentTaskIndex, status, spent);
+
+    // Update Supabase
+    console.log("Updating DB");
+    console.log("Task id:", currentTask.id.toString());
+    console.log("Spent:", spent);
+    try {
+      await updateTask(currentTask.id, {
+        is_completed: true,
+        time_completed: spent,
+      });
+    } catch (err) {
+      console.error("Failed to update task in DB", err);
+    }
+
     return spent;
   };
 
@@ -872,7 +888,12 @@ export default function SessionScreen() {
                     </Pressable>
                   )}
                   {currentTaskIndex == sessionTasks.length - 1 && (
-                    <Pressable onPress={() => setShowStopModal(true)}>
+                    <Pressable
+                      onPress={() => {
+                        setStopModalSource("lastTaskLabel");
+                        setShowStopModal(true);
+                      }}
+                    >
                       <Text
                         variant="body"
                         color="accentDark"
@@ -934,7 +955,12 @@ export default function SessionScreen() {
           </Pressable>
         )}
 
-        <Pressable onPress={() => setShowStopModal(true)}>
+        <Pressable
+          onPress={() => {
+            setStopModalSource("lastTaskLabel");
+            setShowStopModal(true);
+          }}
+        >
           <Icon name="stop" size={iconSize} />
         </Pressable>
 
@@ -957,7 +983,7 @@ export default function SessionScreen() {
       </View>
 
       {/* MODALS */}
-      <AppModal
+      {/* <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
         variant="custom"

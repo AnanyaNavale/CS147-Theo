@@ -681,10 +681,10 @@ export async function updateTask(
     .update(updates)
     .eq("id", taskId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw new Error(`Failed to update task: ${error.message}`);
-  return data;
+  return data; // data might be null
 }
 
 export async function deleteTask(taskId: string): Promise<void> {

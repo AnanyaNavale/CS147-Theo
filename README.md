@@ -1,14 +1,19 @@
 <p align="center">
+  <a href="https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/" target="_blank">
   <img 
     width="400"
     alt="Screenshot 2025-12-06 at 5 15 45 PM"
-    src="https://github.com/user-attachments/assets/597ddf49-c218-4e71-980c-e70bd49a18e0"
+    src="Theo/assets/images/logo-white.png"
   />
+  </a>
   <h1 align="center">
   Gentle nudges. Real progress.
 </h1>
-  <img width="1576" height="527" alt="all-screens" src="https://github.com/user-attachments/assets/5fc64638-99e4-4acc-a431-c0e194525219" />
-
+  <img width="1576" height="527" alt="all-screens" src="Theo/assets/images/screens.png" />
+  <br> </br>
+  <p align="center">
+ <a href="https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/" target="_blank">Visit our website!</a>
+  </p>
 </p>
 
 </br>
@@ -30,8 +35,10 @@ For quick prototype access on your mobile device, please follow the instructions
 2. Scan the Expo QR code provided below with your mobile device’s camera or QR code reader to open the project.
 
 <p align="center">
-<img width="253" height="258" alt="QRcode" src="https://github.com/user-attachments/assets/fe221c80-130c-4db0-b620-d7adab2108c3" />
+  <img width="253" height="258" alt="QR code" src="https://github.com/user-attachments/assets/b925ad3d-14e3-43f6-9805-e72b3890ceb5" />
+
 </p>
+
 
 3. After opening the app on your device, please create an account by providing a name, email address, and password. Once the account is created, all work completed in the app will be saved to this account.
 
