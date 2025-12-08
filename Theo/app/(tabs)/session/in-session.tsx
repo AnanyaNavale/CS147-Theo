@@ -23,6 +23,7 @@ import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
 import { updateSession } from "@/lib/supabase";
+import { updateTask } from "@/lib/supabase";
 
 type Task = {
   id: string;
@@ -133,7 +134,9 @@ export default function SessionScreen() {
   }, []);
 
   /* MODALS */
+  type StopModalSource = "bottomButton" | "lastTaskLabel" | null;
   const [showStopModal, setShowStopModal] = useState(false);
+  const [stopModalSource, setStopModalSource] = useState<StopModalSource>(null);
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [newTime, setNewTime] = useState("");
   const [newTimeError, setNewTimeError] = useState("");
@@ -182,10 +185,24 @@ export default function SessionScreen() {
   const currentTaskTimeSpent = () =>
     Math.max(0, Math.round(savedTime - secondsLeft));
 
-  const closeOutCurrentTask = (status: TaskStatus) => {
+  const closeOutCurrentTask = async (status: TaskStatus) => {
     if (!currentTask) return 0;
     const spent = currentTaskTimeSpent();
     updateTaskStatus(currentTaskIndex, status, spent);
+
+    // Update Supabase
+    console.log("Updating DB");
+    console.log("Task id:", currentTask.id.toString());
+    console.log("Spent:", spent);
+    try {
+      await updateTask(currentTask.id, {
+        is_completed: true,
+        time_completed: spent,
+      });
+    } catch (err) {
+      console.error("Failed to update task in DB", err);
+    }
+
     return spent;
   };
 
@@ -212,6 +229,22 @@ export default function SessionScreen() {
         sessionId: sessionId ?? null,
       },
     });
+  };
+
+  const markSessionIncomplete = async () => {
+    if (!sessionId || sessionEndLoggedRef.current) return;
+    sessionEndLoggedRef.current = true; // prevent multiple calls
+    try {
+      await updateSession(sessionId, {
+        completed_at: null, // optional: clear completed timestamp
+        status: "incomplete",
+      });
+      
+      setShowStopModal(false);
+      router.push("/(tabs)");
+    } catch (err) {
+      console.error("Failed to mark session incomplete", err);
+    }
   };
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
@@ -792,7 +825,12 @@ export default function SessionScreen() {
                     </Pressable>
                   )}
                   {currentTaskIndex == sessionTasks.length - 1 && (
-                    <Pressable onPress={() => setShowStopModal(true)}>
+                    <Pressable
+                      onPress={() => {
+                        setStopModalSource("lastTaskLabel");
+                        setShowStopModal(true);
+                      }}
+                    >
                       <Text
                         variant="body"
                         color="accentDark"
@@ -854,7 +892,12 @@ export default function SessionScreen() {
           </Pressable>
         )}
 
-        <Pressable onPress={() => setShowStopModal(true)}>
+        <Pressable
+          onPress={() => {
+            setStopModalSource("lastTaskLabel");
+            setShowStopModal(true);
+          }}
+        >
           <Icon name="stop" size={iconSize} />
         </Pressable>
 
@@ -877,16 +920,42 @@ export default function SessionScreen() {
       </View>
 
       {/* MODALS */}
-      <AppModal
+      {/* <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
+        showClose={true}
         variant="alert"
         title="End session?"
         message="Are you sure you want to end your work session?"
         cancelLabel="Cancel"
         confirmLabel="End"
         onConfirm={confirmStop}
-      />
+      /> */}
+      <AppModal
+        visible={showStopModal}
+        onClose={() => setShowStopModal(false)}
+        variant="custom"
+        title="End session?"
+        message={"Are you sure you want to end your work session?\n\nYou may also mark\nthe session 'Incomplete'\nto return to it later."}
+
+        // cancelLabel="Save for later"
+        // confirmLabel="End session"
+        // onConfirm={confirmStop}
+      >
+        <View style={{ justifyContent: "center"}}>
+          <Button
+            label={"Save session for later"}
+            onPress={markSessionIncomplete}
+            variant="ghost"
+            style={{ marginBottom: 15 }}
+          />
+          <Button
+            label={"End session"}
+            onPress={confirmStop}
+            variant="danger"
+          />
+        </View>
+      </AppModal>
 
       <AppModal
         visible={showStartBreakConfirm}

@@ -582,16 +582,19 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   return data;
 }
 
-export async function updateTask(taskId: string, updates: Partial<CreateTaskPayload>): Promise<Task> {
+export async function updateTask(
+  taskId: string,
+  updates: Partial<CreateTaskPayload>
+): Promise<Task | null> {
   const { data, error } = await getSupabase()
     .from("tasks")
     .update(updates)
     .eq("id", taskId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw new Error(`Failed to update task: ${error.message}`);
-  return data;
+  return data; // data might be null
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
