@@ -8,7 +8,8 @@ import { Task, WorkSession } from "@/types/database.types";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "@/components/ui/Text";
 
 export default function SingleSessionScreen() {
   const router = useRouter();
@@ -74,8 +75,6 @@ export default function SingleSessionScreen() {
   if (loading) return <Text>Loading...</Text>;
   if (error) return <Text>Error: {error}</Text>;
   if (!sessionData) return <Text>Session not found</Text>;
-  console.log("Title:", sessionData.title);
-  console.log("Goal:", sessionData.goal);
 
   const headerTitle =
     sessionData?.status === "planned" ? "Plan Summary" : "Session Summary";
@@ -112,14 +111,21 @@ export default function SingleSessionScreen() {
       </View>
       <View style={styles.shadow} />
 
+      <Spacer></Spacer>
       <View style={styles.row}>
-        <Text style={styles.label}>Date created:</Text>
-        <Text style={styles.value}>{formattedDate}</Text>
+        <Text weight="bold" style={styles.label}>
+          Date created:
+        </Text>
+        <Text weight="bold" style={styles.value}>
+          {formattedDate}
+        </Text>
       </View>
 
       {sessionData.goal && (
         <View style={styles.row}>
-          <Text style={styles.label}>Goal:</Text>
+          <Text weight="bold" style={styles.label}>
+            Goal:
+          </Text>
           <Text style={styles.value}>{sessionData.goal}</Text>
         </View>
       )}
@@ -127,7 +133,9 @@ export default function SingleSessionScreen() {
       {sessionData.status === "complete" ||
       sessionData.status === "incomplete" ? (
         <View style={styles.row}>
-          <Text style={styles.label}>Status:</Text>
+          <Text weight="bold" style={styles.label}>
+            Status:
+          </Text>
           <Text
             style={[
               styles.value,
@@ -143,7 +151,9 @@ export default function SingleSessionScreen() {
       ) : null}
 
       <View style={styles.row}>
-        <Text style={styles.label}>Time spent:</Text>
+        <Text weight="bold" style={styles.label}>
+          Time spent:
+        </Text>
         <Text style={styles.value}>{formatTime(sessionData.total_time)}</Text>
       </View>
 
@@ -169,9 +179,6 @@ export default function SingleSessionScreen() {
                 <View style={styles.taskTextWrap}>
                   <Text style={styles.taskText}>
                     {index + 1}. {task.task_name}
-                  </Text>
-                  <Text style={styles.taskMinutes}>
-                    ({task.time_allotted} min.)
                   </Text>
                 </View>
               </View>
@@ -272,11 +279,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     alignItems: "center",
     margin: theme.spacing.xs,
-    paddingHorizontal: 20,
+    marginHorizontal: theme.spacing.lg,
   },
   label: {
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.lg,
+    //fontFamily: theme.typography.families.handwritten,
+    fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
     marginRight: 5,
   },
@@ -294,13 +301,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.typeface.bodyBold,
   },
   sectionHeading: {
-    fontFamily: theme.typography.families.handwritten,
+    //fontFamily: theme.typography.families.handwritten,
     fontSize: theme.typography.sizes.lg,
     color: theme.colors.text,
   },
   breakdownList: {
     gap: theme.spacing.sm,
-    paddingHorizontal: 20,
+    //paddingHorizontal: 20,
   },
   taskRow: {
     flexDirection: "row",

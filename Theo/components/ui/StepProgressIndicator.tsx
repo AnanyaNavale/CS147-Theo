@@ -92,7 +92,6 @@ export function StepProgressIndicator({
   };
 
   const handleSubmitReport = async () => {
-    console.log("calling handleSubmitReport");
     if (!session?.user) {
       console.error("Not an authenticated user.");
       return;
@@ -101,14 +100,11 @@ export function StepProgressIndicator({
     try {
       const data = await createReport(session.user.id, reportText);
 
-      console.log("Report submitted");
       setReportText("");
       setShowSubmitBanner(true);
-
     } catch (err) {
       console.error("Error submitting report:", err);
     }
-
   };
 
   return (
@@ -273,7 +269,9 @@ export function StepProgressIndicator({
           onChangeText={setReportText}
         />
         {showSubmitBanner && (
-          <Text style={styles.submitBanner}>{"Report submitted.\nThank you for your feedback."}</Text>
+          <Text style={styles.submitBanner}>
+            {"Report submitted.\nThank you for your feedback."}
+          </Text>
         )}
         <Button
           label="Submit report"

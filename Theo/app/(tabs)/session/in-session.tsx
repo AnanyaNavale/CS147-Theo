@@ -22,13 +22,13 @@ import { Timer } from "@/components/ui/Timer";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
-import { updateSession } from "@/lib/supabase";
-import { updateTask } from "@/lib/supabase";
+import { updateSession, updateTaskCompletionStates } from "@/lib/supabase";
 
 type Task = {
   id: string;
   text: string;
   minutes: number;
+  completed?: boolean;
 };
 
 type TaskStatus = "pending" | "in_progress" | "completed" | "skipped";
@@ -80,22 +80,38 @@ export default function SessionScreen() {
 
   const hasTasks = parsedTasks.length > 0;
 
-  // Convert incoming tasks to SessionTask format
-  const convertedSessionTasks: SessionTask[] = parsedTasks.map((t, idx) => ({
-    id: t.id,
-    name: t.text,
-    time: t.minutes * 60,
-    status: idx === 0 ? "in_progress" : "pending",
-  }));
+  // Convert incoming tasks to SessionTask format, keeping completed tasks marked
+  const firstIncompleteIndex = parsedTasks.findIndex((t) => !t.completed);
+  const convertedSessionTasks: SessionTask[] = parsedTasks.map((t, idx) => {
+    let status: TaskStatus;
+    if (t.completed) {
+      status = "completed";
+    } else if (firstIncompleteIndex === -1) {
+      status = "completed";
+    } else if (idx === firstIncompleteIndex) {
+      status = "in_progress";
+    } else {
+      status = "pending";
+    }
+
+    return {
+      id: t.id,
+      name: t.text,
+      time: t.minutes * 60,
+      status,
+    };
+  });
 
   /* ---------------------------------------------------------
    * INITIAL STATE
    * --------------------------------------------------------- */
+  const initialCurrentIndex =
+    firstIncompleteIndex === -1 ? 0 : Math.max(0, firstIncompleteIndex);
   const [sessionTasks, setSessionTasks] = useState<SessionTask[]>(
     convertedSessionTasks
   );
 
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(initialCurrentIndex);
   const currentTask: SessionTask | null =
     hasTasks && sessionTasks[currentTaskIndex]
       ? sessionTasks[currentTaskIndex]
@@ -109,7 +125,9 @@ export default function SessionScreen() {
     currentTask ? currentTask.time : 0
   );
 
-  const [isRunning, setIsRunning] = useState(hasTasks);
+  const [isRunning, setIsRunning] = useState(
+    hasTasks && currentTask?.status !== "completed"
+  );
   const [isBreak, setIsBreak] = useState(false);
   const [breakAfterTaskComplete, setBreakAfterTaskComplete] = useState(false);
   const [workSecondsSinceBreak, setWorkSecondsSinceBreak] = useState(0);
@@ -155,6 +173,8 @@ export default function SessionScreen() {
   const [showStartBreakConfirm, setShowStartBreakConfirm] = useState(false);
   const [showEndBreakConfirm, setShowEndBreakConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isSavingForLater, setIsSavingForLater] = useState(false);
+  const [isPersistingTasks, setIsPersistingTasks] = useState(false);
   const sessionEndLoggedRef = useRef(false);
 
   /* ANIMATION VALUES */
@@ -206,6 +226,23 @@ export default function SessionScreen() {
     return spent;
   };
 
+  const persistTaskCompletion = async () => {
+    if (!sessionId || isPersistingTasks) return;
+    setIsPersistingTasks(true);
+    try {
+      const payload = sessionTasks.map((t) => ({
+        id: t.id,
+        is_completed:
+          t.status === "completed" || t.status === "skipped" ? true : false,
+      }));
+      await updateTaskCompletionStates(sessionId, payload);
+    } catch (err) {
+      console.error("Failed to persist task completion states:", err);
+    } finally {
+      setIsPersistingTasks(false);
+    }
+  };
+
   const markSessionCompleted = async () => {
     if (!sessionId || sessionEndLoggedRef.current) return;
     sessionEndLoggedRef.current = true;
@@ -219,31 +256,57 @@ export default function SessionScreen() {
     }
   };
 
-  const goToEndSession = () => {
-    markSessionCompleted();
+  const goToEndSession = async () => {
+    await persistTaskCompletion();
+    await markSessionCompleted();
+
+    const summaryTasks = sessionTasks.map((t, idx) => {
+      const spentSeconds =
+        typeof t.actualSeconds === "number"
+          ? Math.max(0, t.actualSeconds)
+          : idx === currentTaskIndex
+          ? currentTaskTimeSpent()
+          : 0;
+
+      return {
+        id: t.id,
+        text: t.name,
+        status: t.status,
+        actualSeconds: spentSeconds,
+        timeSeconds: Math.max(0, typeof t.time === "number" ? t.time : 0),
+        minutes: Math.max(0, Math.round(spentSeconds / 60)),
+      };
+    });
+
     router.push({
       pathname: "./end-session",
       params: {
         goal: sessionGoal,
-        tasks: JSON.stringify(sessionTasks),
+        tasks: JSON.stringify(summaryTasks),
         sessionId: sessionId ?? null,
       },
     });
   };
 
-  const markSessionIncomplete = async () => {
-    if (!sessionId || sessionEndLoggedRef.current) return;
-    sessionEndLoggedRef.current = true; // prevent multiple calls
+  const handleSaveSessionForLater = async () => {
+    if (!sessionId || isSavingForLater) return;
+    setIsSavingForLater(true);
     try {
+      await persistTaskCompletion();
+
       await updateSession(sessionId, {
-        completed_at: null, // optional: clear completed timestamp
         status: "incomplete",
+        completed_at: null,
       });
-      
       setShowStopModal(false);
-      router.push("/(tabs)");
+      setIsRunning(false);
+      setIsBreak(false);
+      router.replace("/(tabs)/session");
+      router.replace("../../");
     } catch (err) {
-      console.error("Failed to mark session incomplete", err);
+      console.error("Failed to save session for later:", err);
+    } finally {
+      setIsSavingForLater(false);
     }
   };
 
@@ -923,37 +986,21 @@ export default function SessionScreen() {
       {/* <AppModal
         visible={showStopModal}
         onClose={() => setShowStopModal(false)}
-        showClose={true}
-        variant="alert"
-        title="End session?"
-        message="Are you sure you want to end your work session?"
-        cancelLabel="Cancel"
-        confirmLabel="End"
-        onConfirm={confirmStop}
-      /> */}
-      <AppModal
-        visible={showStopModal}
-        onClose={() => setShowStopModal(false)}
         variant="custom"
         title="End session?"
-        message={"Are you sure you want to end your work session?\n\nYou may also mark\nthe session 'Incomplete'\nto return to it later."}
-
-        // cancelLabel="Save for later"
-        // confirmLabel="End session"
-        // onConfirm={confirmStop}
+        message={
+          "Are you sure you want to end your work session?\n\nYou may also mark the session 'Incomplete' to return to it later."
+        }
       >
-        <View style={{ justifyContent: "center"}}>
+        <View style={{ width: "100%", marginTop: theme.spacing.lg }}>
           <Button
-            label={"Save session for later"}
-            onPress={markSessionIncomplete}
             variant="ghost"
-            style={{ marginBottom: 15 }}
+            label={isSavingForLater ? "Saving..." : "Save session for later"}
+            onPress={handleSaveSessionForLater}
+            disabled={isSavingForLater}
+            style={{ marginBottom: theme.spacing.sm }}
           />
-          <Button
-            label={"End session"}
-            onPress={confirmStop}
-            variant="danger"
-          />
+          <Button variant="danger" label="End session" onPress={confirmStop} />
         </View>
       </AppModal>
 
@@ -1215,6 +1262,7 @@ export default function SessionScreen() {
               checked={done}
               onChange={() => {}}
               label={t.name + (t.status === "skipped" ? " (skipped)" : "")}
+              labelStyle={done ? styles.completedTaskLabel : undefined}
               containerStyle={{ width: "100%" }}
             />
           );
@@ -1353,5 +1401,8 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     width: 50,
     height: 50,
+  },
+  completedTaskLabel: {
+    color: theme.colors.mutedText,
   },
 });

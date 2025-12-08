@@ -10,7 +10,7 @@ import type {
   WorkSession,
   Task,
   UserProfile,
-  Report
+  Report,
 } from "@/types/database.types";
 
 export type ReflectionChatMessage = {
@@ -127,8 +127,7 @@ export async function signInWithEmail(
   if (data.session?.user) {
     await ensureUserProfile({
       id: data.session.user.id,
-      displayName:
-        data.session.user.user_metadata?.display_name ?? null,
+      displayName: data.session.user.user_metadata?.display_name ?? null,
     });
   }
 
@@ -321,7 +320,7 @@ export async function createSession(
   hasGoal: boolean,
   goal?: string | null,
   hasTasks: boolean = false,
-  totalTime: number = 0,
+  totalTime: number = 0
 ): Promise<WorkSession> {
   const { data, error } = await getSupabase()
     .from("sessions")
@@ -343,7 +342,7 @@ export async function createSession(
 
 /**
  * Creates a new work plan for a user.
- * 
+ *
  * Used for ARCHIVE.
  */
 export async function createPlan(
@@ -352,7 +351,8 @@ export async function createPlan(
   hasTasks: boolean = false,
   total_time: number,
   title?: string,
-  goal?: string | null
+  goal?: string | null,
+  created_at?: string
 ): Promise<WorkSession> {
   const { data, error } = await getSupabase()
     .from("sessions")
@@ -364,6 +364,7 @@ export async function createPlan(
       has_goal: hasGoal,
       goal: goal,
       has_tasks: hasTasks,
+      created_at,
     })
     .select()
     .single();
@@ -391,7 +392,7 @@ export async function fetchSessions(userId: string): Promise<WorkSession[]> {
  * @param year - 4-digit year, e.g., 2025
  * @param month - 1-12 for the month
  * @returns array of date strings in 'YYYY-MM-DD' format
- * 
+ *
  * Used for ARCHIVE.
  */
 export async function fetchSessionDatesForMonth(
@@ -464,24 +465,54 @@ export async function fetchSessionsForDaySorted(
 }
 
 /**
- * Fetches the 10 most recent sessions for a user.
+ * Fetches recent sessions for a user with pagination support.
  */
-export async function fetchRecentSessions(userId: string): Promise<WorkSession[]> {
+export async function fetchRecentSessions(
+  userId: string,
+  limit = 10,
+  offset = 0
+): Promise<WorkSession[]> {
   const { data, error } = await getSupabase()
     .from("sessions")
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
-    .limit(10);
+    .range(offset, offset + limit - 1);
 
-  if (error) throw new Error(`Failed to fetch recent sessions: ${error.message}`);
+  if (error)
+    throw new Error(`Failed to fetch recent sessions: ${error.message}`);
+  return data ?? [];
+}
+
+/**
+ * Fetches recent sessions that are incomplete or planned for a user.
+ */
+export async function fetchPlannedOrIncompleteSessions(
+  userId: string,
+  limit = 10,
+  offset = 0
+): Promise<WorkSession[]> {
+  const { data, error } = await getSupabase()
+    .from("sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .in("status", ["planned", "incomplete"])
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error)
+    throw new Error(
+      `Failed to fetch planned/incomplete sessions: ${error.message}`
+    );
   return data ?? [];
 }
 
 /**
  * Fetches a single session by ID.
  */
-export async function fetchSessionById(sessionId: string): Promise<WorkSession | null> {
+export async function fetchSessionById(
+  sessionId: string
+): Promise<WorkSession | null> {
   const { data, error } = await getSupabase()
     .from("sessions")
     .select("*")
@@ -582,10 +613,69 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
   return data;
 }
 
+/**
+ * Updates completion flags for tasks (used when ending or saving a session).
+ */
+export async function updateTaskCompletionStates(
+  sessionId: string,
+  tasks: { id: string; is_completed: boolean }[]
+): Promise<void> {
+  if (tasks.length === 0) return;
+
+  const client = getSupabase();
+
+  for (const task of tasks) {
+    const { error } = await client
+      .from("tasks")
+      .update({ is_completed: task.is_completed })
+      .eq("id", task.id)
+      .eq("session_id", sessionId);
+
+    if (error)
+      throw new Error(`Failed to update task completion: ${error.message}`);
+  }
+}
+
+/**
+ * Replaces all tasks for a session with the provided list, preserving order.
+ */
+export async function replaceTasksForSession(
+  sessionId: string,
+  tasks: {
+    text: string;
+    minutes: number;
+    completed?: boolean;
+  }[]
+): Promise<void> {
+  const client = getSupabase();
+
+  const { error: deleteError } = await client
+    .from("tasks")
+    .delete()
+    .eq("session_id", sessionId);
+
+  if (deleteError)
+    throw new Error(`Failed to delete existing tasks: ${deleteError.message}`);
+
+  if (tasks.length === 0) return;
+
+  const payload = tasks.map((t, idx) => ({
+    session_id: sessionId,
+    task_name: t.text,
+    order_index: idx + 1,
+    time_allotted: t.minutes,
+    is_completed: Boolean(t.completed),
+  }));
+
+  const { error: insertError } = await client.from("tasks").insert(payload);
+  if (insertError)
+    throw new Error(`Failed to insert updated tasks: ${insertError.message}`);
+}
+
 export async function updateTask(
   taskId: string,
   updates: Partial<CreateTaskPayload>
-): Promise<Task | null> {
+): Promise<Task> {
   const { data, error } = await getSupabase()
     .from("tasks")
     .update(updates)
@@ -617,9 +707,8 @@ export interface CreateReportPayload {
  */
 export async function createReport(
   userId: string,
-  problem: string,
+  problem: string
 ): Promise<Report> {
-  console.log("In createReport");
   const { data, error } = await getSupabase()
     .from("reports")
     .insert({

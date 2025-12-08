@@ -9,12 +9,19 @@ import SvgStrokeText from "@/components/SvgStrokeText";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
+import { Calendar } from "react-native-calendars";
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import { theme } from "@/design/theme";
+import { Feather } from "@expo/vector-icons";
 import {
   createPlan,
   createSession,
   createTask,
   CreateTaskPayload,
+  updateSession,
+  replaceTasksForSession,
+  fetchTasksForSession,
 } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
@@ -24,6 +31,12 @@ type Task = {
   id: string;
   minutes: number;
   text: string;
+  completed?: boolean;
+};
+
+const formatLocalDate = (date: Date) => {
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().split("T")[0];
 };
 
 export default function FinalizeSessionScreen() {
@@ -32,18 +45,21 @@ export default function FinalizeSessionScreen() {
     tasks?: string;
     sessionId?: string;
   }>();
+  const existingSessionId = Array.isArray(sessionId) ? sessionId[0] : sessionId;
   const { session } = useSupabase();
   const goalText = goal ?? "";
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
   const teddySize = isCompact ? 180 : 220;
+  const todayLocal = formatLocalDate(new Date());
 
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
+  const [showPlanDateModal, setShowPlanDateModal] = useState(false);
+  const [selectedPlanDate, setSelectedPlanDate] = useState(todayLocal);
 
   const parsedTasks: Task[] = useMemo(() => {
     if (!tasks) return [];
@@ -77,7 +93,7 @@ export default function FinalizeSessionScreen() {
 
   // const handleSelectSettings = () => setShowSettings(true);
 
-  const handleSavePlan = async () => {
+  const handleSavePlan = async (planDate?: string) => {
     if (savingPlan) return;
     setSaveError(null);
 
@@ -88,33 +104,57 @@ export default function FinalizeSessionScreen() {
 
     setSavingPlan(true);
     try {
-      // Determine if we have a goal
       const hasGoal = Boolean(goal && goal.trim());
-
-      // Determine if we have tasks
       const hasTasks = parsedTasks.length > 0;
-
-      // Sum total minutes from tasks
       const total_time = parsedTasks.reduce(
         (sum, task) => sum + task.minutes,
         0
       );
-
-      // Title can be anything you want; for now, we can default it
-      console.log(goal);
       const title = hasGoal ? goal! : "Plan";
 
-      // Call your createPlan function with the authenticated user id
-      const newPlan = await createPlan(
-        session.user.id,
-        hasGoal,
-        hasTasks,
-        total_time,
-        title,
-        goal ?? null
-      );
+      const created_at = planDate
+        ? new Date(`${planDate}T00:00:00`).toISOString()
+        : undefined;
 
-      console.log("Plan saved:", newPlan);
+      if (existingSessionId) {
+        await updateSession(existingSessionId, {
+          title,
+          has_goal: hasGoal,
+          goal: goal ?? null,
+          has_tasks: hasTasks,
+          total_time,
+          status: "planned",
+          completed_at: null,
+        });
+
+        await replaceTasksForSession(existingSessionId, parsedTasks);
+      } else {
+        const newPlan = await createPlan(
+          session.user.id,
+          hasGoal,
+          hasTasks,
+          total_time,
+          title,
+          goal ?? null,
+          created_at
+        );
+
+        if (hasTasks) {
+          for (let i = 0; i < parsedTasks.length; i++) {
+            const t = parsedTasks[i];
+            const payload: CreateTaskPayload = {
+              session_id: newPlan.id,
+              task_name: t.text,
+              order_index: i + 1,
+              time_allotted: t.minutes,
+              is_completed: false,
+            };
+
+            await createTask(payload);
+          }
+        }
+      }
+
       setShowSuccessModal(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save plan.";
@@ -134,14 +174,43 @@ export default function FinalizeSessionScreen() {
     }
 
     try {
-      // 1. CREATE THE SESSION
       const hasGoal = Boolean(goalText && goalText.trim());
       const hasTasks = parsedTasks.length > 0;
-      let title = "Session";
-      if (hasGoal) {
-        title = goalText;
+      const title = hasGoal ? goalText : "Session";
+
+      if (existingSessionId) {
+        await updateSession(existingSessionId, {
+          title,
+          has_goal: hasGoal,
+          goal: goalText || null,
+          has_tasks: hasTasks,
+          total_time: totalTime,
+          status: "active",
+          completed_at: null,
+        });
+
+        await replaceTasksForSession(existingSessionId, parsedTasks);
+
+        const refreshedTasks = await fetchTasksForSession(existingSessionId);
+        const tasksForClient = refreshedTasks.map((t) => ({
+          id: String(t.id),
+          text: t.task_name,
+          minutes: Number(t.time_allotted ?? t.time_completed) || 0,
+          completed: Boolean(t.is_completed),
+        }));
+
+        router.push({
+          pathname: "./in-session",
+          params: {
+            goal: goalText,
+            tasks: JSON.stringify(tasksForClient),
+            sessionId: existingSessionId,
+          },
+        });
+        return;
       }
 
+      // 1. CREATE THE SESSION
       const newSession = await createSession(
         session.user.id,
         title,
@@ -151,10 +220,10 @@ export default function FinalizeSessionScreen() {
         totalTime
       );
 
-      console.log("📌 newSession:", newSession);
       const newSessionId = newSession.id;
 
       // 2. CREATE TASK ROWS (ordered)
+      const tasksForClient: Task[] = [];
       if (parsedTasks.length > 0) {
         for (let i = 0; i < parsedTasks.length; i++) {
           const t = parsedTasks[i];
@@ -167,18 +236,24 @@ export default function FinalizeSessionScreen() {
             is_completed: false,
           };
 
-          await createTask(payload);
+          const created = await createTask(payload);
+          tasksForClient.push({
+            id: String(created.id),
+            text: created.task_name,
+            minutes: Number(created.time_allotted ?? 0),
+            completed: Boolean(created.is_completed),
+          });
         }
       }
-
-      console.log("Tasks entered");
 
       // 3. NAVIGATE TO IN-SESSION SCREEN
       router.push({
         pathname: "./in-session",
         params: {
           goal: goalText,
-          tasks: JSON.stringify(parsedTasks),
+          tasks: JSON.stringify(
+            tasksForClient.length ? tasksForClient : parsedTasks
+          ),
           sessionId: newSessionId,
         },
       });
@@ -246,7 +321,7 @@ export default function FinalizeSessionScreen() {
         <BasicButton
           text={savingPlan ? "Saving..." : "Save plan to archive"}
           disabled={savingPlan}
-          onPress={() => setShowConfirmationModal(true)}
+          onPress={() => setShowPlanDateModal(true)}
           variant="secondary"
           style={styles.button}
         />
@@ -257,18 +332,79 @@ export default function FinalizeSessionScreen() {
           </Text>
         )}
 
-        {showConfirmationModal && (
+        {showPlanDateModal && (
           <AppModal
-            visible={showConfirmationModal}
-            onClose={() => setShowConfirmationModal(false)}
-            variant="alert"
-            showClose={false}
-            title="Save plan?"
-            message="Do you want to save this plan now?"
-            confirmLabel="Save"
-            confirmVariant="brown"
-            onConfirm={handleSavePlan}
-          />
+            visible={showPlanDateModal}
+            onClose={() => setShowPlanDateModal(false)}
+            variant="bottom-sheet"
+            title="Pick a date"
+            height={420}
+          >
+            <Calendar
+              current={selectedPlanDate}
+              renderHeader={(date) => {
+                const month = date.toString("MMMM yyyy");
+                return (
+                  <View
+                    style={{
+                      backgroundColor: colors.light.primary,
+                      paddingVertical: 4,
+                      paddingTop: 7,
+                      paddingHorizontal: 16,
+                      borderRadius: theme.radii.md,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      alignSelf: "center",
+                    }}
+                  >
+                    <SvgStrokeText
+                      text={month}
+                      stroke={colors.light.month}
+                      strokeWidth={0.5}
+                      textStyle={{ fontSize: 20, color: colors.light.month }}
+                    />
+                  </View>
+                );
+              }}
+              style={styles.planCalendar}
+              renderArrow={(direction) => (
+                <Feather
+                  name={direction === "left" ? "arrow-left" : "arrow-right"}
+                  size={24}
+                  color={colors.light.iconsStandalone}
+                />
+              )}
+              minDate={todayLocal}
+              markedDates={{
+                [selectedPlanDate]: {
+                  selected: true,
+                  selectedColor: theme.colors.accentDark,
+                  selectedTextColor: theme.solidColors.white,
+                },
+              }}
+              onDayPress={(day) => setSelectedPlanDate(day.dateString)}
+              theme={{
+                textDayFontFamily: fonts.typeface.body,
+                textDayHeaderFontFamily: fonts.typeface.header,
+                textDayHeaderFontSize: 18,
+                textDisabledColor: colors.light.inactive,
+                backgroundColor: colors.light.background,
+                todayTextColor: colors.light.body,
+                arrowColor: colors.light.iconsStandalone,
+              }}
+            />
+            <Spacer size="md" />
+            <Button
+              label={savingPlan ? "Saving..." : "Save plan"}
+              variant="gold"
+              onPress={() => {
+                setShowPlanDateModal(false);
+                handleSavePlan(selectedPlanDate);
+              }}
+              disabled={savingPlan}
+            />
+            <Spacer size="md" />
+          </AppModal>
         )}
 
         {showSuccessModal && (
@@ -285,15 +421,8 @@ export default function FinalizeSessionScreen() {
                   label="Visit archive"
                   variant="brown"
                   onPress={() => {
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, "0"); // months are 0-based
-                    const dd = String(today.getDate()).padStart(2, "0");
-                    const todayStr = `${yyyy}-${mm}-${dd}`;
-
                     setShowSuccessModal(false);
-
-                    router.push(`../archive/${todayStr}`);
+                    router.push(`../archive`);
                   }}
                 />
               </View>
@@ -363,6 +492,9 @@ const styles = StyleSheet.create({
   },
   button: {
     alignSelf: "center",
+  },
+  planCalendar: {
+    width: "100%",
   },
   divider: {
     height: 1,

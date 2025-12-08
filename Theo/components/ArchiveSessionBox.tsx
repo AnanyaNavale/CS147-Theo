@@ -1,15 +1,10 @@
-import { Dimensions, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { View, Text } from "@/components/Themed";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-
 // SUPABASE
-import { useSupabase } from "@/providers/SupabaseProvider";
-// import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionsForDaySorted } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fonts } from "@/assets/themes/typography";
 import { colors } from "@/assets/themes/colors";
+import { theme } from "@/design/theme";
 
 interface ArchiveSessionBoxProps {
   title: string | null;
@@ -19,7 +14,13 @@ interface ArchiveSessionBoxProps {
   onPress?: () => void;
 }
 
-export default function ArchiveSessionBox({ title, goal, time, status, onPress }: ArchiveSessionBoxProps) {
+export default function ArchiveSessionBox({
+  title,
+  goal,
+  time,
+  status,
+  onPress,
+}: ArchiveSessionBoxProps) {
   const timeDisplay = formatMinutes(time);
 
   const hasTitle = title?.trim() !== "";
@@ -80,10 +81,9 @@ function formatMinutes(totalMinutes: number) {
 }
 
 function getBoxStyle(status: string) {
-  // console.log(status);
-  if (status === "complete")
-    return styles.containerCompleted;
-  if (status !== "complete" && status !== "planned") return styles.containerSession;
+  if (status === "complete") return styles.containerCompleted;
+  if (status !== "complete" && status !== "planned")
+    return styles.containerSession;
   return styles.containerPlan;
 }
 
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   containerSession: {
     borderColor: "#B28F6D",
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   timeContainer: {
     width: "25%",
     height: "100%",
-    borderRadius: 5,
+    //borderRadius: 5,
     padding: 10,
     backgroundColor: "white",
   },
@@ -142,10 +142,9 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     padding: 10,
     backgroundColor: colors.light.background,
-
   },
   title: {
-    fontSize: 16,
+    fontSize: theme.typography.sizes.sm + 2,
     fontFamily: fonts.typeface.body,
     color: colors.light.body,
     width: "100%",
@@ -155,7 +154,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.typeface.bodyItalic,
   },
   time: {
-    fontSize: 16,
+    fontSize: theme.typography.sizes.md,
     fontFamily: "Raleway-Regular",
     color: "white",
   },

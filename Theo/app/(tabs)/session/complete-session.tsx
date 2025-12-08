@@ -3,7 +3,10 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fetchRecentSessions, fetchTasksForSession } from "@/lib/supabase";
+import {
+  fetchPlannedOrIncompleteSessions,
+  fetchTasksForSession,
+} from "@/lib/supabase";
 import { colors } from "@/assets/themes/colors";
 import { Spacer } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
@@ -16,6 +19,7 @@ import { WorkSession } from "@/types/database.types";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 const PAGE_SIZE = 5;
+
 const mapTasksForBreakdown = (
   tasks: Awaited<ReturnType<typeof fetchTasksForSession>>
 ) =>
@@ -26,7 +30,7 @@ const mapTasksForBreakdown = (
     completed: Boolean(t.is_completed),
   }));
 
-export default function CopySessionScreen() {
+export default function CompleteSessionScreen() {
   const { session } = useSupabase();
   const userId = session?.user?.id;
   const [sessions, setSessions] = useState<WorkSession[]>([]);
@@ -48,7 +52,11 @@ export default function CopySessionScreen() {
       setIsLoadingList(true);
       setHasMore(true);
       try {
-        const data = await fetchRecentSessions(userId!, PAGE_SIZE, 0);
+        const data = await fetchPlannedOrIncompleteSessions(
+          userId!,
+          PAGE_SIZE,
+          0
+        );
         setSessions(data);
         setHasMore(data.length === PAGE_SIZE);
       } catch (e) {
@@ -66,7 +74,7 @@ export default function CopySessionScreen() {
     setIsLoadingList(true);
 
     try {
-      const data = await fetchRecentSessions(
+      const data = await fetchPlannedOrIncompleteSessions(
         userId,
         PAGE_SIZE,
         sessions.length
@@ -94,6 +102,7 @@ export default function CopySessionScreen() {
         params: {
           goal: session.goal ?? "",
           tasks: JSON.stringify(mappedTasks),
+          sessionId: session.id,
         },
       });
     } catch (e) {
@@ -128,12 +137,12 @@ export default function CopySessionScreen() {
         showsVerticalScrollIndicator={false}
       > */}
       <SvgStrokeText
-        text={"Select a recent session"}
+        text={"Complete a session"}
         containerStyle={{ alignSelf: "center" }}
       />
       <Spacer size="md" />
       <Text style={styles.actionDescription}>
-        Choose from your most recent sessions listed below to copy.
+        Choose from your planned or incomplete sessions listed below.
       </Text>
 
       <Spacer size="lg" />
@@ -146,7 +155,7 @@ export default function CopySessionScreen() {
           {showEmpty ? (
             <View style={styles.emptyState}>
               <Text variant="h3" style={styles.emptyTitle}>
-                No recent sessions to copy
+                No sessions to complete
               </Text>
               <Spacer size="sm" />
               <Text style={styles.emptyBody}>
@@ -165,6 +174,9 @@ export default function CopySessionScreen() {
                 title={item.title}
                 goal={item.goal}
                 time={item.total_time}
+                status={item.status}
+                createdAt={item.created_at}
+                showStatusMeta
                 onPress={() => handleSelectSession(item)}
               />
             ))
@@ -197,18 +209,60 @@ export default function CopySessionScreen() {
         <View style={styles.divider} />
         <Spacer size="xl" />
 
-      {showSessionModal && (
-        <View>
-          <AppModal
-            visible={showSessionModal}
-            variant="custom"
-            onClose={() => setShowSessionModal(false)}
-            showClose={true}
-            title="Under construction!"
-            message={"Ah, you got us!\n\nWe're still working on implementing this, so we have a placeholder for now.\n\nStay tuned for when we do!"}
+        <View style={styles.actionBlock}>
+          <BasicButton
+            text="Copy a recent session"
+            onPress={() => setShowComingSoon(true)}
+            variant="secondary"
           />
+          <Spacer size="md" />
+          <Text style={styles.actionDescription}>
+            Duplicate & edit a past session&apos;s goals, tasks, and timings.
+          </Text>
         </View>
-      )}
+
+        <Spacer size="xl" />
+        <View style={styles.divider} />
+        <Spacer size="xl" />
+
+        <View style={styles.actionBlock}>
+          <BasicButton
+            text="Complete a session"
+            onPress={() => setShowComingSoon(true)}
+            variant="tertiary"
+            //style={[styles.actionButton, { width: buttonWidth }]}
+          />
+          <Spacer size="md" />
+          <Text style={styles.actionDescription}>
+            Use saved plans from the archive to begin a new session.
+          </Text>
+        </View> */}
+      {/* </ScrollView> */}
+      {/* <AppModal
+        visible={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+        variant="custom"
+        title="Coming soon!"
+        showClose
+      >
+        <Text style={styles.modalMessage}>
+          Copying and completing sessions isn't ready yet.
+        </Text>
+        <Spacer size="md" />
+        <Text style={styles.modalMessage}>
+          Please create a new session to get started.
+        </Text>
+        <Spacer size="md" />
+        <BasicButton
+          style={styles.center}
+          text="Create a new session"
+          onPress={() => {
+            setShowComingSoon(false);
+            handleCreateNew();
+          }}
+          textStyle={{ flexWrap: "nowrap" }}
+        />
+      </AppModal> */}
     </SafeAreaView>
   );
 }

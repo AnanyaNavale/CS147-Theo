@@ -32,6 +32,8 @@ export default function SessionSummaryScreen() {
   const goalText = goal ?? "";
   const [showLoader, setShowLoader] = useState(false);
 
+  console.log("[session-summary] raw tasks param", tasks);
+
   // 1. Get current date
   const now = new Date();
 
@@ -96,12 +98,13 @@ export default function SessionSummaryScreen() {
     }
   }, [tasks]);
 
+  console.log("[session-summary] parsedTasks", parsedTasks);
+
   const totalSecondsWorked = parsedTasks.reduce((sum, t) => {
-    if (t.status !== "completed") return sum;
     const seconds =
       typeof t.actualSeconds === "number"
         ? t.actualSeconds
-        : t.timeSeconds ?? t.minutes * 60;
+        : 0;
     return sum + (Number.isFinite(seconds) ? seconds : 0);
   }, 0);
   const hours = Math.floor(totalSecondsWorked / 3600);
