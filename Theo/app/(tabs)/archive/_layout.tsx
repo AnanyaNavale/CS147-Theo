@@ -1,12 +1,9 @@
 import { Stack } from "expo-router";
-import { Image, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Text, View } from "@/components/Themed";
-import SvgStrokeText from "@/components/SvgStrokeText";
 
 import { Feather } from "@expo/vector-icons";
 import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 import MainHeader from "@/components/ui/MainHeader";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -45,10 +42,8 @@ export default function ArchiveLayout() {
         name="index" // calendar page
         options={{
           headerShown: true,
-          header: () => (
-            <MainHeader />
-          ),
-          animation: 'slide_from_left',
+          header: () => <MainHeader />,
+          animation: "slide_from_left",
         }}
       />
     </Stack>

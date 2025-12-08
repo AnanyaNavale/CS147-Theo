@@ -19,7 +19,6 @@ import QuoteOfTheDay from "@/components/Quote";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import MainHeader from "@/components/ui/MainHeader";
 import { theme } from "@/design/theme";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchUserProfile } from "@/lib/supabase";
 import { useFocusEffect } from "@react-navigation/native";

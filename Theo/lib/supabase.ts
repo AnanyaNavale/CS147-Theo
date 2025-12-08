@@ -10,7 +10,7 @@ import type {
   WorkSession,
   Task,
   UserProfile,
-  Report
+  Report,
 } from "@/types/database.types";
 
 export type ReflectionChatMessage = {
@@ -127,8 +127,7 @@ export async function signInWithEmail(
   if (data.session?.user) {
     await ensureUserProfile({
       id: data.session.user.id,
-      displayName:
-        data.session.user.user_metadata?.display_name ?? null,
+      displayName: data.session.user.user_metadata?.display_name ?? null,
     });
   }
 
@@ -321,7 +320,7 @@ export async function createSession(
   hasGoal: boolean,
   goal?: string | null,
   hasTasks: boolean = false,
-  totalTime: number = 0,
+  totalTime: number = 0
 ): Promise<WorkSession> {
   const { data, error } = await getSupabase()
     .from("sessions")
@@ -343,7 +342,7 @@ export async function createSession(
 
 /**
  * Creates a new work plan for a user.
- * 
+ *
  * Used for ARCHIVE.
  */
 export async function createPlan(
@@ -391,7 +390,7 @@ export async function fetchSessions(userId: string): Promise<WorkSession[]> {
  * @param year - 4-digit year, e.g., 2025
  * @param month - 1-12 for the month
  * @returns array of date strings in 'YYYY-MM-DD' format
- * 
+ *
  * Used for ARCHIVE.
  */
 export async function fetchSessionDatesForMonth(
@@ -478,7 +477,8 @@ export async function fetchRecentSessions(
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (error) throw new Error(`Failed to fetch recent sessions: ${error.message}`);
+  if (error)
+    throw new Error(`Failed to fetch recent sessions: ${error.message}`);
   return data ?? [];
 }
 
@@ -508,7 +508,9 @@ export async function fetchPlannedOrIncompleteSessions(
 /**
  * Fetches a single session by ID.
  */
-export async function fetchSessionById(sessionId: string): Promise<WorkSession | null> {
+export async function fetchSessionById(
+  sessionId: string
+): Promise<WorkSession | null> {
   const { data, error } = await getSupabase()
     .from("sessions")
     .select("*")
@@ -668,7 +670,10 @@ export async function replaceTasksForSession(
     throw new Error(`Failed to insert updated tasks: ${insertError.message}`);
 }
 
-export async function updateTask(taskId: string, updates: Partial<CreateTaskPayload>): Promise<Task> {
+export async function updateTask(
+  taskId: string,
+  updates: Partial<CreateTaskPayload>
+): Promise<Task> {
   const { data, error } = await getSupabase()
     .from("tasks")
     .update(updates)
@@ -700,9 +705,8 @@ export interface CreateReportPayload {
  */
 export async function createReport(
   userId: string,
-  problem: string,
+  problem: string
 ): Promise<Report> {
-  console.log("In createReport");
   const { data, error } = await getSupabase()
     .from("reports")
     .insert({

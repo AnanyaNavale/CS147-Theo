@@ -74,8 +74,6 @@ export default function SingleSessionScreen() {
   if (loading) return <Text>Loading...</Text>;
   if (error) return <Text>Error: {error}</Text>;
   if (!sessionData) return <Text>Session not found</Text>;
-  console.log("Title:", sessionData.title);
-  console.log("Goal:", sessionData.goal);
 
   const headerTitle =
     sessionData?.status === "planned" ? "Plan Summary" : "Session Summary";

@@ -95,7 +95,10 @@ export default function FinalizeSessionScreen() {
     try {
       const hasGoal = Boolean(goal && goal.trim());
       const hasTasks = parsedTasks.length > 0;
-      const total_time = parsedTasks.reduce((sum, task) => sum + task.minutes, 0);
+      const total_time = parsedTasks.reduce(
+        (sum, task) => sum + task.minutes,
+        0
+      );
       const title = hasGoal ? goal! : "Plan";
 
       const newPlan = await createPlan(
@@ -187,7 +190,6 @@ export default function FinalizeSessionScreen() {
         totalTime
       );
 
-      console.log("📌 newSession:", newSession);
       const newSessionId = newSession.id;
 
       // 2. CREATE TASK ROWS (ordered)
@@ -214,14 +216,14 @@ export default function FinalizeSessionScreen() {
         }
       }
 
-      console.log("Tasks entered");
-
       // 3. NAVIGATE TO IN-SESSION SCREEN
       router.push({
         pathname: "./in-session",
         params: {
           goal: goalText,
-          tasks: JSON.stringify(tasksForClient.length ? tasksForClient : parsedTasks),
+          tasks: JSON.stringify(
+            tasksForClient.length ? tasksForClient : parsedTasks
+          ),
           sessionId: newSessionId,
         },
       });

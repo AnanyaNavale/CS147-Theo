@@ -1,28 +1,23 @@
 import {
   Dimensions,
-  FlatList,
-  SectionList, StyleSheet,
+  SectionList,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useState } from "react";
 import SvgStrokeText from "@/components/SvgStrokeText";
 
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchSessionsForDaySorted } from "@/lib/supabase";
 
-import SessionBox from "@/components/ArchiveSessionBox";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import ArchiveSessionBox from "@/components/ArchiveSessionBox";
-
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function SingleDayScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -85,17 +80,17 @@ export default function SingleDayScreen() {
   }, [date, userId]);
 
   const sections = [
-  {
-    title: "Sessions",
-    data: sessions.filter(
-      (s) => s.status !== "planned" // active, incomplete, complete
-    ),
-  },
-  {
-    title: "Plans",
-    data: sessions.filter((s) => s.status === "planned"),
-  },
-];
+    {
+      title: "Sessions",
+      data: sessions.filter(
+        (s) => s.status !== "planned" // active, incomplete, complete
+      ),
+    },
+    {
+      title: "Plans",
+      data: sessions.filter((s) => s.status === "planned"),
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -241,7 +236,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    borderColor: 'red',
+    borderColor: "red",
   },
   backButton: {
     position: "absolute",

@@ -1,12 +1,6 @@
-import { Dimensions, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { View, Text } from "@/components/Themed";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-
 // SUPABASE
-import { useSupabase } from "@/providers/SupabaseProvider";
-// import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionsForDaySorted } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fonts } from "@/assets/themes/typography";
 import { colors } from "@/assets/themes/colors";
@@ -86,7 +80,6 @@ function formatMinutes(totalMinutes: number) {
 }
 
 function getBoxStyle(status: string) {
-  // console.log(status);
   if (status === "complete") return styles.containerCompleted;
   if (status !== "complete" && status !== "planned")
     return styles.containerSession;

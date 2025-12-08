@@ -119,21 +119,6 @@ function formatShortDate(dateString: string) {
   });
 }
 
-// function getBoxStyle(status: string) {
-//   // console.log(status);
-//   if (status === "complete") return styles.containerCompleted;
-//   if (status !== "complete" && status !== "planned")
-//     return styles.containerSession;
-//   return styles.containerPlan;
-// }
-
-// function getTimeStyle(status: string) {
-//   if (status === "complete") return styles.timeContainerCompleted;
-//   if (status !== "complete" && status !== "planned")
-//     return styles.timeContainerSession;
-//   return styles.timeContainerPlan;
-// }
-
 const styles = StyleSheet.create({
   container: {
     minHeight: 100,
