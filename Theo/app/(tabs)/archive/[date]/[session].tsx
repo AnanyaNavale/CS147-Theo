@@ -130,29 +130,27 @@ export default function SingleSessionScreen() {
         </View>
       )}
 
-      {sessionData.status === "complete" ||
-      sessionData.status === "incomplete" ? (
-        <View style={styles.row}>
-          <Text weight="bold" style={styles.label}>
-            Status:
-          </Text>
-          <Text
-            style={[
-              styles.value,
-              { fontFamily: fonts.typeface.bodyBold },
-              sessionData.status === "complete"
-                ? { color: colors.light.secondary } // or your theme color for complete
-                : { color: colors.light.primary },
-            ]}
-          >
-            {sessionData.status === "complete" ? "Complete" : "Incomplete"}
-          </Text>
-        </View>
-      ) : null}
+      <View style={styles.row}>
+        <Text weight="bold" style={styles.label}>
+          Status:
+        </Text>
+        <Text
+          style={[
+            styles.value,
+            { fontFamily: fonts.typeface.bodyBold },
+            sessionData.status === "complete"
+              ? { color: colors.light.secondary } // or your theme color for complete
+              : { color: colors.light.primary },
+          ]}
+        >
+          {sessionData.status.charAt(0).toUpperCase() +
+            sessionData.status.slice(1)}
+        </Text>
+      </View>
 
       <View style={styles.row}>
         <Text weight="bold" style={styles.label}>
-          Time spent:
+          {sessionData.status === "planned" ? "Time planned:" : "Time spent:"}
         </Text>
         <Text style={styles.value}>{formatTime(sessionData.total_time)}</Text>
       </View>
@@ -177,9 +175,7 @@ export default function SingleSessionScreen() {
                   />
                 )}
                 <View style={styles.taskTextWrap}>
-                  <Text style={styles.taskText}>
-                    {index + 1}. {task.task_name}
-                  </Text>
+                  <Text style={styles.taskText}>{task.task_name}</Text>
                 </View>
               </View>
             ))

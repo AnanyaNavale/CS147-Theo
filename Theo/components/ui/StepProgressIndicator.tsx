@@ -275,7 +275,7 @@ export function StepProgressIndicator({
         )}
         <Button
           label="Submit report"
-          variant="danger"
+          variant="brown"
           disabled={reportText.trim().length === 0}
           onPress={handleSubmitReport}
         />

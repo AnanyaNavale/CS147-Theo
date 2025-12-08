@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   /* ---------------------- ALERT ---------------------- */
 
   alertCard: {
-    width: "80%",
+    width: "95%",
     backgroundColor: theme.modal.cardBg,
     padding: theme.spacing.lg,
     borderRadius: theme.modal.radius,

@@ -101,10 +101,7 @@ export default function SessionSummaryScreen() {
   console.log("[session-summary] parsedTasks", parsedTasks);
 
   const totalSecondsWorked = parsedTasks.reduce((sum, t) => {
-    const seconds =
-      typeof t.actualSeconds === "number"
-        ? t.actualSeconds
-        : 0;
+    const seconds = typeof t.actualSeconds === "number" ? t.actualSeconds : 0;
     return sum + (Number.isFinite(seconds) ? seconds : 0);
   }, 0);
   const hours = Math.floor(totalSecondsWorked / 3600);
@@ -205,7 +202,7 @@ export default function SessionSummaryScreen() {
                 />
                 <View style={styles.taskTextWrap}>
                   <Text style={styles.taskText}>
-                    {index + 1}. {task.text}{" "}
+                    {task.text}
                     {/* <Text style={styles.taskMinutes}>
                       (
                       {Math.max(

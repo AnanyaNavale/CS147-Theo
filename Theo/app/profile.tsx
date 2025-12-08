@@ -25,7 +25,11 @@ import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
 import { fonts } from "@/assets/themes/typography";
-import { supabaseClient, ensureUserProfile, fetchUserProfile } from "@/lib/supabase";
+import {
+  supabaseClient,
+  ensureUserProfile,
+  fetchUserProfile,
+} from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 // Decode base64 into a Uint8Array without bringing along file metadata.
@@ -367,8 +371,8 @@ export default function ProfileScreen() {
             disabled={
               saving ||
               loading ||
-              (displayName === initialDisplayName && email === initialEmail)
-            || isTestUser
+              (displayName === initialDisplayName && email === initialEmail) ||
+              isTestUser
             }
             style={styles.saveButton}
           />

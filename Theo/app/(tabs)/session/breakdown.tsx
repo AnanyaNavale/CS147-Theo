@@ -94,6 +94,7 @@ export default function SessionBreakdownScreen() {
   const [persistError, setPersistError] = useState<string | null>(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteMode, setDeleteMode] = useState<DeleteMode>(null);
 
@@ -546,12 +547,12 @@ export default function SessionBreakdownScreen() {
 
             {/* Regenerate */}
             <View style={styles.actionItem}>
-              <TouchableOpacity
-                onPress={generateAiTasks}
-                style={[styles.actionCircle, styles.actionCircleGold]}
-              >
-                <Icon name="refresh" size={35} tint={theme.solidColors.white} />
-              </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowRegenerateConfirm(true)}
+            style={[styles.actionCircle, styles.actionCircleGold]}
+          >
+            <Icon name="refresh" size={35} tint={theme.solidColors.white} />
+          </TouchableOpacity>
               <Text
                 variant="small"
                 weight="bold"
@@ -780,6 +781,20 @@ export default function SessionBreakdownScreen() {
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={confirmDelete}
+      />
+
+      <AppModal
+        visible={showRegenerateConfirm}
+        onClose={() => setShowRegenerateConfirm(false)}
+        variant="alert"
+        title="Regenerate tasks?"
+        message="This will replace your current tasks with new AI-generated ones."
+        cancelLabel="Cancel"
+        confirmLabel="Regenerate"
+        onConfirm={() => {
+          setShowRegenerateConfirm(false);
+          generateAiTasks();
+        }}
       />
 
       <AppModal
