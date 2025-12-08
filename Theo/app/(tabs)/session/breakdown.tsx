@@ -41,13 +41,19 @@ type DeleteMode = "single" | "all" | null;
 const teddy = require("../../../assets/theo/waving.png");
 
 export default function SessionBreakdownScreen() {
-  const { goal, tasks: tasksParam, sessionId } = useLocalSearchParams<{
+  const {
+    goal,
+    tasks: tasksParam,
+    sessionId,
+  } = useLocalSearchParams<{
     goal?: string | string[];
     tasks?: string | string[];
     sessionId?: string | string[];
   }>();
   const goalParam = Array.isArray(goal) ? goal[0] : goal;
-  const tasksParamValue = Array.isArray(tasksParam) ? tasksParam[0] : tasksParam;
+  const tasksParamValue = Array.isArray(tasksParam)
+    ? tasksParam[0]
+    : tasksParam;
   const sessionIdParam = Array.isArray(sessionId) ? sessionId[0] : sessionId;
   const initialGoal = goalParam ?? "";
 
@@ -262,6 +268,41 @@ export default function SessionBreakdownScreen() {
     // Use the current list position so numbering stays sequential after reordering
     const position = getIndex?.() ?? 0;
     const taskNumber = position + 1;
+    const isCompleted = Boolean(item.completed);
+
+    const taskContent = (
+      <TouchableOpacity
+        onLongPress={isCompleted ? undefined : drag}
+        onPress={() => {
+          if (item.completed) {
+            setMarkIncompleteId(item.id);
+            setShowMarkIncomplete(true);
+          } else {
+            openEditModal(item);
+          }
+        }}
+        disabled={isActive}
+      >
+        <View style={styles.taskRow}>
+          <View style={styles.taskIndexCircle}>
+            <Text style={styles.taskIndexText}>{taskNumber}</Text>
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <BreakdownItem
+              minutes={item.minutes}
+              text={item.text}
+              completed={item.completed}
+              onDelete={() => requestDeleteTask(item.id)}
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+
+    if (isCompleted) {
+      return taskContent;
+    }
 
     return (
       <Swipeable
@@ -298,33 +339,7 @@ export default function SessionBreakdownScreen() {
           </View>
         )}
       >
-        <TouchableOpacity
-          onLongPress={drag}
-          onPress={() => {
-            if (item.completed) {
-              setMarkIncompleteId(item.id);
-              setShowMarkIncomplete(true);
-            } else {
-              openEditModal(item);
-            }
-          }}
-          disabled={isActive}
-        >
-          <View style={styles.taskRow}>
-            <View style={styles.taskIndexCircle}>
-              <Text style={styles.taskIndexText}>{taskNumber}</Text>
-            </View>
-
-            <View style={{ flex: 1 }}>
-              <BreakdownItem
-                minutes={item.minutes}
-                text={item.text}
-                completed={item.completed}
-                onDelete={() => requestDeleteTask(item.id)}
-              />
-            </View>
-          </View>
-        </TouchableOpacity>
+        {taskContent}
       </Swipeable>
     );
   };
@@ -332,7 +347,8 @@ export default function SessionBreakdownScreen() {
   const deleteTargetText =
     deleteTargetId && tasks.find((task) => task.id === deleteTargetId)?.text;
   const markIncompleteText =
-    markIncompleteId && tasks.find((task) => task.id === markIncompleteId)?.text;
+    markIncompleteId &&
+    tasks.find((task) => task.id === markIncompleteId)?.text;
   let helpMessages;
 
   if (tasks.length === 0) {
@@ -773,10 +789,13 @@ export default function SessionBreakdownScreen() {
           setMarkIncompleteId(null);
         }}
         variant="alert"
-        title="Mark as incomplete?"
-        message={`Task: ${markIncompleteText ?? "this task"}\n\nMarking incomplete will return it to your list.`}
+        title={`Mark as\nincomplete?`}
+        message={`Task: ${
+          markIncompleteText ?? "this task"
+        }\n\nMarking incomplete will return it to your list.`}
         cancelLabel="Cancel"
-        confirmLabel="Mark incomplete"
+        confirmLabel="Confirm"
+        confirmVariant="gold"
         onConfirm={() => {
           if (!markIncompleteId) return;
           setTasks((prev) =>
