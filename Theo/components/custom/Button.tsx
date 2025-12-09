@@ -121,7 +121,7 @@ function getLabelColor(
   if (v === "subtle") return palette.quote ?? palette.inactive ?? palette.body;
   if (v === "brown") return "#000";
 
-  return "#fff";
+  return palette.body;
 }
 
 const styles = StyleSheet.create({

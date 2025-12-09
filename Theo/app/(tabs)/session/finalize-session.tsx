@@ -388,7 +388,7 @@ export default function FinalizeSessionScreen() {
             <Spacer size="md" />
             <Button
               label={savingPlan ? "Saving..." : "Save plan"}
-              variant="gold"
+              variant="brown"
               onPress={() => {
                 setShowPlanDateModal(false);
                 handleSavePlan(selectedPlanDate);
