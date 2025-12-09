@@ -186,10 +186,10 @@ const createStyles = (theme: Theme, palette: typeof colors.light) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 999,
-      backgroundColor: theme.colors.secondary,
+      backgroundColor: palette.secondary,
     },
     statusPillIncomplete: {
-      backgroundColor: theme.colors.inactive,
+      backgroundColor: palette.inactive,
     },
     statusText: {
       color: palette.body,

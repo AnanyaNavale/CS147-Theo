@@ -335,7 +335,7 @@ export default function SessionBreakdownScreen() {
                 }
               }}
             >
-              <Icon name="pencil" size={22} tint={theme.colors.background} />
+              <Icon name="pencil" size={22} tint={palette.background} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -345,7 +345,7 @@ export default function SessionBreakdownScreen() {
                 requestDeleteTask(item.id);
               }}
             >
-              <Icon name="trash" size={22} tint={theme.colors.background} />
+              <Icon name="trash" size={22} tint={palette.background} />
             </TouchableOpacity>
           </View>
         )}
@@ -548,7 +548,7 @@ export default function SessionBreakdownScreen() {
                 onPress={() => setShowAddModal(true)}
                 style={[styles.actionCircle, styles.actionCircleNeutral]}
               >
-                <Icon name="plus" size={40} tint={theme.colors.background} />
+                <Icon name="plus" size={40} tint={palette.background} />
               </TouchableOpacity>
               <Text variant="small" weight="bold" style={styles.actionLabel}>
                 Add task
@@ -561,7 +561,7 @@ export default function SessionBreakdownScreen() {
                 onPress={() => setShowRegenerateConfirm(true)}
                 style={[styles.actionCircle, styles.actionCircleGold]}
               >
-                <Icon name="refresh" size={35} tint={theme.colors.background} />
+                <Icon name="refresh" size={35} tint={palette.background} />
               </TouchableOpacity>
               <Text
                 variant="small"
@@ -578,7 +578,7 @@ export default function SessionBreakdownScreen() {
                 onPress={requestDeleteAll}
                 style={[styles.actionCircle, styles.actionCircletertiary]}
               >
-                <Icon name="trash" size={35} tint={theme.colors.background} />
+                <Icon name="trash" size={35} tint={palette.background} />
               </TouchableOpacity>
               <Text
                 variant="small"
@@ -761,15 +761,15 @@ export default function SessionBreakdownScreen() {
                 if (canAdd) addTask();
               }}
               disabled={!canAdd}
-              style={[
-                styles.actionCircle,
-                styles.actionCircleNeutral,
-                styles.smallActionCircle,
-                !canAdd && { opacity: 0.4 },
-              ]}
-            >
-              <Icon name="plus" size={40} tint={theme.colors.background} />
-            </TouchableOpacity>
+            style={[
+              styles.actionCircle,
+              styles.actionCircleNeutral,
+              styles.smallActionCircle,
+              !canAdd && { opacity: 0.4 },
+            ]}
+          >
+            <Icon name="plus" size={40} tint={palette.background} />
+          </TouchableOpacity>
           );
         })()}
       </AppModal>

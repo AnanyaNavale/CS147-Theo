@@ -127,12 +127,12 @@ function createStyles(
     goalLabel: {
       fontFamily: theme.typography.families.handwritten,
       fontSize: theme.typography.sizes.lg,
-      color: theme.colors.header2,
+      color: palette.header2,
     },
     goalValue: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       textAlign: "center",
       marginTop: theme.spacing.xs,
     },
@@ -143,7 +143,7 @@ function createStyles(
     note: {
       textAlign: "center",
       paddingHorizontal: theme.spacing.lg,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     image: {
       width: 260,

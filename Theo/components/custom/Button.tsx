@@ -107,7 +107,7 @@ function getBackground(
   if (v === "brown") return palette.primary;
   if (v === "tertiary") return palette.error ?? palette.tertiary ?? "#7C3030";
   if (v === "subtle") return palette.overlay;
-  return palette.background;
+  return palette.ghost;
 }
 
 function getLabelColor(
@@ -119,6 +119,8 @@ function getLabelColor(
   if (v === "outlineGold") return palette.secondary;
   if (v === "ghost") return palette.body;
   if (v === "subtle") return palette.quote ?? palette.inactive ?? palette.body;
+  if (v === "brown") return "#000";
+
   return "#fff";
 }
 

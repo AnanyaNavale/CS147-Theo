@@ -227,8 +227,8 @@ export function VoiceRecorderModal({
               size={20}
               tint={
                 status === "recording"
-                  ? theme.colors.buttonText ?? "#fff"
-                  : theme.colors.body
+                  ? palette.buttonText ?? "#fff"
+                  : palette.body
               }
             />
             <Text
@@ -264,7 +264,7 @@ export function VoiceRecorderModal({
             <View style={styles.transcriptHeader}>
               <Text style={styles.transcriptTitle}>Transcript</Text>
               {status === "transcribing" && (
-                <ActivityIndicator size="small" color={theme.colors.primary} />
+                <ActivityIndicator size="small" color={palette.primary} />
               )}
             </View>
             <ScrollView style={styles.transcriptScroll}>

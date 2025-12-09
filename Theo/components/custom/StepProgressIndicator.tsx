@@ -144,13 +144,35 @@ export function StepProgressIndicator({
               const isLast = index === steps.length - 1;
               const isFirst = index === 0;
 
+              const leftComplete = index > 0 && index <= activeCount - 1;
+              const rightComplete = index < activeCount - 1;
               return (
                 <View key={`${label}-track`} style={styles.stepWrapper}>
                   {!isFirst && (
-                    <View style={[styles.halfLine, styles.lineLeft]} />
+                    <View
+                      style={[
+                        styles.halfLine,
+                        styles.lineLeft,
+                        {
+                          backgroundColor: leftComplete
+                            ? palette.progressBarComplete
+                            : palette.progressBarIncomplete,
+                        },
+                      ]}
+                    />
                   )}
                   {!isLast && (
-                    <View style={[styles.halfLine, styles.lineRight]} />
+                    <View
+                      style={[
+                        styles.halfLine,
+                        styles.lineRight,
+                        {
+                          backgroundColor: rightComplete
+                            ? palette.progressBarComplete
+                            : palette.progressBarIncomplete,
+                        },
+                      ]}
+                    />
                   )}
 
                   <View
@@ -162,7 +184,9 @@ export function StepProgressIndicator({
                   <Text
                     style={[
                       styles.stepLabel,
-                      !isActive ? styles.stepLabelInactive : null,
+                      !isActive
+                        ? styles.stepLabelInactive
+                        : styles.stepLabelActive,
                     ]}
                   >
                     {label}
@@ -368,7 +392,11 @@ const createStyles = (theme: Theme, palette: typeof colors.light) =>
       marginTop: theme.spacing.xs,
       fontSize: theme.typography.sizes.sm,
       fontFamily: theme.typography.families.regular,
-      color: palette.primary,
+      color: palette.progressBarIncomplete,
+    },
+
+    stepLabelActive: {
+      color: palette.progressBarComplete,
     },
 
     stepLabelInactive: {

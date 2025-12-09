@@ -236,8 +236,12 @@ export default function SessionScreen() {
     }
   };
 
-  const computeTaskProgress = () => {
-    const taskPayload = sessionTasks.map((t, idx) => {
+  const computeTaskProgress = (tasksSnapshot: SessionTask[] = sessionTasks) => {
+    const taskPayload = tasksSnapshot.map((t, idx) => {
+      const isCompleted =
+        t.status === "completed" ||
+        t.status === "skipped" ||
+        (idx === currentTaskIndex && secondsLeft <= 0 && !isBreak);
       const spentSeconds =
         typeof t.actualSeconds === "number"
           ? Math.max(0, t.actualSeconds)
@@ -248,8 +252,7 @@ export default function SessionScreen() {
       const updatedTime = Math.max(0, prevTime + spentSeconds);
       return {
         id: t.id,
-        is_completed:
-          t.status === "completed" || t.status === "skipped" ? true : false,
+        is_completed: Boolean(isCompleted),
         time_completed: updatedTime,
       };
     });
@@ -263,11 +266,14 @@ export default function SessionScreen() {
     return { taskPayload, totalSpentSeconds };
   };
 
-  const persistTaskCompletion = async () => {
+  const persistTaskCompletion = async (
+    tasksSnapshot: SessionTask[] = sessionTasks
+  ) => {
     if (!sessionId || isPersistingTasks) return { totalSpentSeconds: 0 };
     setIsPersistingTasks(true);
     try {
-      const { taskPayload, totalSpentSeconds } = computeTaskProgress();
+      const { taskPayload, totalSpentSeconds } =
+        computeTaskProgress(tasksSnapshot);
       await updateTaskCompletionStates(sessionId, taskPayload);
       return { totalSpentSeconds };
     } catch (err) {

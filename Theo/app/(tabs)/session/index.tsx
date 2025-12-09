@@ -178,7 +178,7 @@ function createStyles(
       textAlign: "center",
       marginTop: theme.spacing.sm,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.quote,
+      color: palette.quote,
     },
     center: {
       alignSelf: "center",

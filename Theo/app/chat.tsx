@@ -456,7 +456,7 @@ export default function ChatScreen() {
           <Icon
             name="mic"
             size={18}
-            tint={theme.colors.background}
+            tint={palette.background}
             style={{ marginRight: theme.spacing.xs }}
           />
           <Text style={styles.voiceButtonLabel}>Voice message</Text>
@@ -749,7 +749,7 @@ function createStyles(
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: theme.colors.background,
+      backgroundColor: palette.background,
       marginHorizontal: 3,
     },
   });

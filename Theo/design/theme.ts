@@ -115,7 +115,7 @@ export const themes = {
     input: {
       ...baseInput,
       borderColor: darkColors.border,
-      placeholder: "#C9C9C9",
+      placeholder: "#616161ff",
     },
     checkbox: {
       ...baseCheckbox,

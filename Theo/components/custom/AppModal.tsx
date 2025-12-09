@@ -116,7 +116,7 @@ export function AppModal({
                   onPress={onClose}
                   style={styles.closeBtnFloating}
                 >
-                  <Icon name="x"></Icon>
+                  <Icon name="x" tint={palette.iconsStandalone}></Icon>
                 </TouchableOpacity>
               )}
             </View>
@@ -141,7 +141,7 @@ export function AppModal({
               {title && <Text style={styles.sheetTitle}>{title}</Text>}
 
               <TouchableOpacity onPress={onClose} style={styles.closeBtnSheet}>
-                <Icon name="x" size={34}></Icon>
+                <Icon name="x" tint={palette.iconsStandalone} size={34}></Icon>
               </TouchableOpacity>
 
               <View>{children}</View>

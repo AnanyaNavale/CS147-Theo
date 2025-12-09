@@ -310,7 +310,7 @@ function createStyles(
       textAlign: "center",
       marginTop: theme.spacing.sm,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.quote,
+      color: palette.quote,
     },
     center: {
       alignSelf: "center",
@@ -338,7 +338,7 @@ function createStyles(
       backgroundColor: palette.background,
     },
     noMoreText: {
-      color: theme.colors.quote,
+      color: palette.quote,
       fontFamily: theme.typography.families.medium,
     },
     emptyState: {
@@ -347,11 +347,11 @@ function createStyles(
       paddingVertical: theme.spacing.xl,
     },
     emptyTitle: {
-      color: theme.colors.header1,
+      color: palette.header1,
       textAlign: "center",
     },
     emptyBody: {
-      color: theme.colors.quote,
+      color: palette.quote,
       textAlign: "center",
     },
   });

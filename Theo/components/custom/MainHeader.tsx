@@ -108,9 +108,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
             ) : (
               <TabBarIcon
                 name="user"
-                color={
-                  mode === "dark" ? palette.body : appTheme.colors.background
-                }
+                color={appTheme.colors.background}
                 size={32}
               />
             )}

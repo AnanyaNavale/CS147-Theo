@@ -283,8 +283,8 @@ export default function FinalizeSessionScreen() {
           <View style={styles.goalRow}>
             <SvgStrokeText
               text="Goal:"
-              stroke={theme.colors.header2}
-              textStyle={{ color: theme.colors.header2 }}
+              stroke={palette.header2}
+              textStyle={{ color: palette.header2 }}
             />
             <Text style={styles.goalValue}>{goalText}</Text>
             <Spacer size="md" />
@@ -366,8 +366,8 @@ export default function FinalizeSessionScreen() {
               markedDates={{
                 [selectedPlanDate]: {
                   selected: true,
-                  selectedColor: theme.colors.header2,
-                  selectedTextColor: theme.colors.background,
+                  selectedColor: palette.header2,
+                  selectedTextColor: palette.background,
                 },
               }}
               onDayPress={(day) => setSelectedPlanDate(day.dateString)}
@@ -474,12 +474,12 @@ function createStyles(theme: Theme, palette: typeof colors.light) {
       textAlign: "center",
     },
     goalLabel: {
-      color: theme.colors.header2,
+      color: palette.header2,
     },
     goalValue: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       alignSelf: "center",
       textAlign: "center",
     },
@@ -491,7 +491,7 @@ function createStyles(theme: Theme, palette: typeof colors.light) {
     },
     divider: {
       height: 1,
-      backgroundColor: theme.colors.border,
+      backgroundColor: palette.border,
       marginHorizontal: theme.spacing.md,
       marginTop: theme.spacing.md,
     },
@@ -499,7 +499,7 @@ function createStyles(theme: Theme, palette: typeof colors.light) {
       textAlign: "center",
       fontFamily: theme.typography.families.serif,
       fontSize: theme.typography.sizes.lg,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     teddy: {
       position: "absolute",

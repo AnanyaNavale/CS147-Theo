@@ -238,7 +238,7 @@ function createStyles(theme: Theme, palette: typeof colors.light) {
       zIndex: 3,
     },
     menuCard: {
-      backgroundColor: theme.colors.header2,
+      backgroundColor: palette.background,
       borderRadius: theme.radii.lg,
       paddingVertical: theme.spacing.xs,
       minWidth: 200,
@@ -249,13 +249,13 @@ function createStyles(theme: Theme, palette: typeof colors.light) {
       paddingHorizontal: theme.spacing.md,
     },
     menuLabel: {
-      color: theme.colors.background,
+      color: palette.header1,
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
     },
     menuDivider: {
       height: 1,
-      backgroundColor: theme.colors.border,
+      backgroundColor: palette.border,
       opacity: 0.6,
       marginHorizontal: theme.spacing.sm,
       marginTop: theme.spacing.sm,

@@ -473,13 +473,13 @@ function createStyles(
     },
     label: {
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       marginRight: 5,
     },
     value: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     scrollContent: {
       paddingBottom: theme.spacing.xxl * 2,
@@ -494,7 +494,7 @@ function createStyles(
     },
     sectionHeading: {
       fontSize: theme.typography.sizes.lg,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     breakdownList: {
       gap: theme.spacing.sm,
@@ -514,13 +514,13 @@ function createStyles(
     taskText: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       marginRight: theme.spacing.sm,
     },
     taskMinutes: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header2,
+      color: palette.header2,
     },
     checkboxContainer: {
       paddingVertical: 0,

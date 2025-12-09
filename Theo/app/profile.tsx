@@ -320,7 +320,7 @@ export default function ProfileScreen() {
                   <Feather
                     name="user"
                     size={68}
-                    color={theme.colors.background}
+                    color={palette.background}
                   />
                 </View>
               )}
