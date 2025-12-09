@@ -22,13 +22,14 @@ import { useAppTheme } from "@/hooks/ThemeContext";
 import { signInWithEmail } from "@/lib/supabase";
 
 const logo = require("@/assets/images/logo.png");
+const logoDark = require("@/assets/images/logo-white.png");
 const teddy = require("@/assets/theo/working.png");
 const TEST_EMAIL = "test@test.com";
 const TEST_PASSWORD = "testtest";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { colors: palette, theme } = useAppTheme();
+  const { colors: palette, theme, mode } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +90,7 @@ export default function LoginScreen() {
           bounces={false}
         >
           <View style={styles.hero}>
-            <Image source={logo} style={styles.logo} />
+            <Image source={mode === "dark" ? logoDark : logo} style={styles.logo} />
             <Image source={teddy} style={styles.teddy} />
           </View>
 
