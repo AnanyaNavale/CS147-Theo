@@ -76,7 +76,7 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
         <Text
           variant="h2"
           weight="bold"
-          style={{ textAlign: "center", color: palette.body }}
+          style={{ textAlign: "center", color: palette.primary }}
         >
           {getLabel()}
         </Text>

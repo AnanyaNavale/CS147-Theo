@@ -105,6 +105,7 @@ export default function CompleteSessionScreen() {
           goal: session.goal ?? "",
           tasks: JSON.stringify(mappedTasks),
           sessionId: session.id,
+          mode: "complete",
         },
       });
     } catch (e) {

@@ -121,6 +121,7 @@ function getLabelColor(
   if (v === "subtle") return palette.quote ?? palette.inactive ?? palette.body;
   if (v === "brown") return palette.background;
   if (v === "gold") return palette.background;
+  if (v === "tertiary") return "#fff";
 
   return palette.body;
 }

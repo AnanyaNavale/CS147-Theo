@@ -109,7 +109,7 @@ function createStyles(
       position: "absolute",
       top: 120,
       right: 20,
-      backgroundColor: palette.background,
+      backgroundColor: palette.primary,
       borderWidth: 2,
       borderColor: palette.primary,
       borderRadius: theme.radii.md,

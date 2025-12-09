@@ -1022,10 +1022,7 @@ export default function SessionScreen() {
       <View style={styles.row}>
         {!isBreak && currentTask && (
           <Pressable onPress={handlePlayPause}>
-            <Icon
-              name={isRunning ? pauseIcon : playIcon}
-              size={iconSize}
-            />
+            <Icon name={isRunning ? pauseIcon : playIcon} size={iconSize} />
           </Pressable>
         )}
 
@@ -1089,7 +1086,7 @@ export default function SessionScreen() {
           setShowStartBreakConfirm(false);
           handleStartBreak();
         }}
-        confirmVariant="gold"
+        confirmVariant="brown"
       />
 
       <AppModal
@@ -1125,6 +1122,7 @@ export default function SessionScreen() {
         message="We’ll mark this task complete and move to the next one."
         cancelLabel="Cancel"
         confirmLabel="Done"
+        confirmVariant="brown"
         onConfirm={handleConfirmMarkTaskDone}
       />
 
@@ -1203,7 +1201,7 @@ export default function SessionScreen() {
               setNewTimeError("");
             }
           }}
-          placeholder="e.g. 10"
+          placeholder="10"
           keyboardType="numeric"
           row
           error={newTimeError}
@@ -1307,14 +1305,14 @@ export default function SessionScreen() {
                 if (canAddTask) handleAddTask();
               }}
               disabled={!canAddTask}
-            style={[
-              styles.actionCircle,
-              styles.actionCircleNeutral,
-              styles.smallActionCircle,
-              !canAddTask && { opacity: 0.4 },
-            ]}
-          >
-            <Icon name="plus" size={40} tint={palette.background} />
+              style={[
+                styles.actionCircle,
+                styles.actionCircleNeutral,
+                styles.smallActionCircle,
+                !canAddTask && { opacity: 0.4 },
+              ]}
+            >
+              <Icon name="plus" size={40} tint={palette.background} />
             </TouchableOpacity>
           );
         })()}
@@ -1414,7 +1412,7 @@ function createStyles(
       position: "absolute",
       top: 40,
       right: 0,
-      backgroundColor: palette.background,
+      backgroundColor: palette.primary,
       borderRadius: theme.radii.lg,
       paddingVertical: theme.spacing.xs,
       minWidth: 200,
@@ -1424,18 +1422,18 @@ function createStyles(
       borderColor: palette.border,
     },
     menuItem: {
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm + 3,
       paddingHorizontal: theme.spacing.md,
     },
     menuLabel: {
-      color: palette.header1,
+      color: palette.background,
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
     },
     menuDivider: {
       height: 1,
-      backgroundColor: palette.border,
-      opacity: 0.6,
+      backgroundColor: palette.background,
+      opacity: 0.3,
       marginHorizontal: theme.spacing.sm,
     },
     row: {

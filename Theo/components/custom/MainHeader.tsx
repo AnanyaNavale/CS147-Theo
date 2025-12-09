@@ -242,27 +242,25 @@ const createStyles = (
       zIndex: 3,
     },
     menuCard: {
-      backgroundColor: theme.modal.cardBg,
+      backgroundColor: theme.colors.primary,
       borderRadius: theme.radii.lg,
       paddingVertical: theme.spacing.xs,
       minWidth: 170,
       ...theme.shadow.medium,
-      borderWidth: theme.modal.borderWidth,
-      borderColor: theme.modal.borderColor,
     },
     menuItem: {
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm + 3,
       paddingHorizontal: theme.spacing.md,
     },
     menuLabel: {
-      color: palette.body,
+      color: palette.background,
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
     },
     menuDivider: {
       height: 1,
-      backgroundColor: palette.border,
-      opacity: 0.6,
+      backgroundColor: palette.background,
+      opacity: 0.3,
       marginHorizontal: theme.spacing.sm,
     },
   });

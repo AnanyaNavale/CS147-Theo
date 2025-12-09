@@ -45,10 +45,12 @@ export default function SessionBreakdownScreen() {
     goal,
     tasks: tasksParam,
     sessionId,
+    mode,
   } = useLocalSearchParams<{
     goal?: string | string[];
     tasks?: string | string[];
     sessionId?: string | string[];
+    mode?: string | string[];
   }>();
   const goalParam = Array.isArray(goal) ? goal[0] : goal;
   const tasksParamValue = Array.isArray(tasksParam)
@@ -56,6 +58,8 @@ export default function SessionBreakdownScreen() {
     : tasksParam;
   const sessionIdParam = Array.isArray(sessionId) ? sessionId[0] : sessionId;
   const initialGoal = goalParam ?? "";
+  const isCopyFlow =
+    Array.isArray(mode) ? mode?.[0] === "copy" : mode === "copy";
 
   const [tasks, setTasks] = useState<Task[]>(() => {
     if (!tasksParamValue) return [];
@@ -68,7 +72,7 @@ export default function SessionBreakdownScreen() {
           id: String(t.id ?? `temp-${Math.random().toString(36).slice(2)}`),
           text: typeof t.text === "string" ? t.text : "",
           minutes: Number(t.minutes) || 0,
-          completed: Boolean(t.completed),
+          completed: isCopyFlow ? false : Boolean(t.completed),
         }))
         .filter((t) => t.text.trim().length > 0 || t.minutes > 0);
     } catch (err) {

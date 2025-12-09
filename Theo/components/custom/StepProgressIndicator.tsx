@@ -233,7 +233,7 @@ export function StepProgressIndicator({
                 label="Exit setup"
                 icon="exit"
                 styles={styles}
-                iconTint={palette.iconsStandalone}
+                iconTint={palette.background}
                 onPress={handleMenuAction(() => setShowExitConfirm(true))}
               />
               <View style={styles.menuDivider} />
@@ -241,7 +241,7 @@ export function StepProgressIndicator({
                 label="Help"
                 icon="help"
                 styles={styles}
-                iconTint={palette.iconsStandalone}
+                iconTint={palette.background}
                 onPress={handleMenuAction(() => setShowHelpModal(true))}
               />
               <View style={styles.menuDivider} />
@@ -249,7 +249,7 @@ export function StepProgressIndicator({
                 label="Report a problem   "
                 icon="report"
                 styles={styles}
-                iconTint={palette.iconsStandalone}
+                iconTint={palette.background}
                 onPress={handleMenuAction(() => setShowReportModal(true))}
               />
             </View>
@@ -288,7 +288,7 @@ export function StepProgressIndicator({
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}
         variant="custom"
-        title={"Report a\nProblem"}
+        title={"Report a Problem"}
         message="Please describe the issue you are encountering."
       >
         <InputField
@@ -413,31 +413,31 @@ const createStyles = (theme: Theme, palette: typeof colors.light) =>
       position: "absolute",
       top: theme.spacing.xxl * 2 + theme.spacing.lg, // offset so the menu sits lower than the icon
       right: theme.spacing.md,
-      backgroundColor: theme.modal.cardBg,
+      backgroundColor: theme.colors.primary,
       borderRadius: theme.radii.lg,
       paddingVertical: theme.spacing.xs,
       minWidth: 200,
       ...theme.shadow.medium,
       zIndex: 3,
-      borderWidth: theme.modal.borderWidth,
-      borderColor: theme.modal.borderColor,
+      // borderWidth: theme.modal.borderWidth,
+      // borderColor: theme.modal.borderColor,
     },
     menuItem: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm + 3,
       paddingHorizontal: theme.spacing.md,
     },
     menuLabel: {
-      color: palette.body,
+      color: palette.background,
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
     },
     menuDivider: {
       height: 1,
-      backgroundColor: palette.border,
-      opacity: 0.6,
+      backgroundColor: palette.background,
+      opacity: 0.3,
       marginHorizontal: theme.spacing.sm,
     },
 

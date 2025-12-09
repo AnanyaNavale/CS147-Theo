@@ -96,6 +96,7 @@ export default function CopySessionScreen() {
         params: {
           goal: session.goal ?? "",
           tasks: JSON.stringify(mappedTasks),
+          mode: "copy",
         },
       });
     } catch (e) {
