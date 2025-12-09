@@ -97,6 +97,7 @@ export default function SessionBreakdownScreen() {
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteMode, setDeleteMode] = useState<DeleteMode>(null);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
 
   const [editText, setEditText] = useState("");
   const [editMinutes, setEditMinutes] = useState("");
@@ -241,6 +242,13 @@ export default function SessionBreakdownScreen() {
       const msg =
         err instanceof Error ? err.message : "Task generation failed.";
       setAiError(msg);
+      if (
+        typeof msg === "string" &&
+        msg.toLowerCase().startsWith("you exceeded your current quota")
+      ) {
+        setAiError(null); // avoid showing the raw quota error inline
+        setShowQuotaModal(true);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -547,12 +555,12 @@ export default function SessionBreakdownScreen() {
 
             {/* Regenerate */}
             <View style={styles.actionItem}>
-          <TouchableOpacity
-            onPress={() => setShowRegenerateConfirm(true)}
-            style={[styles.actionCircle, styles.actionCircleGold]}
-          >
-            <Icon name="refresh" size={35} tint={theme.solidColors.white} />
-          </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setShowRegenerateConfirm(true)}
+                style={[styles.actionCircle, styles.actionCircleGold]}
+              >
+                <Icon name="refresh" size={35} tint={theme.solidColors.white} />
+              </TouchableOpacity>
               <Text
                 variant="small"
                 weight="bold"
@@ -821,6 +829,14 @@ export default function SessionBreakdownScreen() {
           setShowMarkIncomplete(false);
           setMarkIncompleteId(null);
         }}
+      />
+
+      <AppModal
+        visible={showQuotaModal}
+        variant="custom"
+        onClose={() => setShowQuotaModal(false)}
+        title="AI limit reached"
+        message="We’re limited in how many AI calls we can make. Please try features that don’t require AI for the moment."
       />
 
       {isGenerating && (

@@ -3,6 +3,7 @@ import { InputField } from "@/components";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { ChatBubble } from "@/components/ui/ChatBubble";
 import { Icon } from "@/components/ui/Icon";
+import { AppModal } from "@/components/ui/AppModal";
 import { Text } from "@/components/ui/Text";
 import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
 import { theme } from "@/design/theme";
@@ -150,6 +151,7 @@ export default function ChatScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showRecorder, setShowRecorder] = useState(false);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
   const hasHydratedRef = useRef(false);
   const latestMessagesRef = useRef<Message[]>([]);
   const storageKey = `reflection-chat-${sessionId || "local"}`;
@@ -408,18 +410,12 @@ export default function ChatScreen() {
         setMessages(nextMessages);
         setAssistantTyping(false);
       } catch (err) {
+        const errMsg =
+          err instanceof Error ? err.message : "Something went wrong.";
+
         setAssistantTyping(false);
-        const fallbackMessage: Message = {
-          id: `${Date.now()}_error`,
-          text:
-            err instanceof Error
-              ? err.message
-              : "Something went wrong. Can you try again?",
-          from: "assistant",
-          createdAt: new Date().toISOString(),
-        };
-        const nextMessages = [...baseHistory, fallbackMessage];
-        setMessages(nextMessages);
+        setShowQuotaModal(true);
+        // Do not append fallback text; the modal informs the user.
       } finally {
         sendingRef.current = false;
       }
@@ -590,6 +586,14 @@ export default function ChatScreen() {
         onTranscriptReady={handleVoiceSubmit}
         confirmLabel="Send to chat"
         title="Share your thoughts"
+      />
+
+      <AppModal
+        visible={showQuotaModal}
+        variant="custom"
+        onClose={() => setShowQuotaModal(false)}
+        title="AI limit reached"
+        message="We’re limited in how many AI calls we can make. Please try features that don’t require AI for the moment."
       />
     </SafeAreaView>
   );

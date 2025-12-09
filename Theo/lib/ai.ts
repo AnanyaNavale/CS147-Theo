@@ -38,6 +38,7 @@ async function callGeminiForTasks(
     } catch {
       if (fallback) message = `${message} ${fallback}`;
     }
+    console.log(message.trim());
     throw new Error(message.trim());
   }
 
@@ -667,6 +668,23 @@ ${recent
       hasText: Boolean(primary.text),
     });
 
+    if (
+      isQuotaError(primary.text) ||
+      isQuotaError(
+        typeof primary.promptFeedback === "string"
+          ? primary.promptFeedback
+          : undefined
+      )
+    ) {
+      const msg =
+        primary.text ||
+        (typeof primary.promptFeedback === "string"
+          ? primary.promptFeedback
+          : "") ||
+        "You exceeded your current quota";
+      throw new Error(msg);
+    }
+
     const wordCount = (primary.text ?? "").split(/\s+/).filter(Boolean).length;
     const looksIncomplete = primary.text
       ? !/[.!?]"?$/.test(primary.text.trim())
@@ -722,6 +740,23 @@ ${recent
       hasText: Boolean(fallback.text),
     });
 
+    if (
+      isQuotaError(fallback.text) ||
+      isQuotaError(
+        typeof fallback.promptFeedback === "string"
+          ? fallback.promptFeedback
+          : undefined
+      )
+    ) {
+      const msg =
+        fallback.text ||
+        (typeof fallback.promptFeedback === "string"
+          ? fallback.promptFeedback
+          : "") ||
+        "You exceeded your current quota";
+      throw new Error(msg);
+    }
+
     if (fallback.text) {
       return fallback.text;
     }
@@ -730,8 +765,16 @@ ${recent
     return safeFallback;
   } catch (err) {
     console.error("Gemini reflection error", err);
+    if (err instanceof Error && isQuotaError(err.message)) {
+      throw err;
+    }
     return safeFallback;
   }
+}
+
+function isQuotaError(text: string | undefined | null): boolean {
+  if (!text) return false;
+  return text.trim().toLowerCase().includes("you exceeded your current quota");
 }
 
 /**
