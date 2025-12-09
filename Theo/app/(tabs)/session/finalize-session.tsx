@@ -366,7 +366,7 @@ export default function FinalizeSessionScreen() {
               markedDates={{
                 [selectedPlanDate]: {
                   selected: true,
-                  selectedColor: palette.header2,
+                  selectedColor: palette.primary,
                   selectedTextColor: palette.background,
                 },
               }}
@@ -388,7 +388,7 @@ export default function FinalizeSessionScreen() {
             <Spacer size="md" />
             <Button
               label={savingPlan ? "Saving..." : "Save plan"}
-              variant="brown"
+              variant="gold"
               onPress={() => {
                 setShowPlanDateModal(false);
                 handleSavePlan(selectedPlanDate);

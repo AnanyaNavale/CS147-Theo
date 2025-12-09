@@ -119,7 +119,8 @@ function getLabelColor(
   if (v === "outlineGold") return palette.secondary;
   if (v === "ghost") return palette.body;
   if (v === "subtle") return palette.quote ?? palette.inactive ?? palette.body;
-  if (v === "brown") return "#000";
+  if (v === "brown") return palette.background;
+  if (v === "gold") return palette.background;
 
   return palette.body;
 }
