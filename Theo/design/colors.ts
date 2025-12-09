@@ -2,7 +2,7 @@ export const colors = {
   light: {
     // Screen
     background: "#FFFFFF",
-    overlay: "#523622BF",
+    overlay: "#5236223c",
 
     // Text
     body: "#000000",
