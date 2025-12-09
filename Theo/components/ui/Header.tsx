@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { theme } from "../../design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 
 type HeaderProps = {
   title?: string;
@@ -11,12 +12,22 @@ type HeaderProps = {
 };
 
 export function Header({ title, left, right, style, titleStyle }: HeaderProps) {
+  const { colors: palette } = useAppTheme();
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: palette.background },
+        style,
+      ]}
+    >
       <View style={styles.side}>{left}</View>
 
       {title ? (
-        <Text style={[styles.title, titleStyle]} numberOfLines={1}>
+        <Text
+          style={[styles.title, { color: palette.body }, titleStyle]}
+          numberOfLines={1}
+        >
           {title}
         </Text>
       ) : (
@@ -35,13 +46,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.background,
   },
 
   title: {
     fontSize: theme.typography.sizes.lg,
     fontFamily: theme.typography.families.handwritten,
-    color: theme.colors.text,
     flexShrink: 1,
     textAlign: "center",
   },

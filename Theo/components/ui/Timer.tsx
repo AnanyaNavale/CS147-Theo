@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { theme } from "../../design/theme";
 import { Text } from "../ui/Text";
 import { Icon } from "./Icon";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import { Theme } from "@/design/theme";
 
 type TimerProps = {
   secondsLeft: number;
@@ -13,6 +14,8 @@ type TimerProps = {
 type DisplayMode = "countdown" | "working" | "minutes";
 
 export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
   const modes: DisplayMode[] = ["countdown", "working", "minutes"];
   const [modeIndex, setModeIndex] = useState(0);
   const mode = modes[modeIndex];
@@ -64,17 +67,16 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
       <TouchableOpacity
         onPress={() => cycleMode(-1)}
         hitSlop={10}
-        style={styles.carouselButton}
-      >
-        <Icon name="carousel-left" size={16} tint={theme.colors.accentDark} />
-      </TouchableOpacity>
+      style={styles.carouselButton}
+    >
+      <Icon name="carousel-left" size={16} tint={palette.iconsStandalone} />
+    </TouchableOpacity>
 
       <TouchableOpacity style={styles.shell} onPress={() => cycleMode(1)}>
         <Text
           variant="h2"
           weight="bold"
-          color="accentDark"
-          style={{ textAlign: "center" }}
+          style={{ textAlign: "center", color: palette.body }}
         >
           {getLabel()}
         </Text>
@@ -83,34 +85,39 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
       <TouchableOpacity
         onPress={() => cycleMode(1)}
         hitSlop={10}
-        style={styles.carouselButton}
-      >
-        <Icon name="carousel-right" size={16} tint={theme.colors.accentDark} />
-      </TouchableOpacity>
-    </View>
-  );
+      style={styles.carouselButton}
+    >
+      <Icon name="carousel-right" size={16} tint={palette.iconsStandalone} />
+    </TouchableOpacity>
+  </View>
+);
 }
 
-const styles = StyleSheet.create({
-  carousel: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing.sm,
-    alignSelf: "center",
-  },
-  carouselButton: {
-    padding: theme.spacing.xs,
-  },
-  shell: {
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radii.md,
-    minWidth: 180,
-    alignSelf: "center",
-    backgroundColor: theme.solidColors.white,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
-    ...theme.shadow.soft,
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    carousel: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.sm,
+      alignSelf: "center",
+    },
+    carouselButton: {
+      padding: theme.spacing.xs,
+    },
+    shell: {
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.xl,
+      borderRadius: theme.radii.md,
+      minWidth: 180,
+      alignSelf: "center",
+      backgroundColor: palette.background,
+      borderWidth: 2,
+      borderColor: palette.primary,
+      ...theme.shadow.soft,
+    },
+  });
+}

@@ -9,7 +9,8 @@ import {
   View,
 } from "react-native";
 
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { transcribeAudioFile } from "@/lib/voice";
 
 import { BasicButton } from "../BasicButton";
@@ -42,6 +43,8 @@ export function VoiceRecorderModal({
   confirmLabel = "Use transcription",
   title = "Voice input",
 }: VoiceRecorderModalProps) {
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [status, setStatus] = useState<RecorderStatus>("idle");
   const [durationMs, setDurationMs] = useState(0);
@@ -224,8 +227,8 @@ export function VoiceRecorderModal({
               size={20}
               tint={
                 status === "recording"
-                  ? theme.solidColors.white
-                  : theme.colors.text
+                  ? theme.colors.buttonText ?? "#fff"
+                  : theme.colors.body
               }
             />
             <Text
@@ -241,7 +244,7 @@ export function VoiceRecorderModal({
         </View>
 
         {error && (
-          <Text color="danger" style={styles.error}>
+          <Text color="tertiary" style={styles.error}>
             {error}
           </Text>
         )}
@@ -261,10 +264,7 @@ export function VoiceRecorderModal({
             <View style={styles.transcriptHeader}>
               <Text style={styles.transcriptTitle}>Transcript</Text>
               {status === "transcribing" && (
-                <ActivityIndicator
-                  size="small"
-                  color={theme.colors.accentDark}
-                />
+                <ActivityIndicator size="small" color={theme.colors.primary} />
               )}
             </View>
             <ScrollView style={styles.transcriptScroll}>
@@ -291,7 +291,11 @@ export function VoiceRecorderModal({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
   scroller: {
     width: "100%",
   },
@@ -310,28 +314,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: 999,
-    backgroundColor: theme.colors.background,
+    backgroundColor: palette.background,
     borderWidth: 1.5,
-    borderColor: theme.colors.border,
+    borderColor: palette.border,
     gap: theme.spacing.xs,
   },
   pillRecording: {
-    backgroundColor: theme.colors.accentDark,
-    borderColor: theme.colors.accentDark,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
   pillIdle: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: palette.background,
   },
   pillText: {
     fontFamily: theme.typography.families.regular,
-    color: theme.colors.text,
+    color: palette.body,
   },
   pillTextActive: {
-    color: theme.solidColors.white,
+    color: palette.buttonText ?? "#fff",
   },
   timer: {
     fontFamily: theme.typography.families.regular,
-    color: theme.colors.text,
+    color: palette.body,
   },
   controlsRow: {
     width: "100%",
@@ -343,10 +347,10 @@ const styles = StyleSheet.create({
   },
   transcriptBox: {
     borderWidth: 2,
-    borderColor: theme.colors.accentDark,
+    borderColor: palette.primary,
     borderRadius: theme.radii.md,
     padding: theme.spacing.sm,
-    backgroundColor: theme.solidColors.white,
+    backgroundColor: palette.background,
     maxHeight: 220,
   },
   transcriptHeader: {
@@ -358,13 +362,13 @@ const styles = StyleSheet.create({
   transcriptTitle: {
     fontFamily: theme.typography.families.serif,
     fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
+    color: palette.body,
   },
   transcriptScroll: {
     maxHeight: 180,
   },
   transcriptText: {
-    color: theme.colors.text,
+    color: palette.body,
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     lineHeight: theme.typography.sizes.md * 1.4,
@@ -379,5 +383,7 @@ const styles = StyleSheet.create({
   },
   error: {
     textAlign: "center",
+    color: palette.error,
   },
-});
+  });
+}

@@ -3,6 +3,7 @@
 import React, { ReactNode } from "react";
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { theme } from "../../design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 
 type ChatBubbleProps = {
   text: string;
@@ -20,6 +21,7 @@ export function ChatBubble({
   textStyle,
   content,
 }: ChatBubbleProps) {
+  const { colors: palette } = useAppTheme();
   const isUser = from === "user";
 
   return (
@@ -33,7 +35,13 @@ export function ChatBubble({
       <View
         style={[
           styles.base,
-          isUser ? styles.userBubble : styles.assistantBubble,
+          isUser
+            ? {
+                backgroundColor: palette.background,
+                borderWidth: 2,
+                borderColor: palette.primary,
+              }
+            : { backgroundColor: palette.primary },
           style,
         ]}
       >
@@ -90,18 +98,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.lg,
   },
 
-  // USER BUBBLE: white background, brown border
-  userBubble: {
-    backgroundColor: theme.solidColors.white,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
-  },
-
-  // ASSISTANT BUBBLE: solid brown block
-  assistantBubble: {
-    backgroundColor: theme.colors.accentDark,
-  },
-
   // GENERAL TEXT STYLE
   text: {
     fontFamily: theme.typography.families.regular,
@@ -110,14 +106,10 @@ const styles = StyleSheet.create({
   },
 
   // USER TEXT inside white box
-  userText: {
-    color: theme.colors.text,
-  },
+  userText: {},
 
   // ASSISTANT TEXT inside brown box
-  assistantText: {
-    color: theme.solidColors.white,
-  },
+  assistantText: {},
 
   /* Tail circles: common geometry */
   tailBig: {
@@ -133,17 +125,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 
-  // Assistant tail (solid brown)
-  assistantTailCircle: {
-    backgroundColor: theme.colors.accentDark,
-  },
+  // Assistant tail (solid)
+  assistantTailCircle: {},
 
   // User tail (white with brown border)
-  userTailCircle: {
-    backgroundColor: theme.solidColors.white,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
-  },
+  userTailCircle: {},
 
   // Positioning for assistant (left side)
   tailLeftBig: {

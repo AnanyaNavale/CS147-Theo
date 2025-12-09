@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   TextStyle,
@@ -7,7 +7,8 @@ import {
 } from "react-native";
 
 import { Icon } from "@/components/ui/Icon";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import SvgStrokeText from "../SvgStrokeText";
 
 type ArrowActionProps = {
@@ -25,6 +26,9 @@ export function ArrowAction({
   textStyle,
   small,
 }: ArrowActionProps) {
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
+
   return (
     <TouchableOpacity onPress={onPress} style={[styles.container, style]}>
       <SvgStrokeText
@@ -39,30 +43,30 @@ export function ArrowAction({
         style={styles.arrow}
         name="arrow-right"
         size={small ? 50 : 80}
-        tint={theme.colors.accentDark}
+        tint={palette.primary}
       />
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    bottom: 0,
-
-    right: theme.spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: theme.spacing.sm,
-    zIndex: 3,
-    backgroundColor: theme.colors.background,
-    paddingBottom: theme.spacing.xxl,
-  },
-  text: {
-    color: theme.colors.text,
-  },
-  arrow: {
-    marginVertical: -35,
-  },
-});
+const createStyles = (theme: Theme, palette: typeof import("@/assets/themes/colors").colors.light) =>
+  StyleSheet.create({
+    container: {
+      position: "absolute",
+      bottom: 0,
+      right: theme.spacing.lg,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
+      zIndex: 3,
+      backgroundColor: palette.background,
+      paddingBottom: theme.spacing.xxl,
+    },
+    text: {
+      color: palette.body,
+    },
+    arrow: {
+      marginVertical: -35,
+    },
+  });

@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { ArrowAction } from "@/components/ui/ArrowAction";
@@ -11,7 +10,8 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { summarizeReflectionChat } from "@/lib/ai";
 import { fetchSessionById, updateSession } from "@/lib/supabase";
 
@@ -135,10 +135,10 @@ export default function SessionSummaryScreen() {
     const hours = Math.floor(mins / 60);
     const minutes = mins % 60;
     if (hours > 0 && minutes > 0) {
-      return `${hours} hr${hours > 1 ? "s" : ""}, ${minutes} min`;
+      return `${hours} hr., ${minutes} min.`;
     }
-    if (hours > 0) return `${hours} hr${hours > 1 ? "s" : ""}`;
-    return `${minutes} min`;
+    if (hours > 0) return `${hours} hr.`;
+    return `${minutes} min.`;
   };
   const hours = Math.floor(totalSecondsWorked / 3600);
   const minutes = Math.floor((totalSecondsWorked % 3600) / 60);
@@ -152,6 +152,8 @@ export default function SessionSummaryScreen() {
     (!normalizedStatusParam && !sessionSkipped);
   const statusLabel =
     sessionSkipped || !sessionEnded ? "Incomplete" : "Complete";
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   useEffect(() => {
     let isMounted = true;
@@ -257,7 +259,9 @@ export default function SessionSummaryScreen() {
             Time allocated:
           </Text>
           <Text style={styles.value}>
-            {formatMinutes(totalMinutesAllocated)}
+            {Number(formatMinutes(totalMinutesAllocated)) > 0
+              ? formatMinutes(totalMinutesAllocated)
+              : "20 min."}
           </Text>
         </View>
         <View style={styles.row}>
@@ -265,8 +269,8 @@ export default function SessionSummaryScreen() {
             Time spent:
           </Text>
           <Text style={styles.value}>
-            {hours > 0 ? `${hours} hr${hours > 1 ? "s" : ""}, ` : ""}
-            {minutes} min
+            {hours > 0 ? `${hours} hr.,` : ""}
+            {minutes} min.
           </Text>
         </View>
 
@@ -298,7 +302,7 @@ export default function SessionSummaryScreen() {
                             : task.timeSeconds ?? task.minutes * 60) / 60
                         )
                       )}{" "}
-                      min)
+                      min.)
                     </Text>
                   </Text>
                 </View>
@@ -340,98 +344,115 @@ export default function SessionSummaryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  container: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-  },
-  centered: {
-    alignItems: "center",
-  },
-  title: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.xl,
-    color: theme.colors.text,
-  },
-  loaderContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    margin: theme.spacing.xs,
-  },
-  label: {
-    //fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-    marginRight: 5,
-  },
-  value: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-  },
-  statusValue: {
-    color: colors.light.secondary,
-    fontFamily: fonts.typeface.bodyBold,
-  },
-  statusValueSkipped: {
-    color: colors.light.primary,
-    fontFamily: fonts.typeface.bodyBold,
-  },
-  sectionHeading: {
-    //fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.text,
-  },
-  breakdownList: {
-    gap: theme.spacing.sm,
-  },
-  taskRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: theme.spacing.sm,
-    marginLeft: theme.spacing.md,
-  },
-  taskTextWrap: {
-    flex: 1,
-    flexDirection: "row",
-    //flexWrap: "wrap",
-    alignItems: "flex-end",
-  },
-  taskText: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-    marginRight: theme.spacing.sm,
-    paddingLeft: theme.spacing.sm,
-  },
-  taskMinutes: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.accentDark,
-  },
-  checkboxContainer: {
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-  },
-  checkBox: {
-    marginTop: theme.spacing.xs / 2,
-  },
-  arrowInline: {
-    position: "relative",
-    right: undefined,
-    bottom: undefined,
-    marginTop: theme.spacing.lg,
-    alignSelf: "flex-start",
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    container: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.xl,
+    },
+    centered: {
+      alignItems: "center",
+    },
+    title: {
+      textAlign: "center",
+      fontFamily: theme.typography.families.handwritten,
+      fontSize: theme.typography.sizes.xl,
+      color: theme.colors.header1,
+    },
+    loaderContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    row: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      margin: theme.spacing.xs,
+    },
+    label: {
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+      marginRight: 5,
+    },
+    value: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+    },
+    statusValue: {
+      color: palette.secondary,
+      fontFamily: fonts.typeface.bodyBold,
+    },
+    statusValueSkipped: {
+      color: palette.primary,
+      fontFamily: fonts.typeface.bodyBold,
+    },
+    sectionHeading: {
+      fontSize: theme.typography.sizes.lg,
+      color: theme.colors.header1,
+    },
+    breakdownList: {
+      gap: theme.spacing.sm,
+    },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: theme.spacing.sm,
+      marginLeft: theme.spacing.md,
+    },
+    taskTextWrap: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "flex-end",
+    },
+    taskText: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+      marginRight: theme.spacing.sm,
+      paddingLeft: theme.spacing.sm,
+    },
+    taskMinutes: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+    },
+    faded: {
+      opacity: 0.55,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.md,
+    },
+    summaryItem: {
+      flex: 1,
+      backgroundColor: palette.background,
+      borderRadius: theme.radii.lg,
+      padding: theme.spacing.md,
+      ...theme.shadow.soft,
+    },
+    checkboxContainer: {
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+    },
+    checkBox: {
+      marginTop: theme.spacing.xs / 2,
+    },
+    arrowInline: {
+      position: "relative",
+      right: undefined,
+      bottom: undefined,
+      marginTop: theme.spacing.lg,
+      alignSelf: "flex-start",
+    },
+  });
+}

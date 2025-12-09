@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -17,7 +17,8 @@ import { Container } from "@/components/ui/Container";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { signInWithEmail } from "@/lib/supabase";
 
 const logo = require("@/assets/images/logo.png");
@@ -27,6 +28,7 @@ const TEST_PASSWORD = "testtest";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { colors: palette, theme } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +75,8 @@ export default function LoginScreen() {
     await performLogin({ email: TEST_EMAIL, password: TEST_PASSWORD });
   };
 
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
+
   return (
     <Container padded={false} style={styles.safe}>
       <KeyboardAvoidingView
@@ -118,7 +122,7 @@ export default function LoginScreen() {
                   <Feather
                     name={showPassword ? "eye-off" : "eye"}
                     size={20}
-                    color={theme.colors.accentDark}
+                    color={palette.primary}
                   />
                 </TouchableOpacity>
               }
@@ -126,7 +130,7 @@ export default function LoginScreen() {
           </View>
 
           {error && (
-            <Text color="danger" style={styles.errorText}>
+            <Text color="tertiary" style={styles.errorText}>
               {error}
             </Text>
           )}
@@ -175,104 +179,113 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: theme.spacing.xl,
-    paddingBottom: theme.spacing.xl,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hero: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.xl,
-  },
-  logo: {
-    width: 120,
-    height: 52,
-    resizeMode: "contain",
-  },
-  teddy: {
-    width: 140,
-    height: 150,
-    marginLeft: 20,
-    resizeMode: "contain",
-  },
-  title: {
-    color: theme.colors.text,
-    marginTop: theme.spacing.sm,
-  },
-  form: {
-    width: "100%",
-    marginTop: theme.spacing.md,
-  },
-  errorText: {
-    width: "100%",
-    marginTop: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
-  sessionButton: {
-    marginTop: theme.spacing.lg,
-  },
-  sessionButtonLabel: {
-    fontFamily: theme.typography.families.medium,
-    letterSpacing: 0.4,
-  },
-  linkRow: {
-    alignItems: "center",
-    marginTop: theme.spacing.lg,
-  },
-  linkPrompt: {
-    color: theme.solidColors.textSecondary,
-    fontFamily: theme.typography.families.regular,
-  },
-  linkAction: {
-    color: theme.solidColors.accentDark,
-    fontFamily: theme.typography.families.bold,
-    marginTop: 4,
-    textDecorationLine: "underline",
-  },
-  testAccountButton: {
-    alignItems: "center",
-    marginTop: theme.spacing.md,
-  },
-  testAccountText: {
-    color: theme.solidColors.accentDark,
-    fontFamily: theme.typography.families.bold,
-    textDecorationLine: "underline",
-  },
-  testAccountHint: {
-    marginTop: 4,
-    color: theme.solidColors.textSecondary,
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.sm,
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingCard: {
-    backgroundColor: "#fff",
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radii.lg,
-    ...theme.shadow.medium,
-  },
-  loadingText: {
-    fontFamily: theme.typography.families.bold,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    scroll: {
+      flexGrow: 1,
+      paddingHorizontal: theme.spacing.xl,
+      paddingBottom: theme.spacing.xl,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    hero: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: theme.spacing.md,
+      marginBottom: theme.spacing.xl,
+    },
+    logo: {
+      width: 120,
+      height: 52,
+      resizeMode: "contain",
+    },
+    teddy: {
+      width: 140,
+      height: 150,
+      marginLeft: 20,
+      resizeMode: "contain",
+    },
+    title: {
+      color: palette.header1,
+      marginTop: theme.spacing.sm,
+    },
+    form: {
+      width: "100%",
+      marginTop: theme.spacing.md,
+    },
+    errorText: {
+      width: "100%",
+      marginTop: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
+    },
+    sessionButton: {
+      marginTop: theme.spacing.lg,
+    },
+    sessionButtonLabel: {
+      fontFamily: theme.typography.families.medium,
+      letterSpacing: 0.4,
+    },
+    linkRow: {
+      alignItems: "center",
+      marginTop: theme.spacing.lg,
+    },
+    linkPrompt: {
+      color: palette.quote ?? palette.inactive ?? palette.body,
+      fontFamily: theme.typography.families.regular,
+    },
+    linkAction: {
+      color: palette.header2 ?? palette.primary,
+      fontFamily: theme.typography.families.bold,
+      marginTop: 4,
+      textDecorationLine: "underline",
+    },
+    testAccountButton: {
+      alignItems: "center",
+      marginTop: theme.spacing.md,
+    },
+    testAccountText: {
+      color: palette.header2 ?? palette.primary,
+      fontFamily: theme.typography.families.bold,
+      textDecorationLine: "underline",
+    },
+    testAccountHint: {
+      marginTop: 4,
+      color: palette.quote ?? palette.inactive ?? palette.body,
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.sm,
+    },
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingCard: {
+      backgroundColor: palette.background,
+      paddingVertical: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.xl,
+      borderRadius: theme.radii.lg,
+      ...theme.shadow.medium,
+      borderColor: palette.border,
+      borderWidth: 1,
+      width: "80%",
+      alignItems: "center",
+    },
+    loadingText: {
+      fontFamily: theme.typography.families.bold,
+      fontSize: theme.typography.sizes.md,
+      color: palette.header1 ?? palette.body,
+    },
+  });
+}

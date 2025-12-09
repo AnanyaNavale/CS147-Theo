@@ -1,15 +1,15 @@
+import { Icon } from "@/components/ui/Icon";
+import { Text } from "@/components/ui/Text";
+import { theme } from "@/design/theme";
 import React, { useRef, useState } from "react";
 import {
-  View,
-  Pressable,
   Modal,
+  Pressable,
   StyleSheet,
   TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from "react-native";
-import { useWindowDimensions } from "react-native";
-import { Text } from "@/components/ui/Text";
-import { Icon } from "@/components/ui/Icon";
-import { theme } from "@/design/theme";
 
 type MenuOption = {
   label: string;
@@ -102,9 +102,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 120,
     right: 20,
-    backgroundColor: theme.solidColors.white,
+    backgroundColor: theme.colors.background,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     borderRadius: theme.radii.md,
     overflow: "hidden",
   },
@@ -112,11 +112,11 @@ const styles = StyleSheet.create({
   option: {
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.solidColors.white,
+    backgroundColor: theme.colors.background,
   },
 
   optionBorder: {
     borderBottomWidth: 2,
-    borderBottomColor: theme.colors.accent,
+    borderBottomColor: theme.colors.primary,
   },
 });

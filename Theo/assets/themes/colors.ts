@@ -72,15 +72,18 @@ export const colors = {
     navBar: "#B28F6D",
 
     progressBarComplete: "#E8DCCF",
+    progressBarIncomplete: "#8A5E3C",
     progressbarIncomplete: "#8A5E3C",
 
     inputLabel: "#CFBEAD",
     inputPlaceholder: "#C9C9C9",
     error: "#B35454",
+    quote: "#C9C9C9",
 
     // TODO
     chatbot: "#000000",
     user: "#FFFFFF",
+    buttonText: "#1B1714",
 
     // Buttons
     primary: "#B28F6D",
@@ -97,9 +100,24 @@ export const colors = {
     shadowPrimary: "#8A5E3C80",
     shadowSecondary: "#CF984180",
     shadowTertiary: "#7C303080",
+    shadowInactive: "#C9C9C980",
 
     // Boxes
     border: "#EBC59E",
+
+    // Separator
+    separator: "#3A2F28",
+
+    // List
+    listPlaceholder: "#C9C9C9",
+
+    // Archive
+    month: "#E8DCCF",
+    markedDates: "#CF9841",
+
+    iconsStandalone: "#CFBEAD",
+    notificationInactive: "#CFBEADBF",
+    notificationActive: "#B35454",
   },
   // TODO: Add more palettes
   //   firelight: {},

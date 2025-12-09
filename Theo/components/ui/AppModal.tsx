@@ -1,5 +1,6 @@
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { BlurView } from "expo-blur";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -8,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { theme } from "../../design/theme";
+import { Theme } from "../../design/theme";
 import SvgStrokeText from "../SvgStrokeText";
 import { Button, ButtonVariant } from "./Button";
 import { Icon } from "./Icon";
@@ -44,7 +45,7 @@ export function AppModal({
   title,
   message,
   confirmLabel = "Confirm",
-  confirmVariant = "danger" as ButtonVariant,
+  confirmVariant = "tertiary" as ButtonVariant,
   cancelLabel = "Cancel",
   cancelVariant = "ghost" as ButtonVariant,
   onConfirm,
@@ -52,10 +53,12 @@ export function AppModal({
   showClose = true,
   children,
 }: AppModalProps) {
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
   return (
     <Modal transparent visible={visible} animationType="fade">
       {/* BLUR BACKGROUND */}
-      <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={20} style={StyleSheet.absoluteFill} />
 
       {/* --------------------------- ALERT MODAL --------------------------- */}
       {variant === "alert" && (
@@ -154,116 +157,123 @@ export function AppModal({
 /*                                STYLES                                */
 /* ===================================================================== */
 
-const styles = StyleSheet.create({
-  centerLayout: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.spacing.lg,
-  },
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    centerLayout: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: theme.spacing.lg,
+    },
 
-  /* ---------------------- ALERT ---------------------- */
+    /* ---------------------- ALERT ---------------------- */
 
-  alertCard: {
-    width: "95%",
-    backgroundColor: theme.modal.cardBg,
-    padding: theme.spacing.lg,
-    borderRadius: theme.modal.radius,
-    borderWidth: theme.modal.borderWidth,
-    borderColor: theme.modal.borderColor,
-  },
+    alertCard: {
+      width: "95%",
+      backgroundColor: theme.modal.cardBg,
+      padding: theme.spacing.lg,
+      borderRadius: theme.modal.radius,
+      borderWidth: theme.modal.borderWidth,
+      borderColor: theme.modal.borderColor,
+    },
 
-  title: {
-    //fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.xl,
-    textAlign: "center",
-    color: theme.colors.text,
-  },
+    title: {
+      fontSize: theme.typography.sizes.xl,
+      textAlign: "center",
+      color: palette.body,
+    },
 
-  message: {
-    marginTop: theme.spacing.sm,
-    fontSize: theme.typography.sizes.md,
-    textAlign: "center",
-    color: theme.colors.mutedText,
-  },
+    message: {
+      marginTop: theme.spacing.sm,
+      fontSize: theme.typography.sizes.md,
+      textAlign: "center",
+      color: palette.quote ?? palette.inactive ?? palette.body,
+    },
 
-  row: {
-    flexDirection: "row",
-    marginTop: theme.spacing.lg,
-    alignItems: "center",
-  },
+    row: {
+      flexDirection: "row",
+      marginTop: theme.spacing.lg,
+      alignItems: "center",
+    },
 
-  flexButton: { flex: 1 },
-  buttonLeft: { marginRight: theme.spacing.sm },
-  buttonRight: { marginLeft: theme.spacing.sm },
-  fullWidthButton: { width: "100%" },
+    flexButton: { flex: 1 },
+    buttonLeft: { marginRight: theme.spacing.sm },
+    buttonRight: { marginLeft: theme.spacing.sm },
+    fullWidthButton: { width: "100%" },
 
-  /* ---------------------- CUSTOM ---------------------- */
+    /* ---------------------- CUSTOM ---------------------- */
 
-  customCard: {
-    width: "85%",
-    backgroundColor: theme.modal.cardBg,
-    borderRadius: theme.modal.radius,
-    borderWidth: theme.modal.borderWidth,
-    borderColor: theme.modal.borderColor,
-    padding: theme.spacing.lg,
-  },
+    customCard: {
+      width: "85%",
+      backgroundColor: theme.modal.cardBg,
+      borderRadius: theme.modal.radius,
+      borderWidth: theme.modal.borderWidth,
+      borderColor: theme.modal.borderColor,
+      padding: theme.spacing.lg,
+    },
 
-  closeBtnFloating: {
-    position: "absolute",
-    right: -12,
-    top: -theme.spacing.lg,
-  },
+    closeBtnFloating: {
+      position: "absolute",
+      right: -12,
+      top: -theme.spacing.lg,
+    },
 
-  customContent: {
-    width: "100%",
-    marginTop: theme.spacing.md,
-  },
+    customContent: {
+      width: "100%",
+      marginTop: theme.spacing.md,
+    },
 
-  /* ---------------------- BOTTOM SHEET ---------------------- */
+    /* ---------------------- BOTTOM SHEET ---------------------- */
 
-  bottomSheetOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
+    bottomSheetOverlay: {
+      flex: 1,
+      justifyContent: "flex-end",
+      backgroundColor: palette.overlay,
+    },
 
-  bottomSheetAvoider: {
-    width: "100%",
-  },
+    bottomSheetAvoider: {
+      width: "100%",
+    },
 
-  bottomSheet: {
-    width: "100%",
-    backgroundColor: theme.modal.cardBg,
-    borderTopLeftRadius: theme.radii.xl,
-    borderTopRightRadius: theme.radii.xl,
-    paddingTop: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-    shadowColor: theme.colors.accentDark,
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: -6 },
-    elevation: 10,
-  },
+    bottomSheet: {
+      width: "100%",
+      backgroundColor: theme.modal.cardBg,
+      borderTopLeftRadius: theme.radii.xl,
+      borderTopRightRadius: theme.radii.xl,
+      paddingTop: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
+      shadowColor: palette.primary,
+      shadowOpacity: 0.5,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: -6 },
+      elevation: 10,
+      borderWidth: theme.modal.borderWidth,
+      borderColor: theme.modal.borderColor,
+    },
 
-  closeBtnSheet: {
-    position: "absolute",
-    top: theme.spacing.lg,
-    right: theme.spacing.lg,
-    zIndex: 20,
-  },
+    closeBtnSheet: {
+      position: "absolute",
+      top: theme.spacing.lg,
+      right: theme.spacing.lg,
+      zIndex: 20,
+    },
 
-  sheetTitle: {
-    textAlign: "center",
-    paddingHorizontal: theme.spacing.lg,
-    fontSize: theme.typography.sizes.xl,
-    marginBottom: theme.spacing.md,
-    color: theme.colors.text,
-  },
+    sheetTitle: {
+      textAlign: "center",
+      paddingHorizontal: theme.spacing.lg,
+      fontSize: theme.typography.sizes.xl,
+      marginBottom: theme.spacing.md,
+      color: palette.body,
+    },
 
-  sheetContent: {
-    width: "100%",
-    paddingBottom: theme.spacing.xxl,
-    gap: theme.spacing.md,
-  },
-});
+    sheetContent: {
+      width: "100%",
+      paddingBottom: theme.spacing.xxl,
+      gap: theme.spacing.md,
+    },
+  });
+}

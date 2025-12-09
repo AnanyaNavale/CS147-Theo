@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Image,
   StyleSheet,
@@ -13,7 +13,6 @@ import DraggableFlatList, {
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
@@ -27,7 +26,8 @@ import { PawLoader } from "@/components/ui/PawLoader";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { generateTasksWithAI } from "@/lib/ai";
 
 type Task = {
@@ -103,6 +103,7 @@ export default function SessionBreakdownScreen() {
   const [editMinutes, setEditMinutes] = useState("");
   const [editMinutesError, setEditMinutesError] = useState("");
 
+  const { colors: palette, theme } = useAppTheme();
   const { width, height } = useWindowDimensions();
   const isCompact = width < 360 || height < 720;
   const baseTeddySize = isCompact ? 170 : 220;
@@ -114,6 +115,7 @@ export default function SessionBreakdownScreen() {
   );
   const maxTeddyHeight = Math.max(140, height * 0.35);
   const teddySize = Math.min(baseTeddySize, maxTeddyWidth, maxTeddyHeight);
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
 
   function openEditModal(task: Task) {
     setEditingTask(task);
@@ -333,7 +335,7 @@ export default function SessionBreakdownScreen() {
                 }
               }}
             >
-              <Icon name="pencil" size={22} tint={theme.solidColors.white} />
+              <Icon name="pencil" size={22} tint={theme.colors.background} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -343,7 +345,7 @@ export default function SessionBreakdownScreen() {
                 requestDeleteTask(item.id);
               }}
             >
-              <Icon name="trash" size={22} tint={theme.solidColors.white} />
+              <Icon name="trash" size={22} tint={theme.colors.background} />
             </TouchableOpacity>
           </View>
         )}
@@ -404,7 +406,7 @@ export default function SessionBreakdownScreen() {
       {/* GOAL ROW */}
 
       <View style={styles.goalRow}>
-        <Text variant="h1" color="accentDark" style={styles.goalLabel}>
+        <Text variant="h1" color="header2" style={styles.goalLabel}>
           Goal:
         </Text>
 
@@ -448,10 +450,10 @@ export default function SessionBreakdownScreen() {
         <SvgStrokeText
           text={"Tasks: "}
           textStyle={{
-            color: colors.light.header2,
+            color: palette.header2,
             fontSize: fonts.sizes.header2,
           }}
-          stroke={colors.light.header2}
+          stroke={palette.header2}
           containerStyle={{
             //alignSelf: "flex-start",
             marginLeft: theme.spacing.sm + 4,
@@ -486,19 +488,19 @@ export default function SessionBreakdownScreen() {
                 />
 
                 {aiError && (
-                  <Text color="danger" style={styles.aiStatus}>
+                  <Text color="tertiary" style={styles.aiStatus}>
                     {aiError}
                   </Text>
                 )}
 
                 {persistError && (
-                  <Text color="danger" style={styles.aiStatus}>
+                  <Text color="tertiary" style={styles.aiStatus}>
                     {persistError}
                   </Text>
                 )}
 
                 {(isGenerating || persisting) && (
-                  <Text color="accentDark" style={styles.aiStatus}>
+                  <Text color="header2" style={styles.aiStatus}>
                     {isGenerating ? "Generating tasks..." : "Saving tasks..."}
                   </Text>
                 )}
@@ -519,7 +521,7 @@ export default function SessionBreakdownScreen() {
       </View>
 
       {tasks.length > 0 && persistError && (
-        <Text color="danger" style={styles.aiStatus}>
+        <Text color="tertiary" style={styles.aiStatus}>
           {persistError}
         </Text>
       )}
@@ -546,7 +548,7 @@ export default function SessionBreakdownScreen() {
                 onPress={() => setShowAddModal(true)}
                 style={[styles.actionCircle, styles.actionCircleNeutral]}
               >
-                <Icon name="plus" size={40} tint={theme.solidColors.white} />
+                <Icon name="plus" size={40} tint={theme.colors.background} />
               </TouchableOpacity>
               <Text variant="small" weight="bold" style={styles.actionLabel}>
                 Add task
@@ -559,7 +561,7 @@ export default function SessionBreakdownScreen() {
                 onPress={() => setShowRegenerateConfirm(true)}
                 style={[styles.actionCircle, styles.actionCircleGold]}
               >
-                <Icon name="refresh" size={35} tint={theme.solidColors.white} />
+                <Icon name="refresh" size={35} tint={theme.colors.background} />
               </TouchableOpacity>
               <Text
                 variant="small"
@@ -574,14 +576,17 @@ export default function SessionBreakdownScreen() {
             <View style={styles.actionItem}>
               <TouchableOpacity
                 onPress={requestDeleteAll}
-                style={[styles.actionCircle, styles.actionCircleDanger]}
+                style={[styles.actionCircle, styles.actionCircletertiary]}
               >
-                <Icon name="trash" size={35} tint={theme.solidColors.white} />
+                <Icon name="trash" size={35} tint={theme.colors.background} />
               </TouchableOpacity>
               <Text
                 variant="small"
                 weight="bold"
-                style={[styles.actionLabel, { color: theme.colors.danger }]}
+                style={[
+                  styles.actionLabel,
+                  { color: palette.error ?? palette.tertiary ?? "#7C3030" },
+                ]}
               >
                 Delete all
               </Text>
@@ -638,7 +643,7 @@ export default function SessionBreakdownScreen() {
           <View style={styles.editButton}>
             <Button
               label="Delete Task"
-              variant="danger"
+              variant="tertiary"
               onPress={() => {
                 if (editingTask) {
                   requestDeleteTask(editingTask.id);
@@ -763,7 +768,7 @@ export default function SessionBreakdownScreen() {
                 !canAdd && { opacity: 0.4 },
               ]}
             >
-              <Icon name="plus" size={40} tint={theme.solidColors.white} />
+              <Icon name="plus" size={40} tint={theme.colors.background} />
             </TouchableOpacity>
           );
         })()}
@@ -849,266 +854,271 @@ export default function SessionBreakdownScreen() {
 }
 
 /* STYLES */
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  prompt: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.xl,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    prompt: {
+      textAlign: "center",
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.xl,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
 
-  headerProgress: {
-    flex: 1,
-    marginHorizontal: theme.spacing.lg,
-    paddingHorizontal: 0,
-  },
+    headerProgress: {
+      flex: 1,
+      marginHorizontal: theme.spacing.lg,
+      paddingHorizontal: 0,
+    },
 
-  goalRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    flexWrap: "wrap",
-  },
+    goalRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.lg,
+      flexWrap: "wrap",
+    },
 
-  goalLabel: {
-    marginRight: theme.spacing.xs,
-  },
+    goalLabel: {
+      marginRight: theme.spacing.xs,
+    },
 
-  goalValue: {
-    flexShrink: 1,
-  },
-  goalInputWrapper: {
-    flex: 1,
-    marginLeft: theme.spacing.sm,
-    justifyContent: "center",
-  },
-  goalInputContainer: {
-    marginBottom: 0,
-    paddingBottom: 0,
-  },
-  goalInput: {
-    textAlignVertical: "center",
-    paddingRight: theme.spacing.md,
-  },
+    goalValue: {
+      flexShrink: 1,
+    },
+    goalInputWrapper: {
+      flex: 1,
+      marginLeft: theme.spacing.sm,
+      justifyContent: "center",
+    },
+    goalInputContainer: {
+      marginBottom: 0,
+      paddingBottom: 0,
+    },
+    goalInput: {
+      textAlignVertical: "center",
+      paddingRight: theme.spacing.md,
+    },
 
-  taskHeader: {
-    paddingLeft: theme.spacing.lg,
-  },
+    taskHeader: {
+      paddingLeft: theme.spacing.lg,
+    },
 
-  goalText: {
-    textAlign: "left",
-    paddingHorizontal: theme.spacing.md,
-    lineHeight: 28,
-  },
+    goalText: {
+      textAlign: "left",
+      paddingHorizontal: theme.spacing.md,
+      lineHeight: 28,
+    },
 
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-  },
+    listContainer: {
+      flex: 1,
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.md,
+    },
 
-  taskRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
-  },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+      paddingHorizontal: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+    },
 
-  taskIndexCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
-    alignItems: "center",
-    marginRight: theme.spacing.md,
-  },
+    taskIndexCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor: palette.primary,
+      alignItems: "center",
+      marginRight: theme.spacing.md,
+    },
 
-  goldText: {
-    color: theme.colors.accent,
-  },
-  taskIndexText: {
-    color: theme.colors.accentDark,
-  },
+    goldText: {
+      color: palette.secondary,
+    },
+    taskIndexText: {
+      color: palette.primary,
+    },
 
-  bottomBar: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
-    backgroundColor: theme.colors.background,
-    shadowColor: theme.colors.accentDark,
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: -6 },
-    elevation: 8,
-  },
+    bottomBar: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.lg,
+      backgroundColor: palette.background,
+      shadowColor: palette.primary,
+      shadowOpacity: 0.12,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: -6 },
+      elevation: 8,
+    },
 
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingBottom: theme.spacing.xxl,
-  },
+    actionsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingBottom: theme.spacing.xxl,
+    },
 
-  actionItem: {
-    flex: 1,
-    alignItems: "center",
-  },
+    actionItem: {
+      flex: 1,
+      alignItems: "center",
+    },
 
-  actionCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    ...theme.shadow.medium,
-  },
+    actionCircle: {
+      width: 70,
+      height: 70,
+      borderRadius: 40,
+      alignItems: "center",
+      justifyContent: "center",
+      ...theme.shadow.medium,
+    },
 
-  actionCircleNeutral: {
-    backgroundColor: theme.colors.accentDark,
-  },
+    actionCircleNeutral: {
+      backgroundColor: palette.primary,
+    },
 
-  actionCircleGold: {
-    backgroundColor: theme.colors.accent,
-  },
+    actionCircleGold: {
+      backgroundColor: palette.secondary,
+    },
 
-  actionCircleDanger: {
-    backgroundColor: theme.colors.danger,
-  },
+    actionCircletertiary: {
+      backgroundColor: palette.error ?? palette.tertiary ?? "#7C3030",
+    },
 
-  actionLabel: {
-    marginTop: theme.spacing.sm,
-    color: theme.colors.accentDark,
-    textAlign: "center",
-  },
+    actionLabel: {
+      marginTop: theme.spacing.sm,
+      color: palette.primary,
+      textAlign: "center",
+    },
 
-  continueRow: {
-    position: "absolute",
-    bottom: theme.spacing.lg,
-    right: theme.spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: theme.spacing.md,
-  },
+    continueRow: {
+      position: "absolute",
+      bottom: theme.spacing.lg,
+      right: theme.spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: theme.spacing.md,
+    },
 
-  continueText: {
-    color: theme.colors.text,
-  },
+    continueText: {
+      color: palette.body,
+    },
 
-  continueArrow: {
-    marginVertical: -35,
-  },
-  aiStatus: {
-    marginTop: theme.spacing.sm,
-    textAlign: "center",
-  },
+    continueArrow: {
+      marginVertical: -35,
+    },
+    aiStatus: {
+      marginTop: theme.spacing.sm,
+      textAlign: "center",
+    },
 
-  primaryActionButton: {
-    alignSelf: "center",
-  },
+    primaryActionButton: {
+      alignSelf: "center",
+    },
 
-  bottomButton: {
-    alignSelf: "center",
-    position: "absolute",
-    bottom: theme.spacing.xl * 2,
-  },
+    bottomButton: {
+      alignSelf: "center",
+      position: "absolute",
+      bottom: theme.spacing.xl * 2,
+    },
 
-  swipeActions: {
-    flexDirection: "row",
-    alignSelf: "stretch",
-    marginBottom: theme.spacing.md,
-    borderRadius: theme.radii.lg,
-    overflow: "hidden",
-  },
+    swipeActions: {
+      flexDirection: "row",
+      alignSelf: "stretch",
+      marginBottom: theme.spacing.md,
+      borderRadius: theme.radii.lg,
+      overflow: "hidden",
+    },
 
-  swipeAction: {
-    width: 72,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    swipeAction: {
+      width: 72,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  swipeEdit: {
-    backgroundColor: theme.colors.accent,
-  },
+    swipeEdit: {
+      backgroundColor: palette.secondary,
+    },
 
-  swipeDelete: {
-    backgroundColor: theme.colors.danger,
-  },
+    swipeDelete: {
+      backgroundColor: palette.error ?? palette.tertiary ?? "#7C3030",
+    },
 
-  editButtonRow: {
-    flexDirection: "row",
-    gap: theme.spacing.md,
-    width: "100%",
-  },
+    editButtonRow: {
+      flexDirection: "row",
+      gap: theme.spacing.md,
+      width: "100%",
+    },
 
-  editButton: {
-    flex: 1,
-  },
-  smallActionCircle: {
-    alignSelf: "flex-end",
-    width: 50,
-    height: 50,
-  },
+    editButton: {
+      flex: 1,
+    },
+    smallActionCircle: {
+      alignSelf: "flex-end",
+      width: 50,
+      height: 50,
+    },
 
-  taskModalContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-  },
-  modalHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.md,
-  },
-  modalTitle: {
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.text,
-  },
-  closeGlyph: {
-    fontSize: 28,
-    color: theme.colors.accentDark,
-    fontFamily: theme.typography.families.serif,
-  },
-  modalField: {
-    gap: theme.spacing.xs,
-  },
-  rowField: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  modalLabel: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.accentDark,
-  },
-  teddy: {
-    position: "absolute",
-    left: theme.spacing.sm,
-    bottom: theme.spacing.xl,
-    resizeMode: "contain",
-    zIndex: -1,
-  },
-  loaderOverlay: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: theme.solidColors.white,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: theme.spacing.lg,
-  },
-});
+    taskModalContent: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
+    },
+    modalHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: theme.spacing.md,
+    },
+    modalTitle: {
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.lg,
+      color: palette.body,
+    },
+    closeGlyph: {
+      fontSize: 28,
+      color: palette.primary,
+      fontFamily: theme.typography.families.serif,
+    },
+    modalField: {
+      gap: theme.spacing.xs,
+    },
+    rowField: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    modalLabel: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: palette.primary,
+    },
+    teddy: {
+      position: "absolute",
+      left: theme.spacing.sm,
+      bottom: theme.spacing.xl,
+      resizeMode: "contain",
+      zIndex: -1,
+    },
+    loaderOverlay: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      backgroundColor: palette.background,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: theme.spacing.lg,
+    },
+  });
+}

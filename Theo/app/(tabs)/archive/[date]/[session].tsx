@@ -1,10 +1,11 @@
-import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import { Checkbox, Spacer } from "@/components";
+import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { AppModal } from "@/components/ui/AppModal";
-import { BasicButton } from "@/components/BasicButton";
-import { theme } from "@/design/theme";
+import { Text } from "@/components/ui/Text";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import {
   fetchSessionById,
   fetchTasksForSession,
@@ -13,9 +14,8 @@ import {
 import { Task, WorkSession } from "@/types/database.types";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Text } from "@/components/ui/Text";
 
 export default function SingleSessionScreen() {
   const router = useRouter();
@@ -40,6 +40,8 @@ export default function SingleSessionScreen() {
   const [showResumeConfirm, setShowResumeConfirm] = useState(false);
   const [starting, setStarting] = useState(false);
   const [resuming, setResuming] = useState(false);
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   const [year, month, day] = date.split("-").map(Number);
   const dateObj = new Date(year, month - 1, day); // month is 0-based
@@ -205,7 +207,7 @@ export default function SingleSessionScreen() {
           <Feather
             name={"arrow-left"}
             size={36}
-            color={colors.light.iconsStandalone}
+            color={palette.iconsStandalone}
           />
         </TouchableOpacity>
         <View style={styles.header}>
@@ -241,8 +243,8 @@ export default function SingleSessionScreen() {
               styles.value,
               { fontFamily: fonts.typeface.bodyBold },
               sessionData.status === "complete"
-                ? { color: colors.light.secondary } // or your theme color for complete
-                : { color: colors.light.primary },
+                ? { color: palette.secondary } // or your theme color for complete
+                : { color: palette.primary },
             ]}
           >
             {sessionData.status.charAt(0).toUpperCase() +
@@ -373,7 +375,7 @@ export default function SingleSessionScreen() {
                   style={[
                     styles.sectionResponse,
                     {
-                      color: colors.light.header2,
+                      color: palette.header2,
                       fontFamily: fonts.typeface.bodyBold,
                     },
                   ]}
@@ -411,167 +413,138 @@ export default function SingleSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    borderColor: "red",
-    // borderWidth: 1,
-    backgroundColor: colors.light.background,
-  },
-  headerContainer: {
-    height: 130,
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-    justifyContent: "flex-end",
-    backgroundColor: colors.light.background,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 }, // subtle bottom shadow
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 2,
-  },
-  backButton: {
-    position: "absolute",
-    left: 16,
-    top: 80,
-    zIndex: 2,
-    backgroundColor: colors.light.background,
-  },
-  header: {
-    position: "absolute",
-    top: 83,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 1,
-    width: "100%",
-    backgroundColor: colors.light.background,
-  },
-  shadow: {
-    height: 4,
-    backgroundColor: "transparent",
-    shadowColor: colors.light.shadowPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-    marginBottom: 5,
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    margin: theme.spacing.xs,
-    marginHorizontal: theme.spacing.lg,
-  },
-  label: {
-    //fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-    marginRight: 5,
-  },
-  value: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-  },
-  scrollContent: {
-    paddingBottom: theme.spacing.xxl * 2,
-  },
-  statusValue: {
-    color: colors.light.secondary,
-    fontFamily: fonts.typeface.bodyBold,
-  },
-  statusValueSkipped: {
-    color: colors.light.primary,
-    fontFamily: fonts.typeface.bodyBold,
-  },
-  sectionHeading: {
-    //fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.text,
-  },
-  breakdownList: {
-    gap: theme.spacing.sm,
-    //paddingHorizontal: 20,
-  },
-  taskRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: theme.spacing.sm,
-    marginLeft: theme.spacing.md,
-  },
-  taskTextWrap: {
-    flex: 1,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "flex-end",
-  },
-  taskText: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-    marginRight: theme.spacing.sm,
-  },
-  taskMinutes: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.accentDark,
-  },
-  checkboxContainer: {
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-  },
-  checkBox: {
-    marginTop: theme.spacing.xs / 2,
-  },
-  bottomAction: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    paddingBottom: theme.spacing.lg,
-    backgroundColor: colors.light.background,
-    shadowColor: colors.light.shadowPrimary,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  // topContent: {
-  //   borderColor: "red",
-  //   // borderWidth: 1,
-  //   height: "70%",
-  //   width: "100%",
-  //   // marginTop: 10,
-  //   padding: 16,
-  //   paddingLeft: 30,
-  // },
-  // subheading: {
-  //   fontFamily: fonts.typeface.header,
-  //   color: colors.light.header1,
-  //   fontSize: fonts.sizes.largerBody,
-  //   marginRight: 5,
-  // },
-  // subsection: {
-  //   // margin: 10,
-  //   // marginLeft: 16,
-  //   marginVertical: 5,
-  //   borderColor: "blue",
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   // alignItems: 'flex-start',
-  //   // borderWidth: 1,
-  // },
-  // sectionResponse: {
-  //   fontFamily: fonts.typeface.body,
-  //   color: colors.light.body,
-  //   fontSize: fonts.sizes.body + 2,
-  // },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      borderColor: "red",
+      backgroundColor: palette.background,
+    },
+    headerContainer: {
+      height: 130,
+      flexDirection: "row",
+      alignItems: "center",
+      position: "relative",
+      justifyContent: "flex-end",
+      backgroundColor: palette.background,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      zIndex: 2,
+    },
+    backButton: {
+      position: "absolute",
+      left: 16,
+      top: 80,
+      zIndex: 2,
+      backgroundColor: palette.background,
+    },
+    header: {
+      position: "absolute",
+      top: 83,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 1,
+      width: "100%",
+      backgroundColor: palette.background,
+    },
+    shadow: {
+      height: 4,
+      backgroundColor: "transparent",
+      shadowColor: palette.shadowPrimary ?? palette.overlay,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 5,
+      marginBottom: 5,
+    },
+    row: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      margin: theme.spacing.xs,
+      marginHorizontal: theme.spacing.lg,
+    },
+    label: {
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+      marginRight: 5,
+    },
+    value: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+    },
+    scrollContent: {
+      paddingBottom: theme.spacing.xxl * 2,
+    },
+    statusValue: {
+      color: palette.secondary,
+      fontFamily: fonts.typeface.bodyBold,
+    },
+    statusValueSkipped: {
+      color: palette.primary,
+      fontFamily: fonts.typeface.bodyBold,
+    },
+    sectionHeading: {
+      fontSize: theme.typography.sizes.lg,
+      color: theme.colors.header1,
+    },
+    breakdownList: {
+      gap: theme.spacing.sm,
+    },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: theme.spacing.sm,
+      marginLeft: theme.spacing.md,
+    },
+    taskTextWrap: {
+      flex: 1,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-end",
+    },
+    taskText: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+      marginRight: theme.spacing.sm,
+    },
+    taskMinutes: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header2,
+    },
+    checkboxContainer: {
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+    },
+    checkBox: {
+      marginTop: theme.spacing.xs / 2,
+    },
+    bottomAction: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      paddingBottom: theme.spacing.lg,
+      backgroundColor: palette.background,
+      shadowColor: palette.shadowPrimary ?? palette.overlay,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      elevation: 8,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+  });
+}

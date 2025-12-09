@@ -1,8 +1,10 @@
-import { theme } from "@/design/theme";
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import { Theme } from "@/design/theme";
+import { colors } from "@/assets/themes/colors";
 
 export type BreakdownItemProps = {
   minutes: number;
@@ -16,6 +18,8 @@ export function BreakdownItem({
   text,
   completed,
 }: BreakdownItemProps) {
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
   return (
     <View style={[styles.row, completed && styles.rowCompleted]}>
       <View style={[styles.timeBox, completed && styles.timeBoxCompleted]}>
@@ -31,78 +35,77 @@ export function BreakdownItem({
           {text}
         </Text>
         <View style={styles.grip}>
-          <Icon name="drag" size={24} tint={theme.colors.border} />
+        <Icon name="drag" size={24} tint={palette.border} />
         </View>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    width: "100%",
-    height: 100,
-    borderRadius: theme.radii.lg,
-    //marginBottom: theme.spacing.sm,
-    ...theme.shadow.soft,
-  },
+const createStyles = (theme: Theme, palette: typeof colors.light) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      width: "100%",
+      height: 100,
+      borderRadius: theme.radii.lg,
+      ...theme.shadow.soft,
+      backgroundColor: palette.background,
+    },
 
-  rowCompleted: {
-    opacity: 0.6,
-  },
+    rowCompleted: {
+      opacity: 0.6,
+    },
 
-  timeBox: {
-    width: 100,
-    backgroundColor: theme.colors.accentDark,
-    borderTopLeftRadius: theme.radii.md,
-    borderBottomLeftRadius: theme.radii.md,
-    alignItems: "center",
-    paddingVertical: theme.spacing.md,
-    zIndex: 2,
-  },
+    timeBox: {
+      width: 100,
+      backgroundColor: palette.primary,
+      borderTopLeftRadius: theme.radii.md,
+      borderBottomLeftRadius: theme.radii.md,
+      alignItems: "center",
+      paddingVertical: theme.spacing.md,
+      zIndex: 2,
+    },
 
-  timeBoxCompleted: {
-    backgroundColor: theme.colors.border,
-  },
+    timeBoxCompleted: {
+      backgroundColor: palette.border,
+    },
 
-  timeText: {
-    color: theme.solidColors.white,
-    fontSize: theme.typography.sizes.md,
-  },
+    timeText: {
+      color: palette.buttonText ?? palette.user ?? "#fff",
+      fontSize: theme.typography.sizes.md,
+    },
 
-  taskBox: {
-    flex: 1,
-    backgroundColor: theme.solidColors.white,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
-    borderTopRightRadius: theme.radii.md,
-    borderBottomRightRadius: theme.radii.md,
-    paddingVertical: theme.spacing.md - 5,
-    paddingRight: theme.spacing.xl,
-    paddingLeft: theme.spacing.md,
-    //justifyContent: "center",
-    alignItems: "center",
-  },
+    taskBox: {
+      flex: 1,
+      backgroundColor: palette.background,
+      borderWidth: 2,
+      borderColor: palette.primary,
+      borderTopRightRadius: theme.radii.md,
+      borderBottomRightRadius: theme.radii.md,
+      paddingVertical: theme.spacing.md - 5,
+      paddingRight: theme.spacing.xl,
+      paddingLeft: theme.spacing.md,
+      alignItems: "center",
+    },
 
-  taskText: {
-    color: theme.colors.text,
-    fontSize: theme.typography.sizes.sm,
-    width: "100%",
-    textAlign: "left",
-    //lineHeight: 22,
-  },
+    taskText: {
+      color: palette.body,
+      fontSize: theme.typography.sizes.sm,
+      width: "100%",
+      textAlign: "left",
+    },
 
-  taskTextCompleted: {
-    color: theme.colors.mutedText,
-    textDecorationLine: "line-through",
-  },
+    taskTextCompleted: {
+      color: palette.quote ?? palette.inactive ?? palette.body,
+      textDecorationLine: "line-through",
+    },
 
-  grip: {
-    position: "absolute",
-    right: theme.spacing.xs,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-  },
-});
+    grip: {
+      position: "absolute",
+      right: theme.spacing.xs,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+    },
+  });

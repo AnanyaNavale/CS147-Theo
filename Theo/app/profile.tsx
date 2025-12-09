@@ -2,8 +2,8 @@ import { Feather } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { SplashScreen, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -15,20 +15,19 @@ import {
   View,
 } from "react-native";
 
+import { fonts } from "@/assets/themes/typography";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { AppModal } from "@/components/ui/AppModal";
-import { Container } from "@/components/ui/Container";
-import { Icon } from "@/components/ui/Icon";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
-import { fonts } from "@/assets/themes/typography";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import {
-  supabaseClient,
   ensureUserProfile,
   fetchUserProfile,
+  supabaseClient,
 } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
@@ -72,6 +71,8 @@ export default function ProfileScreen() {
   const { session } = useSupabase();
   const user = session?.user;
   const isTestUser = user?.email?.toLowerCase() === "test@test.com";
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -280,14 +281,21 @@ export default function ProfileScreen() {
           accessibilityRole="button"
           onPress={() => router.back()}
         >
-          <Feather name={"arrow-left"} size={36} color="#8A5E3C" />
+          <Feather
+            name={"arrow-left"}
+            size={36}
+            color={palette.iconsStandalone}
+          />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
           <SvgStrokeText
             text={displayName + "'s Profile"}
-            stroke="black"
+            stroke={palette.header2}
             strokeWidth={0.3}
-            textStyle={{ fontSize: fonts.sizes.header2 }}
+            textStyle={{
+              fontSize: fonts.sizes.header2,
+              color: palette.header2,
+            }}
           />
         </View>
       </View>
@@ -312,13 +320,13 @@ export default function ProfileScreen() {
                   <Feather
                     name="user"
                     size={68}
-                    color={theme.solidColors.white}
+                    color={theme.colors.background}
                   />
                 </View>
               )}
               {uploading && (
                 <View style={styles.avatarOverlay}>
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={palette.body} />
                 </View>
               )}
             </TouchableOpacity>
@@ -356,7 +364,7 @@ export default function ProfileScreen() {
 
           {error && (
             <View style={[styles.banner, styles.errorBanner]}>
-              <Text style={{ color: theme.colors.danger }}>{error}</Text>
+              <Text style={{ color: palette.error }}>{error}</Text>
             </View>
           )}
           {message && (
@@ -437,143 +445,148 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: theme.colors.background,
-  },
-  scroll: {
-    flexGrow: 1,
-    padding: 16,
-    // borderWidth: 1,
-    borderColor: "red",
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  title: {
-    color: theme.colors.text,
-  },
-  infoText: {
-    marginTop: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
-  banner: {
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    borderRadius: theme.radii.sm,
-    alignSelf: "center",
-    marginTop: theme.spacing.xs,
-    // borderWidth: 1,
-  },
-  bannerText: {
-    //color: theme.solidColors.white,
-    color: theme.solidColors.text,
-    fontFamily: theme.typography.families.regular,
-  },
-  infoBanner: {
-    //backgroundColor: theme.colors.text,
-  },
-  errorBanner: {
-    // backgroundColor: theme.colors.danger,
-    //alignSelf: "center",
-    width: "100%",
-  },
-  headerContainer: {
-    width: "100%",
-    flexDirection: "row",
-    marginTop: 55,
-    // paddingHorizontal: 16,
-  },
-  titleContainer: {
-    alignItems: "center",
-    position: "absolute",
-    paddingTop: 2,
-    left: 0,
-    right: 0,
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.lg,
-  },
-  avatarRow: {
-    alignItems: "center",
-  },
-  avatarButton: {
-    width: 192,
-    height: 192,
-    borderRadius: 96,
-    overflow: "hidden",
-    ...theme.shadow.medium,
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  avatarFallback: {
-    backgroundColor: theme.colors.accentDark,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarOverlay: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cameraBadge: {
-    position: "absolute",
-    bottom: 8,
-    right: 8,
-    backgroundColor: theme.colors.accentDark,
-    borderRadius: 12,
-    padding: 6,
-    ...theme.shadow.soft,
-  },
-  avatarHint: {
-    marginTop: theme.spacing.sm,
-    color: theme.colors.mutedText,
-    fontFamily: theme.typography.families.regular,
-  },
-  inputContainer: {
-    width: "100%",
-    alignSelf: "center",
-  },
-  saveButton: {
-    marginTop: theme.spacing.lg,
-    //width: "100%",
-    alignSelf: "center",
-  },
-  logoutText: {
-    textDecorationLine: "underline",
-    color: theme.colors.accentDark,
-    textAlign: "center",
-    fontFamily: theme.typography.families.bold,
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingCard: {
-    backgroundColor: "#fff",
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radii.lg,
-    ...theme.shadow.medium,
-  },
-  loadingText: {
-    fontFamily: theme.typography.families.bold,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: palette.background,
+    },
+    scroll: {
+      flexGrow: 1,
+      padding: 16,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+    },
+    title: {
+      color: palette.body,
+    },
+    infoText: {
+      marginTop: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
+    },
+    banner: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.sm,
+      borderRadius: theme.radii.sm,
+      alignSelf: "center",
+      marginTop: theme.spacing.xs,
+    },
+    bannerText: {
+      color: palette.body,
+      fontFamily: theme.typography.families.regular,
+    },
+    infoBanner: {
+      backgroundColor: palette.background,
+    },
+    errorBanner: {
+      width: "100%",
+      backgroundColor: palette.background,
+      borderColor: palette.error,
+      borderWidth: 1,
+    },
+    headerContainer: {
+      width: "100%",
+      flexDirection: "row",
+      marginTop: 55,
+    },
+    titleContainer: {
+      alignItems: "center",
+      position: "absolute",
+      paddingTop: 2,
+      left: 0,
+      right: 0,
+      justifyContent: "space-between",
+      marginBottom: theme.spacing.lg,
+    },
+    avatarRow: {
+      alignItems: "center",
+    },
+    avatarButton: {
+      width: 192,
+      height: 192,
+      borderRadius: 96,
+      overflow: "hidden",
+      ...theme.shadow.medium,
+      backgroundColor: palette.background,
+      borderWidth: 1,
+      borderColor: palette.border,
+    },
+    avatarImage: {
+      width: "100%",
+      height: "100%",
+      resizeMode: "cover",
+    },
+    avatarFallback: {
+      backgroundColor: palette.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarOverlay: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: palette.overlay,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    cameraBadge: {
+      position: "absolute",
+      bottom: 8,
+      right: 8,
+      backgroundColor: palette.primary,
+      borderRadius: 12,
+      padding: 6,
+      ...theme.shadow.soft,
+    },
+    avatarHint: {
+      marginTop: theme.spacing.sm,
+      color: palette.quote ?? palette.inactive ?? palette.body,
+      fontFamily: theme.typography.families.regular,
+    },
+    inputContainer: {
+      width: "100%",
+      alignSelf: "center",
+    },
+    saveButton: {
+      marginTop: theme.spacing.lg,
+      alignSelf: "center",
+    },
+    logoutText: {
+      textDecorationLine: "underline",
+      color: palette.primary,
+      textAlign: "center",
+      fontFamily: theme.typography.families.bold,
+    },
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: palette.overlay,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingCard: {
+      backgroundColor: palette.background,
+      paddingVertical: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.xl,
+      borderRadius: theme.radii.lg,
+      ...theme.shadow.medium,
+      borderWidth: 1,
+      borderColor: palette.border,
+    },
+    loadingText: {
+      fontFamily: theme.typography.families.bold,
+      fontSize: theme.typography.sizes.md,
+      color: palette.body,
+    },
+  });
+}

@@ -1,13 +1,13 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 // import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Redirect, Tabs, usePathname, useRouter } from "expo-router";
+import { Redirect, Tabs, usePathname } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
-import { useColorScheme } from "@/components/useColorScheme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { useSupabase } from "@/providers/SupabaseProvider";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -31,9 +31,8 @@ function TabBarIcon({
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const router = useRouter();
-  const image = require("@/assets/images/logo.png");
+  const { colors: palette } = useAppTheme();
+  const styles = React.useMemo(() => createStyles(palette), [palette]);
   const pathname = usePathname();
   const { session, isSessionLoading } = useSupabase();
 
@@ -53,13 +52,11 @@ export default function TabLayout() {
 
   const hideTabBar = inSessionStack || inNestedArchive;
 
-
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.light.navBar,
-        tabBarInactiveTintColor: colors.light.navBar,
+        tabBarActiveTintColor: palette.navBar,
+        tabBarInactiveTintColor: palette.navBar,
         tabBarItemStyle: {
           justifyContent: "center",
           alignItems: "center",
@@ -104,7 +101,10 @@ export default function TabLayout() {
           headerShown: false,
           tabBarIcon: () => (
             <View style={styles.session}>
-              <TabBarIcon name="book-open-blank-variant" color={"#FFFFFF"} />
+              <TabBarIcon
+                name="book-open-blank-variant"
+                color={palette.buttonText ?? palette.header1 ?? "#FFFFFF"}
+              />
             </View>
           ),
           tabBarLabel: ({ focused }) => (
@@ -156,48 +156,29 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    height: 130,
-    backgroundColor: "#fff",
-    shadowOpacity: 0,
-    elevation: 0,
-    flexDirection: "row", // horizontal layout
-    justifyContent: "space-between", // spread elements evenly across width
-    alignItems: "flex-end", // vertically center elements
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-  },
-  tabBar: {
-    backgroundColor: colors.light.background,
-    borderTopColor: colors.light.border,
-    borderTopWidth: 2,
-    height: 90,
-  },
-  session: {
-    borderColor: colors.light.border,
-    borderRadius: 50,
-    backgroundColor: colors.light.navBar,
-    width: 70,
-    aspectRatio: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 45,
-  },
-  tabBarLabel: {
-    marginTop: 3,
-    fontSize: 12,
-    textAlign: "center",
-    color: colors.light.navBar,
-  },
-  userIcon: {
-    borderRadius: 22, // half of width/height
-    borderWidth: 4,
-    borderColor: "#8A5E3C",
-    backgroundColor: "#8A5E3C",
-    width: 45,
-    height: 45,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
+function createStyles(palette: typeof colors.light) {
+  return StyleSheet.create({
+    tabBar: {
+      backgroundColor: palette.background,
+      borderTopColor: palette.border,
+      borderTopWidth: 2,
+      height: 90,
+    },
+    session: {
+      borderColor: palette.border,
+      borderRadius: 50,
+      backgroundColor: palette.navBar,
+      width: 70,
+      aspectRatio: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 45,
+    },
+    tabBarLabel: {
+      marginTop: 3,
+      fontSize: 12,
+      textAlign: "center",
+      color: palette.navBar,
+    },
+  });
+}

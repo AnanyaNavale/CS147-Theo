@@ -12,7 +12,8 @@ import { Spacer, Text } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { ArrowAction } from "@/components/ui/ArrowAction";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 
 const teddy = require("../../../assets/theo/done.png");
 
@@ -39,6 +40,8 @@ export default function EndSessionScreen() {
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
   const teddySize = isCompact ? 200 : 260;
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
 
   const viewSummary = () => {
     router.push({
@@ -64,8 +67,8 @@ export default function EndSessionScreen() {
             <>
               <SvgStrokeText
                 text="Goal:"
-                stroke={theme.colors.accentDark}
-                textStyle={{ color: theme.colors.accentDark }}
+                stroke={palette.header2}
+                textStyle={{ color: palette.header2 }}
               ></SvgStrokeText>
 
               <Text variant="h3" style={{ textAlign: "center" }}>
@@ -107,45 +110,51 @@ export default function EndSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: theme.spacing.lg,
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: theme.colors.background,
-    paddingBottom: theme.spacing.xxl,
-  },
-  centered: { alignItems: "center" },
-  goalLabel: {
-    fontFamily: theme.typography.families.handwritten,
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.accentDark,
-  },
-  goalValue: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-    textAlign: "center",
-    marginTop: theme.spacing.xs,
-  },
-  primaryButton: {
-    width: 240,
-    height: 70,
-  },
-  note: {
-    textAlign: "center",
-    paddingHorizontal: theme.spacing.lg,
-  },
-  image: {
-    width: 260,
-    height: 260,
-    resizeMode: "contain",
-  },
-  arrowInline: {
-    position: "relative",
-    right: undefined,
-    bottom: undefined,
-    marginTop: theme.spacing.sm,
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      paddingHorizontal: theme.spacing.lg,
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: palette.background,
+      paddingBottom: theme.spacing.xxl,
+    },
+    centered: { alignItems: "center" },
+    goalLabel: {
+      fontFamily: theme.typography.families.handwritten,
+      fontSize: theme.typography.sizes.lg,
+      color: theme.colors.header2,
+    },
+    goalValue: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+      textAlign: "center",
+      marginTop: theme.spacing.xs,
+    },
+    primaryButton: {
+      width: 240,
+      height: 70,
+    },
+    note: {
+      textAlign: "center",
+      paddingHorizontal: theme.spacing.lg,
+      color: theme.colors.header1,
+    },
+    image: {
+      width: 260,
+      height: 260,
+      resizeMode: "contain",
+    },
+    arrowInline: {
+      position: "relative",
+      right: undefined,
+      bottom: undefined,
+      marginTop: theme.spacing.sm,
+    },
+  });
+}

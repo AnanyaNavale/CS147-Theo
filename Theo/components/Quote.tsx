@@ -101,7 +101,8 @@
 
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
-import React, { useEffect, useState } from "react";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 // Public-domain / safely usable quotes
@@ -305,6 +306,8 @@ function getDayIndex(date: Date, total: number) {
 
 const QuoteOfTheDay: React.FC = () => {
   const [quote, setQuote] = useState<{ body: string; by: string } | null>(null);
+  const { colors: palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   useEffect(() => {
     const index = getDayIndex(new Date(), LOCAL_QUOTES.length);
@@ -323,24 +326,25 @@ const QuoteOfTheDay: React.FC = () => {
 
 export default QuoteOfTheDay;
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quoteText: {
-    fontSize: 18,
-    fontFamily: fonts.typeface.bodyItalic,
-    fontStyle: "italic",
-    textAlign: "center",
-    marginBottom: 10,
-    color: colors.light.quote,
-  },
-  authorText: {
-    fontSize: 16,
-    fontFamily: fonts.typeface.bodyItalic,
-    fontWeight: "700",
-    textAlign: "center",
-    color: colors.light.quote,
-  },
-});
+const createStyles = (palette: typeof colors.light) =>
+  StyleSheet.create({
+    container: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    quoteText: {
+      fontSize: 18,
+      fontFamily: fonts.typeface.bodyItalic,
+      fontStyle: "italic",
+      textAlign: "center",
+      marginBottom: 10,
+      color: palette.quote,
+    },
+    authorText: {
+      fontSize: 16,
+      fontFamily: fonts.typeface.bodyItalic,
+      fontWeight: "700",
+      textAlign: "center",
+      color: palette.quote,
+    },
+  });

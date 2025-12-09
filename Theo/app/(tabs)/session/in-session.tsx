@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Image,
@@ -21,7 +21,8 @@ import { Timer } from "@/components/ui/Timer";
 
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import {
   fetchSessionById,
   fetchTasksForSession,
@@ -63,6 +64,8 @@ export default function SessionScreen() {
   }>();
 
   const sessionGoal = goal ?? "";
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // tasks may not exist OR may not parse
   let parsedTasks: Task[] = [];
@@ -758,7 +761,7 @@ export default function SessionScreen() {
       {/* MENU */}
       <View style={styles.menuAnchor}>
         <TouchableOpacity onPress={toggleMenu} hitSlop={12}>
-          <Icon name="more-vertical" size={36} tint={theme.colors.accentDark} />
+          <Icon name="more-vertical" size={36} tint={palette.iconsStandalone} />
         </TouchableOpacity>
       </View>
 
@@ -865,8 +868,8 @@ export default function SessionScreen() {
           <>
             <SvgStrokeText
               text="Goal:"
-              stroke={theme.colors.accentDark}
-              textStyle={{ color: theme.colors.accentDark }}
+              stroke={theme.colors.header2}
+              textStyle={{ color: theme.colors.header2 }}
             ></SvgStrokeText>
 
             <Text
@@ -883,8 +886,8 @@ export default function SessionScreen() {
           <>
             <SvgStrokeText
               text="Work session"
-              stroke={theme.colors.accentDark}
-              textStyle={{ color: theme.colors.accentDark }}
+              stroke={theme.colors.header2}
+              textStyle={{ color: theme.colors.header2 }}
             ></SvgStrokeText>
           </>
         )}
@@ -895,8 +898,8 @@ export default function SessionScreen() {
           <>
             <SvgStrokeText
               text="Task:"
-              stroke={theme.colors.accentDark}
-              textStyle={{ color: theme.colors.accentDark }}
+              stroke={theme.colors.header2}
+              textStyle={{ color: theme.colors.header2 }}
             ></SvgStrokeText>
 
             <View style={styles.taskRow}>
@@ -916,13 +919,13 @@ export default function SessionScreen() {
             <Spacer size="md" />
 
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text variant="body" color="accentDark">
+              <Text variant="body" color="header2">
                 Task {taskPosition} of {totalTasks}
               </Text>
 
               {!isBreak && currentTaskIndex <= sessionTasks.length - 1 && (
                 <>
-                  <Text variant="body" color="accentDark">
+                  <Text variant="body" color="header2">
                     {" • "}
                   </Text>
 
@@ -930,7 +933,7 @@ export default function SessionScreen() {
                     <Pressable onPress={() => setShowSkipConfirm(true)}>
                       <Text
                         variant="body"
-                        color="accentDark"
+                        color="header2"
                         style={{ textDecorationLine: "underline" }}
                       >
                         Skip to next task
@@ -941,7 +944,7 @@ export default function SessionScreen() {
                     <Pressable onPress={() => setShowStopModal(true)}>
                       <Text
                         variant="body"
-                        color="accentDark"
+                        color="header2"
                         style={{ textDecorationLine: "underline" }}
                       >
                         End session
@@ -955,7 +958,7 @@ export default function SessionScreen() {
             <Spacer size="lg" />
           </>
         ) : (
-          <Text variant="h3" weight="bold" color="accentDark">
+          <Text variant="h3" weight="bold" color="header2">
             No tasks provided
           </Text>
         )}
@@ -969,14 +972,14 @@ export default function SessionScreen() {
         ) : (
           <>
             <View style={styles.breakBox}>
-              <Text variant="h2" weight="bold" color="accentDark">
+              <Text variant="h2" weight="bold" color="header2">
                 Break time!
               </Text>
             </View>
             <Spacer size="md" />
             <Text
               variant="body"
-              color="accentDark"
+              color="header2"
               style={{ textDecorationLine: "underline" }}
               onPress={() => setShowEndBreakConfirm(true)}
             >
@@ -1040,7 +1043,11 @@ export default function SessionScreen() {
             disabled={isSavingForLater}
             style={{ marginBottom: theme.spacing.sm }}
           />
-          <Button variant="danger" label="End session" onPress={confirmStop} />
+          <Button
+            variant="tertiary"
+            label="End session"
+            onPress={confirmStop}
+          />
         </View>
       </AppModal>
 
@@ -1138,7 +1145,7 @@ export default function SessionScreen() {
 
         <Button
           label="End session"
-          variant="danger"
+          variant="tertiary"
           onPress={() => {
             setShowCompleteModal(false);
             setShowStopModal(true);
@@ -1188,7 +1195,7 @@ export default function SessionScreen() {
             !canAddTime && { opacity: 0.4 },
           ]}
         >
-          <Icon name="plus" size={40} tint={theme.solidColors.white} />
+          <Icon name="plus" size={40} tint={theme.colors.background} />
         </TouchableOpacity>
       </AppModal>
 
@@ -1281,7 +1288,7 @@ export default function SessionScreen() {
                 !canAddTask && { opacity: 0.4 },
               ]}
             >
-              <Icon name="plus" size={40} tint={theme.solidColors.white} />
+              <Icon name="plus" size={40} tint={theme.colors.background} />
             </TouchableOpacity>
           );
         })()}
@@ -1310,7 +1317,7 @@ export default function SessionScreen() {
 
         <Spacer size="sm" />
 
-        <Text variant="body" color="accent">
+        <Text variant="body" color="secondary">
           {completedCount} of {totalTasks} tasks complete
         </Text>
       </AppModal>
@@ -1342,7 +1349,7 @@ export default function SessionScreen() {
             !canRenameTask && { opacity: 0.4 },
           ]}
         >
-          <Icon name="check" size={30} tint={theme.solidColors.white} />
+          <Icon name="check" size={30} tint={theme.colors.background} />
         </TouchableOpacity>
       </AppModal>
     </View>
@@ -1350,99 +1357,103 @@ export default function SessionScreen() {
 }
 
 /* STYLES */
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 65,
-    paddingBottom: theme.spacing.lg,
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: theme.colors.background,
-  },
-  menuAnchor: {
-    position: "absolute",
-    top: 60,
-    right: 20,
-    zIndex: 3,
-  },
-  menuOverlay: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 2,
-  },
-  menuCard: {
-    position: "absolute",
-    top: 40,
-    right: 0,
-    backgroundColor: theme.colors.accentDark,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
-    minWidth: 200,
-    ...theme.shadow.medium,
-    zIndex: 4,
-  },
-  menuItem: {
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-  },
-  menuLabel: {
-    color: theme.solidColors.white,
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: theme.colors.border,
-    opacity: 0.6,
-    marginHorizontal: theme.spacing.sm,
-  },
-  row: {
-    flexDirection: "row",
-    gap: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  theo: {
-    width: 300,
-    height: 300,
-    resizeMode: "contain",
-  },
-  taskRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-  },
-  breakBox: {
-    backgroundColor: theme.solidColors.white,
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radii.md,
-    alignItems: "center",
-    minWidth: 250,
-    borderWidth: 2,
-    borderColor: theme.colors.accentDark,
-    ...theme.shadow.soft,
-  },
-  actionCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    ...theme.shadow.medium,
-  },
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingTop: 65,
+      paddingBottom: theme.spacing.lg,
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.colors.background,
+    },
+    menuAnchor: {
+      position: "absolute",
+      top: 60,
+      right: 20,
+      zIndex: 3,
+    },
+    menuOverlay: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      zIndex: 2,
+    },
+    menuCard: {
+      position: "absolute",
+      top: 40,
+      right: 0,
+      backgroundColor: theme.colors.background,
+      borderRadius: theme.radii.lg,
+      paddingVertical: theme.spacing.xs,
+      minWidth: 200,
+      ...theme.shadow.medium,
+      zIndex: 4,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    menuItem: {
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    menuLabel: {
+      color: theme.colors.header1,
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+    },
+    menuDivider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      opacity: 0.6,
+      marginHorizontal: theme.spacing.sm,
+    },
+    row: {
+      flexDirection: "row",
+      gap: theme.spacing.md,
+      paddingBottom: theme.spacing.xl,
+    },
+    theo: {
+      width: 300,
+      height: 300,
+      resizeMode: "contain",
+    },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    breakBox: {
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: theme.spacing.xl,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.radii.md,
+      alignItems: "center",
+      minWidth: 250,
+      borderWidth: 2,
+      borderColor: theme.colors.border,
+      ...theme.shadow.soft,
+    },
+    actionCircle: {
+      width: 70,
+      height: 70,
+      borderRadius: 40,
+      alignItems: "center",
+      justifyContent: "center",
+      ...theme.shadow.medium,
+    },
 
-  actionCircleNeutral: {
-    backgroundColor: theme.colors.accentDark,
-  },
-  smallActionCircle: {
-    alignSelf: "flex-end",
-    width: 50,
-    height: 50,
-  },
-  completedTaskLabel: {
-    color: theme.colors.mutedText,
-  },
-});
+    actionCircleNeutral: {
+      backgroundColor: theme.colors.header2,
+    },
+    smallActionCircle: {
+      alignSelf: "flex-end",
+      width: 50,
+      height: 50,
+    },
+    completedTaskLabel: {
+      color: theme.colors.quote,
+    },
+  });
+}

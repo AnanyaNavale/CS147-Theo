@@ -1,4 +1,6 @@
-import React from "react";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,7 +9,6 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { theme } from "../../design/theme";
 import { Icon } from "./Icon";
 
 export type CheckboxProps = {
@@ -25,12 +26,15 @@ export function Checkbox({
   checked,
   onChange,
   label,
-  size = theme.checkbox.size,
+  size,
   containerStyle,
   boxStyle,
   labelStyle,
   checkStyle,
 }: CheckboxProps) {
+  const { theme, colors: palette } = useAppTheme();
+  const resolvedSize = size ?? theme.checkbox.size;
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <TouchableOpacity
       accessibilityRole="checkbox"
@@ -43,8 +47,8 @@ export function Checkbox({
         style={[
           styles.box,
           {
-            width: size,
-            height: size,
+            width: resolvedSize,
+            height: resolvedSize,
             borderRadius: theme.radii.sm + 2,
             borderColor: theme.checkbox.borderColor,
             backgroundColor: theme.checkbox.bg,
@@ -56,8 +60,8 @@ export function Checkbox({
           <View style={[styles.checkmark]}>
             <Icon
               name="check"
-              size={Math.max(26, size - 6)}
-              tint={theme.checkbox.checkColor}
+              size={Math.max(20, resolvedSize - 8)}
+              tint={palette.border}
             />
           </View>
         )}
@@ -68,7 +72,7 @@ export function Checkbox({
           style={[
             styles.label,
             {
-              color: theme.colors.text,
+              color: palette.body,
               fontSize: theme.typography.sizes.md,
               fontFamily: theme.typography.families.regular,
             },
@@ -82,22 +86,24 @@ export function Checkbox({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: theme.spacing.xs,
-  },
-  box: {
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  label: {
-    marginLeft: theme.spacing.sm,
-  },
-  checkmark: {
-    marginRight: -theme.spacing.sm,
-    marginBottom: 4,
-  },
-});
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: theme.spacing.xs,
+    },
+    box: {
+      borderWidth: 2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    label: {
+      marginLeft: theme.spacing.sm,
+    },
+    checkmark: {
+      marginRight: -theme.spacing.sm,
+      marginBottom: 4,
+    },
+  });
+}

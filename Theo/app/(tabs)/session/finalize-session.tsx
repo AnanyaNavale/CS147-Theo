@@ -3,27 +3,28 @@ import React, { useMemo, useState } from "react";
 import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { colors } from "@/assets/themes/colors";
+import { fonts } from "@/assets/themes/typography";
 import { AppModal, Button } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
-import { Calendar } from "react-native-calendars";
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
-import { theme } from "@/design/theme";
-import { Feather } from "@expo/vector-icons";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import {
   createPlan,
   createSession,
   createTask,
   CreateTaskPayload,
-  updateSession,
-  replaceTasksForSession,
   fetchTasksForSession,
+  replaceTasksForSession,
+  updateSession,
 } from "@/lib/supabase";
 import { useSupabase } from "@/providers/SupabaseProvider";
+import { Feather } from "@expo/vector-icons";
+import { Calendar } from "react-native-calendars";
 
 const teddy = require("@/assets/theo/waving.png");
 
@@ -60,6 +61,8 @@ export default function FinalizeSessionScreen() {
   const [showStartModal, setShowStartModal] = useState(false);
   const [showPlanDateModal, setShowPlanDateModal] = useState(false);
   const [selectedPlanDate, setSelectedPlanDate] = useState(todayLocal);
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   const parsedTasks: Task[] = useMemo(() => {
     if (!tasks) return [];
@@ -83,15 +86,6 @@ export default function FinalizeSessionScreen() {
     if (totalMinutes > 0) lines.push(`Total time: ${totalMinutes} min`);
     return lines.join("\n");
   }, [goalText, taskCount, totalMinutes]);
-
-  // NOT USING
-  // const [showSettings, setShowSettings] = useState(false);
-  // const [reflection, setReflection] = useState(false);
-  // const [collab, setCollab] = useState(false);
-  // const [friendsOnly, setFriendsOnly] = useState(false);
-  // const [saveDefault, setSaveDefault] = useState(false);
-
-  // const handleSelectSettings = () => setShowSettings(true);
 
   const handleSavePlan = async (planDate?: string) => {
     if (savingPlan) return;
@@ -210,7 +204,6 @@ export default function FinalizeSessionScreen() {
         return;
       }
 
-      // 1. CREATE THE SESSION
       const newSession = await createSession(
         session.user.id,
         title,
@@ -221,13 +214,10 @@ export default function FinalizeSessionScreen() {
       );
 
       const newSessionId = newSession.id;
-
-      // 2. CREATE TASK ROWS (ordered)
       const tasksForClient: Task[] = [];
       if (parsedTasks.length > 0) {
         for (let i = 0; i < parsedTasks.length; i++) {
           const t = parsedTasks[i];
-
           const payload: CreateTaskPayload = {
             session_id: newSessionId,
             task_name: t.text,
@@ -246,7 +236,6 @@ export default function FinalizeSessionScreen() {
         }
       }
 
-      // 3. NAVIGATE TO IN-SESSION SCREEN
       router.push({
         pathname: "./in-session",
         params: {
@@ -280,7 +269,6 @@ export default function FinalizeSessionScreen() {
         </View>
 
         <Spacer size="md" />
-
         <Spacer size="xxl" />
 
         <SvgStrokeText
@@ -295,9 +283,9 @@ export default function FinalizeSessionScreen() {
           <View style={styles.goalRow}>
             <SvgStrokeText
               text="Goal:"
-              stroke={theme.colors.accentDark}
-              textStyle={{ color: theme.colors.accentDark }}
-            ></SvgStrokeText>
+              stroke={theme.colors.header2}
+              textStyle={{ color: theme.colors.header2 }}
+            />
             <Text style={styles.goalValue}>{goalText}</Text>
             <Spacer size="md" />
           </View>
@@ -311,7 +299,7 @@ export default function FinalizeSessionScreen() {
         />
 
         {startError && (
-          <Text color="danger" style={{ textAlign: "center" }}>
+          <Text color="tertiary" style={{ textAlign: "center" }}>
             {startError}
           </Text>
         )}
@@ -327,7 +315,7 @@ export default function FinalizeSessionScreen() {
         />
 
         {saveError && (
-          <Text color="danger" style={{ textAlign: "center" }}>
+          <Text color="tertiary" style={{ textAlign: "center" }}>
             {saveError}
           </Text>
         )}
@@ -347,7 +335,7 @@ export default function FinalizeSessionScreen() {
                 return (
                   <View
                     style={{
-                      backgroundColor: colors.light.primary,
+                      backgroundColor: palette.primary,
                       paddingVertical: 4,
                       paddingTop: 7,
                       paddingHorizontal: 16,
@@ -359,9 +347,9 @@ export default function FinalizeSessionScreen() {
                   >
                     <SvgStrokeText
                       text={month}
-                      stroke={colors.light.month}
+                      stroke={palette.month}
                       strokeWidth={0.5}
-                      textStyle={{ fontSize: 20, color: colors.light.month }}
+                      textStyle={{ fontSize: 20, color: palette.month }}
                     />
                   </View>
                 );
@@ -371,15 +359,15 @@ export default function FinalizeSessionScreen() {
                 <Feather
                   name={direction === "left" ? "arrow-left" : "arrow-right"}
                   size={24}
-                  color={colors.light.iconsStandalone}
+                  color={palette.iconsStandalone}
                 />
               )}
               minDate={todayLocal}
               markedDates={{
                 [selectedPlanDate]: {
                   selected: true,
-                  selectedColor: theme.colors.accentDark,
-                  selectedTextColor: theme.solidColors.white,
+                  selectedColor: theme.colors.header2,
+                  selectedTextColor: theme.colors.background,
                 },
               }}
               onDayPress={(day) => setSelectedPlanDate(day.dateString)}
@@ -387,10 +375,14 @@ export default function FinalizeSessionScreen() {
                 textDayFontFamily: fonts.typeface.body,
                 textDayHeaderFontFamily: fonts.typeface.header,
                 textDayHeaderFontSize: 18,
-                textDisabledColor: colors.light.inactive,
-                backgroundColor: colors.light.background,
-                todayTextColor: colors.light.body,
-                arrowColor: colors.light.iconsStandalone,
+                textDisabledColor: palette.inactive,
+                backgroundColor: palette.background,
+                calendarBackground: palette.background,
+                dayTextColor: palette.body,
+                todayTextColor: palette.body,
+                monthTextColor: palette.month,
+                textSectionTitleColor: palette.header1,
+                arrowColor: palette.iconsStandalone,
               }}
             />
             <Spacer size="md" />
@@ -415,19 +407,18 @@ export default function FinalizeSessionScreen() {
             showClose={false}
             title="Plan saved!"
             message="Your plan is now available in your archive."
-            children={
-              <View style={{ alignItems: "center" }}>
-                <Button
-                  label="Visit archive"
-                  variant="brown"
-                  onPress={() => {
-                    setShowSuccessModal(false);
-                    router.push(`../archive`);
-                  }}
-                />
-              </View>
-            }
-          />
+          >
+            <View style={{ alignItems: "center" }}>
+              <Button
+                label="Visit archive"
+                variant="brown"
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  router.push(`../archive`);
+                }}
+              />
+            </View>
+          </AppModal>
         )}
 
         {showStartModal && (
@@ -453,66 +444,69 @@ export default function FinalizeSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  prompt: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.xl,
-  },
-  goalRow: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing.xs,
-    textAlign: "center",
-  },
-  goalLabel: {
-    color: theme.colors.accentDark,
-  },
-  goalValue: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-    alignSelf: "center",
-    textAlign: "center",
-  },
-  button: {
-    alignSelf: "center",
-  },
-  planCalendar: {
-    width: "100%",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.md,
-  },
-  settingsHeading: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.text,
-  },
-  teddy: {
-    position: "absolute",
-    left: theme.spacing.sm,
-    bottom: theme.spacing.xl,
-    resizeMode: "contain",
-    zIndex: -1,
-  },
-});
+function createStyles(theme: Theme, palette: typeof colors.light) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    content: {
+      flexGrow: 1,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.xl,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    prompt: {
+      textAlign: "center",
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.xl,
+      color: palette.body,
+    },
+    goalRow: {
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.xs,
+      textAlign: "center",
+    },
+    goalLabel: {
+      color: theme.colors.header2,
+    },
+    goalValue: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+      alignSelf: "center",
+      textAlign: "center",
+    },
+    button: {
+      alignSelf: "center",
+    },
+    planCalendar: {
+      width: "100%",
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      marginHorizontal: theme.spacing.md,
+      marginTop: theme.spacing.md,
+    },
+    settingsHeading: {
+      textAlign: "center",
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.lg,
+      color: theme.colors.header1,
+    },
+    teddy: {
+      position: "absolute",
+      left: theme.spacing.sm,
+      bottom: theme.spacing.xl,
+      resizeMode: "contain",
+      zIndex: -1,
+    },
+  });
+}

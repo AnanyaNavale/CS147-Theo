@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Text as RNText,
-  StyleSheet,
-  TextProps,
-  TextStyle,
-} from "react-native";
+import { Text as RNText, StyleSheet, TextProps, TextStyle } from "react-native";
 import { theme } from "../../design/theme";
 
 type Variant = "h1" | "h2" | "h3" | "body" | "subtle" | "small" | "label";
@@ -12,7 +7,7 @@ type Variant = "h1" | "h2" | "h3" | "body" | "subtle" | "small" | "label";
 type Weight = "regular" | "medium" | "bold";
 
 // Only allow solid colors, not gradients
-type TextColor = keyof typeof theme.solidColors;
+type TextColor = keyof typeof theme.colors;
 
 interface AppTextProps extends TextProps {
   variant?: Variant;
@@ -24,7 +19,7 @@ export function Text({
   style,
   variant = "body",
   weight = "regular",
-  color = "text",
+  color = "header1",
   ...props
 }: AppTextProps) {
   const flattened = StyleSheet.flatten<TextStyle>(style);
@@ -40,7 +35,7 @@ export function Text({
         baseStyles.text,
         variantStyles[variant],
         weightStyles[weight],
-        { color: theme.solidColors[color] },
+        { color: theme.colors[color] },
         autoLineHeightStyle,
         style,
       ]}
