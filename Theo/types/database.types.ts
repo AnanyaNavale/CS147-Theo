@@ -18,6 +18,7 @@ export interface Database {
           user_id: string;
           title: string;
           total_time: number;
+          time_completed: number | null;
           status: "planned" | "active" | "incomplete" | "complete";
           has_goal: boolean;
           goal: string | null;
@@ -32,6 +33,7 @@ export interface Database {
           user_id: string;
           title?: string;
           total_time?: number;
+          time_completed?: number | null;
           status?: "planned" | "active" | "incomplete" | "complete";
           has_goal?: boolean;
           goal?: string | null;
@@ -46,6 +48,7 @@ export interface Database {
           user_id?: string | null;
           title?: string;
           total_time?: number;
+          time_completed?: number | null;
           status?: "planned" | "active" | "incomplete" | "complete";
           has_goal?: boolean;
           goal?: string | null;

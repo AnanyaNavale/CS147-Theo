@@ -14,7 +14,7 @@ import { Task, WorkSession } from "@/types/database.types";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text } from "@/components/ui/Text";
 
 export default function SingleSessionScreen() {
@@ -87,18 +87,43 @@ export default function SingleSessionScreen() {
   const headerTitle =
     sessionData?.status === "planned" ? "Plan Summary" : "Session Summary";
 
-  function formatTime(totalMinutes: number): string {
+  function formatTimeFromSeconds(totalSeconds: number): string {
+    const totalMinutes = Math.max(0, Math.round(totalSeconds / 60));
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
 
     if (hours > 0 && minutes > 0) {
-      return `${hours} hr, ${minutes} min`;
+      return `${hours} hr., ${minutes} min.`;
     } else if (hours > 0) {
-      return `${hours} hr`;
+      return `${hours} hr.`;
     } else {
-      return `${minutes} min`;
+      return `${minutes} min.`;
     }
   }
+
+  const isPlanned = sessionData.status === "planned";
+  const spentSeconds =
+    typeof sessionData.time_completed === "number"
+      ? Math.max(0, sessionData.time_completed)
+      : null;
+  const plannedMinutes = Math.max(
+    0,
+    Math.round(Number(sessionData.total_time || 0))
+  );
+  const plannedSeconds = plannedMinutes * 60;
+  const displaySeconds = isPlanned
+    ? plannedSeconds
+    : spentSeconds ?? plannedSeconds;
+
+  const formatMinutes = (mins: number) => {
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    if (hours > 0 && minutes > 0) {
+      return `${hours} hr${hours > 1 ? "s" : ""}., ${minutes} min.`;
+    }
+    if (hours > 0) return `${hours} hr${hours > 1 ? "s" : ""}`;
+    return `${minutes} min`;
+  };
 
   const handleStartSession = async () => {
     if (!sessionData) return;
@@ -150,153 +175,175 @@ export default function SingleSessionScreen() {
         </View>
       </View>
       <View style={styles.shadow} />
-
-      <Spacer></Spacer>
-      <View style={styles.row}>
-        <Text weight="bold" style={styles.label}>
-          Date created:
-        </Text>
-        <Text weight="bold" style={styles.value}>
-          {formattedDate}
-        </Text>
-      </View>
-
-      {sessionData.goal && (
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Spacer></Spacer>
         <View style={styles.row}>
           <Text weight="bold" style={styles.label}>
-            Goal:
+            Date created:
           </Text>
-          <Text style={styles.value}>{sessionData.goal}</Text>
+          <Text weight="bold" style={styles.value}>
+            {formattedDate}
+          </Text>
         </View>
-      )}
 
-      <View style={styles.row}>
-        <Text weight="bold" style={styles.label}>
-          Status:
-        </Text>
-        <Text
-          style={[
-            styles.value,
-            { fontFamily: fonts.typeface.bodyBold },
-            sessionData.status === "complete"
-              ? { color: colors.light.secondary } // or your theme color for complete
-              : { color: colors.light.primary },
-          ]}
-        >
-          {sessionData.status.charAt(0).toUpperCase() +
-            sessionData.status.slice(1)}
-        </Text>
-      </View>
-
-      <View style={styles.row}>
-        <Text weight="bold" style={styles.label}>
-          {sessionData.status === "planned" ? "Time planned:" : "Time spent:"}
-        </Text>
-        <Text style={styles.value}>{formatTime(sessionData.total_time)}</Text>
-      </View>
-
-      <Spacer size="lg" />
-
-      <View style={{ margin: theme.spacing.xs, paddingHorizontal: 20 }}>
-        <Text style={styles.sectionHeading}>Breakdown:</Text>
-
-        <Spacer size="sm" />
-
-        <View style={styles.breakdownList}>
-          {tasks.length > 0 ? (
-            tasks.map((task, index) => (
-              <View key={task.id ?? index} style={styles.taskRow}>
-                {sessionData.status !== "planned" && (
-                  <Checkbox
-                    checked={task.is_completed} // or `true` if all should appear checked
-                    onChange={() => {}}
-                    boxStyle={styles.checkBox}
-                    containerStyle={styles.checkboxContainer}
-                  />
-                )}
-                <View style={styles.taskTextWrap}>
-                  <Text style={styles.taskText}>{task.task_name}</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.value}>No tasks recorded.</Text>
-          )}
-        </View>
-      </View>
-
-      {sessionData.summary && (
-        <>
-          <Spacer size="lg" />
-          <View style={{ margin: theme.spacing.xs, paddingHorizontal: 20 }}>
-            <Text style={styles.sectionHeading}>Reflection summary:</Text>
-            <Spacer size="sm" />
-            <Text style={styles.value}>{sessionData.summary}</Text>
+        {sessionData.goal && (
+          <View style={styles.row}>
+            <Text weight="bold" style={styles.label}>
+              Goal: <Text style={styles.value}>{sessionData.goal}</Text>
+            </Text>
           </View>
-        </>
-      )}
+        )}
 
-      {sessionData.status === "planned" && (
-        <>
-          <Spacer size="xl" />
-          <View
-            style={{ paddingHorizontal: 20, marginBottom: theme.spacing.xl }}
+        <View style={styles.row}>
+          <Text weight="bold" style={styles.label}>
+            Status:
+          </Text>
+          <Text
+            style={[
+              styles.value,
+              { fontFamily: fonts.typeface.bodyBold },
+              sessionData.status === "complete"
+                ? { color: colors.light.secondary } // or your theme color for complete
+                : { color: colors.light.primary },
+            ]}
           >
-            <BasicButton
-              text={starting ? "Starting..." : "Begin this session"}
-              onPress={() => setShowStartConfirm(true)}
-              disabled={starting}
-            />
+            {sessionData.status.charAt(0).toUpperCase() +
+              sessionData.status.slice(1)}
+          </Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text weight="bold" style={styles.label}>
+            Time allocated:
+          </Text>
+          <Text style={styles.value}>{formatMinutes(plannedMinutes)}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text weight="bold" style={styles.label}>
+            {sessionData.status === "planned" ? "Time planned:" : "Time spent:"}
+          </Text>
+          <Text style={styles.value}>
+            {formatTimeFromSeconds(displaySeconds)}
+          </Text>
+        </View>
+
+        <Spacer size="lg" />
+
+        <View style={{ margin: theme.spacing.xs, paddingHorizontal: 20 }}>
+          <Text style={styles.sectionHeading}>Breakdown:</Text>
+
+          <Spacer size="sm" />
+
+          <View style={styles.breakdownList}>
+            {tasks.length > 0 ? (
+              tasks.map((task, index) => (
+                <View key={task.id ?? index} style={styles.taskRow}>
+                  {sessionData.status !== "planned" && (
+                    <Checkbox
+                      checked={task.is_completed} // or `true` if all should appear checked
+                      onChange={() => {}}
+                      boxStyle={styles.checkBox}
+                      containerStyle={styles.checkboxContainer}
+                    />
+                  )}
+                  <View style={styles.taskTextWrap}>
+                    <Text style={styles.taskText}>
+                      {task.task_name}{" "}
+                      <Text style={styles.taskMinutes}>
+                        (
+                        {Math.max(
+                          0,
+                          Math.round(
+                            (task.time_completed ?? task.time_allotted ?? 0) /
+                              60
+                          )
+                        )}{" "}
+                        min.)
+                      </Text>
+                    </Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.value}>No tasks recorded.</Text>
+            )}
           </View>
-        </>
-      )}
-
-      <AppModal
-        visible={showStartConfirm}
-        onClose={() => setShowStartConfirm(false)}
-        title="Start session?"
-        message="Begin this planned session now?"
-        confirmLabel="Start"
-        cancelLabel="Cancel"
-        confirmVariant="brown"
-        cancelVariant="ghost"
-        onConfirm={handleStartSession}
-      />
-
-      {/* <View style={styles.topContent}>
-        <View style={styles.subsection}>
-          <Text style={styles.subheading}>Date Created:</Text>
-          <Text style={styles.sectionResponse}>{dateCreated}</Text>
         </View>
 
-        <View style={styles.subsection}>
-          {hasGoal ? (
-            <Text style={styles.subheading}>Goal:</Text>
-          ) : (
-            <Text style={styles.subheading}>Title:</Text>
-          )}
-          <Text style={styles.sectionResponse}>{title}</Text>
-        </View>
-
-        <View style={styles.subsection}>
-          {isSession ? (
-            <View style={{ flexDirection: 'row' }}>
-              <Text style={styles.subheading}>Status:</Text>
-              <Text
-                style={[
-                  styles.sectionResponse,
-                  {
-                    color: colors.light.header2,
-                    fontFamily: fonts.typeface.bodyBold,
-                  },
-                ]}
-              >
-                {status}
-              </Text>
+        {sessionData.summary && (
+          <>
+            <Spacer size="lg" />
+            <View style={{ margin: theme.spacing.xs, paddingHorizontal: 20 }}>
+              <Text style={styles.sectionHeading}>Reflection summary:</Text>
+              <Spacer size="sm" />
+              <Text style={styles.value}>{sessionData.summary}</Text>
             </View>
-          ) : null}
-        </View>
-      </View> */}
+          </>
+        )}
+
+        {sessionData.status === "planned" && (
+          <>
+            <Spacer size="xl" />
+            <View
+              style={{ paddingHorizontal: 20, marginBottom: theme.spacing.xl }}
+            >
+              <BasicButton
+                text={starting ? "Starting..." : "Begin this session"}
+                onPress={() => setShowStartConfirm(true)}
+                disabled={starting}
+              />
+            </View>
+          </>
+        )}
+
+        <AppModal
+          visible={showStartConfirm}
+          onClose={() => setShowStartConfirm(false)}
+          title="Start session?"
+          message="Begin this planned session now?"
+          confirmLabel="Start"
+          cancelLabel="Cancel"
+          confirmVariant="brown"
+          cancelVariant="ghost"
+          onConfirm={handleStartSession}
+        />
+
+        {/* <View style={styles.topContent}>
+          <View style={styles.subsection}>
+            <Text style={styles.subheading}>Date Created:</Text>
+            <Text style={styles.sectionResponse}>{dateCreated}</Text>
+          </View>
+
+          <View style={styles.subsection}>
+            {hasGoal ? (
+              <Text style={styles.subheading}>Goal:</Text>
+            ) : (
+              <Text style={styles.subheading}>Title:</Text>
+            )}
+            <Text style={styles.sectionResponse}>{title}</Text>
+          </View>
+
+          <View style={styles.subsection}>
+            {isSession ? (
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={styles.subheading}>Status:</Text>
+                <Text
+                  style={[
+                    styles.sectionResponse,
+                    {
+                      color: colors.light.header2,
+                      fontFamily: fonts.typeface.bodyBold,
+                    },
+                  ]}
+                >
+                  {status}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View> */}
+      </ScrollView>
     </View>
   );
 }
@@ -320,6 +367,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    zIndex: 2,
   },
   backButton: {
     position: "absolute",
@@ -365,6 +413,9 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.families.regular,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   statusValue: {
     color: colors.light.secondary,

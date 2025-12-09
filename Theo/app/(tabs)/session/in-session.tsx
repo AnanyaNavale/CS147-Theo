@@ -22,7 +22,12 @@ import { Timer } from "@/components/ui/Timer";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { PawLoader } from "@/components/ui/PawLoader";
 import { theme } from "@/design/theme";
-import { updateSession, updateTaskCompletionStates } from "@/lib/supabase";
+import {
+  fetchSessionById,
+  fetchTasksForSession,
+  updateSession,
+  updateTaskCompletionStates,
+} from "@/lib/supabase";
 
 type Task = {
   id: string;
@@ -174,6 +179,10 @@ export default function SessionScreen() {
   const [isSavingForLater, setIsSavingForLater] = useState(false);
   const [isPersistingTasks, setIsPersistingTasks] = useState(false);
   const sessionEndLoggedRef = useRef(false);
+  const [baseSessionTimeCompleted, setBaseSessionTimeCompleted] = useState(0);
+  const [baseTaskTimes, setBaseTaskTimes] = useState<Record<string, number>>(
+    {}
+  );
 
   /* ANIMATION VALUES */
   const contentOpacity = useRef(new Animated.Value(1)).current;
@@ -210,30 +219,56 @@ export default function SessionScreen() {
     return spent;
   };
 
-  const persistTaskCompletion = async () => {
-    if (!sessionId || isPersistingTasks) return;
-    setIsPersistingTasks(true);
-    try {
-      const payload = sessionTasks.map((t) => ({
+  const computeTaskProgress = () => {
+    const taskPayload = sessionTasks.map((t, idx) => {
+      const spentSeconds =
+        typeof t.actualSeconds === "number"
+          ? Math.max(0, t.actualSeconds)
+          : idx === currentTaskIndex
+          ? currentTaskTimeSpent()
+          : 0;
+      const prevTime = baseTaskTimes[t.id] ?? 0;
+      const updatedTime = Math.max(0, prevTime + spentSeconds);
+      return {
         id: t.id,
         is_completed:
           t.status === "completed" || t.status === "skipped" ? true : false,
-      }));
-      await updateTaskCompletionStates(sessionId, payload);
+        time_completed: updatedTime,
+      };
+    });
+
+    const addedSeconds = taskPayload.reduce(
+      (sum, t) => sum + (t.time_completed ?? 0) - (baseTaskTimes[t.id] ?? 0),
+      0
+    );
+    const totalSpentSeconds = baseSessionTimeCompleted + addedSeconds;
+
+    return { taskPayload, totalSpentSeconds };
+  };
+
+  const persistTaskCompletion = async () => {
+    if (!sessionId || isPersistingTasks) return { totalSpentSeconds: 0 };
+    setIsPersistingTasks(true);
+    try {
+      const { taskPayload, totalSpentSeconds } = computeTaskProgress();
+      await updateTaskCompletionStates(sessionId, taskPayload);
+      return { totalSpentSeconds };
     } catch (err) {
       console.error("Failed to persist task completion states:", err);
+      return { totalSpentSeconds: 0 };
     } finally {
       setIsPersistingTasks(false);
     }
   };
 
-  const markSessionCompleted = async () => {
+  const markSessionCompleted = async (totalSpentSeconds?: number) => {
     if (!sessionId || sessionEndLoggedRef.current) return;
     sessionEndLoggedRef.current = true;
     try {
       await updateSession(sessionId, {
         completed_at: new Date().toISOString(),
         status: "complete",
+        time_completed: totalSpentSeconds ?? null,
       });
     } catch (err) {
       console.error("Failed to mark session complete", err);
@@ -241,8 +276,8 @@ export default function SessionScreen() {
   };
 
   const goToEndSession = async () => {
-    await persistTaskCompletion();
-    await markSessionCompleted();
+    const { totalSpentSeconds } = await persistTaskCompletion();
+    await markSessionCompleted(totalSpentSeconds);
 
     const summaryTasks = sessionTasks.map((t, idx) => {
       const spentSeconds =
@@ -276,11 +311,12 @@ export default function SessionScreen() {
     if (!sessionId || isSavingForLater) return;
     setIsSavingForLater(true);
     try {
-      await persistTaskCompletion();
+      const { totalSpentSeconds } = await persistTaskCompletion();
 
       await updateSession(sessionId, {
         status: "incomplete",
         completed_at: null,
+        time_completed: totalSpentSeconds,
       });
       setShowStopModal(false);
       setIsRunning(false);
@@ -305,6 +341,36 @@ export default function SessionScreen() {
       Image.prefetch(Image.resolveAssetSource(img).uri)
     );
   }, []);
+
+  // Load existing time_completed for session/tasks to ensure we add, not replace
+  useEffect(() => {
+    let isMounted = true;
+    const loadExisting = async () => {
+      if (!sessionId) return;
+      try {
+        const session = await fetchSessionById(sessionId);
+        if (isMounted && session?.time_completed != null) {
+          setBaseSessionTimeCompleted(Number(session.time_completed) || 0);
+        }
+
+        const existingTasks = await fetchTasksForSession(sessionId);
+        if (isMounted) {
+          const map: Record<string, number> = {};
+          existingTasks.forEach((t) => {
+            map[t.id] = Number(t.time_completed) || 0;
+          });
+          setBaseTaskTimes(map);
+        }
+      } catch (err) {
+        console.error("Failed to load existing session/task times", err);
+      }
+    };
+
+    loadExisting();
+    return () => {
+      isMounted = false;
+    };
+  }, [sessionId]);
 
   /* TIMER LOGIC */
   useEffect(() => {

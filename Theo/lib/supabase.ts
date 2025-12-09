@@ -331,6 +331,7 @@ export async function createSession(
       user_id: userId,
       title: title, // required
       total_time: computedTotalTime, // required
+      time_completed: 0,
       status: "active",
       has_goal: hasGoal,
       goal: goal,
@@ -366,6 +367,7 @@ export async function createPlan(
       user_id: userId,
       title: title,
       total_time: computedTotalTime, // required
+      time_completed: 0,
       status: "planned",
       has_goal: hasGoal,
       goal: goal,
@@ -624,7 +626,7 @@ export async function fetchTasksForSession(sessionId: string): Promise<Task[]> {
  */
 export async function updateTaskCompletionStates(
   sessionId: string,
-  tasks: { id: string; is_completed: boolean }[]
+  tasks: { id: string; is_completed: boolean; time_completed?: number }[]
 ): Promise<void> {
   if (tasks.length === 0) return;
 
@@ -633,7 +635,10 @@ export async function updateTaskCompletionStates(
   for (const task of tasks) {
     const { error } = await client
       .from("tasks")
-      .update({ is_completed: task.is_completed })
+      .update({
+        is_completed: task.is_completed,
+        time_completed: task.time_completed ?? null,
+      })
       .eq("id", task.id)
       .eq("session_id", sessionId);
 

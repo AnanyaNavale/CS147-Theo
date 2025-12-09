@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     gap: theme.spacing.sm,
     zIndex: 3,
+    backgroundColor: theme.colors.background,
   },
   text: {
     color: theme.colors.text,

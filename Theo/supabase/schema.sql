@@ -49,7 +49,8 @@ create table public.sessions (
     completed_at timestamptz,
     title text not null default 'title',
     has_settings boolean not null default false,
-    total_time bigint not null default 0
+    total_time bigint not null default 0,
+    time_completed bigint not null default 0
 );
 
 create index sessions_user_id_idx on public.sessions(user_id);

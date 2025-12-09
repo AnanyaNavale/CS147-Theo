@@ -121,6 +121,25 @@ export default function SessionSummaryScreen() {
     const seconds = typeof t.actualSeconds === "number" ? t.actualSeconds : 0;
     return sum + (Number.isFinite(seconds) ? seconds : 0);
   }, 0);
+  const totalMinutesAllocated = parsedTasks.reduce((sum, t) => {
+    const minutes =
+      typeof t.minutes === "number"
+        ? t.minutes
+        : typeof t.timeSeconds === "number"
+        ? t.timeSeconds / 60
+        : 0;
+    return sum + (Number.isFinite(minutes) ? minutes : 0);
+  }, 0);
+
+  const formatMinutes = (mins: number) => {
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    if (hours > 0 && minutes > 0) {
+      return `${hours} hr${hours > 1 ? "s" : ""}, ${minutes} min`;
+    }
+    if (hours > 0) return `${hours} hr${hours > 1 ? "s" : ""}`;
+    return `${minutes} min`;
+  };
   const hours = Math.floor(totalSecondsWorked / 3600);
   const minutes = Math.floor((totalSecondsWorked % 3600) / 60);
   const allTasksSkipped =
@@ -214,9 +233,8 @@ export default function SessionSummaryScreen() {
         {goal && (
           <View style={styles.row}>
             <Text weight="bold" style={styles.label}>
-              Goal:
+              Goal: <Text style={styles.value}>{goalText}</Text>
             </Text>
-            <Text style={styles.value}>{goalText}</Text>
           </View>
         )}
 
@@ -234,6 +252,14 @@ export default function SessionSummaryScreen() {
           </Text>
         </View>
 
+        <View style={styles.row}>
+          <Text weight="bold" style={styles.label}>
+            Time allocated:
+          </Text>
+          <Text style={styles.value}>
+            {formatMinutes(totalMinutesAllocated)}
+          </Text>
+        </View>
         <View style={styles.row}>
           <Text weight="bold" style={styles.label}>
             Time spent:
@@ -261,8 +287,8 @@ export default function SessionSummaryScreen() {
                 />
                 <View style={styles.taskTextWrap}>
                   <Text style={styles.taskText}>
-                    {task.text}
-                    {/* <Text style={styles.taskMinutes}>
+                    {task.text}{" "}
+                    <Text style={styles.taskMinutes}>
                       (
                       {Math.max(
                         0,
@@ -272,8 +298,8 @@ export default function SessionSummaryScreen() {
                             : task.timeSeconds ?? task.minutes * 60) / 60
                         )
                       )}{" "}
-                      min.)
-                    </Text> */}
+                      min)
+                    </Text>
                   </Text>
                 </View>
               </View>
