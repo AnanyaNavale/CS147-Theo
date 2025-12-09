@@ -219,7 +219,9 @@ export default function SingleSessionScreen() {
         <Spacer></Spacer>
         <View style={styles.row}>
           <Text weight="bold" style={styles.label}>
-            Date created:
+            {sessionData.status === "planned"
+              ? "Planned for:"
+              : "Date created:"}
           </Text>
           <Text weight="bold" style={styles.value}>
             {formattedDate}

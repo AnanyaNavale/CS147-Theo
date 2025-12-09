@@ -61,6 +61,9 @@ export default function FinalizeSessionScreen() {
   const [showStartModal, setShowStartModal] = useState(false);
   const [showPlanDateModal, setShowPlanDateModal] = useState(false);
   const [selectedPlanDate, setSelectedPlanDate] = useState(todayLocal);
+  const [savedPlanId, setSavedPlanId] = useState<string | null>(
+    existingSessionId ?? null
+  );
   const { colors: palette, theme } = useAppTheme();
   const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
@@ -110,6 +113,7 @@ export default function FinalizeSessionScreen() {
         ? new Date(`${planDate}T00:00:00`).toISOString()
         : undefined;
 
+      let planId: string | null = existingSessionId ?? null;
       if (existingSessionId) {
         await updateSession(existingSessionId, {
           title,
@@ -132,6 +136,7 @@ export default function FinalizeSessionScreen() {
           goal ?? null,
           created_at
         );
+        planId = newPlan.id;
 
         if (hasTasks) {
           for (let i = 0; i < parsedTasks.length; i++) {
@@ -150,6 +155,7 @@ export default function FinalizeSessionScreen() {
       }
 
       setShowSuccessModal(true);
+      setSavedPlanId(planId);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save plan.";
       setSaveError(msg);
@@ -414,7 +420,14 @@ export default function FinalizeSessionScreen() {
                 variant="brown"
                 onPress={() => {
                   setShowSuccessModal(false);
-                  router.push(`../archive`);
+                  const targetDate = selectedPlanDate.slice(0, 10);
+                  const targetSession = savedPlanId ?? existingSessionId ?? "";
+                  // Reset session tab to its start so returning later lands on index
+                  router.replace("/(tabs)/session");
+                  router.push({
+                    pathname: "/(tabs)/archive/[date]",
+                    params: { date: targetDate },
+                  });
                 }}
               />
             </View>
