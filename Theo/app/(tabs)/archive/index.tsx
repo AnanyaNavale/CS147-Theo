@@ -5,14 +5,14 @@ import { Dimensions, StyleSheet } from "react-native";
 // SUPABASE
 import { useSupabase } from "@/providers/SupabaseProvider";
 // import type { WorkSession, SessionSetting } from "@/types/database.types";
-import { fetchSessionDatesForMonth, getCurrentSession } from "@/lib/supabase";
+import { fetchSessionDatesForMonth } from "@/lib/supabase";
 
 // import EditScreenInfo from '@/components/EditScreenInfo';
 import { View } from "@/components/Themed";
 
-import { fonts } from "@/assets/themes/typography";
-import SvgStrokeText from "@/components/SvgStrokeText";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { Calendar, LocaleConfig } from "react-native-calendars";
@@ -170,7 +170,6 @@ export default function ArchiveScreen() {
                   justifyContent: "center",
                   alignItems: "center",
                   alignSelf: "center",
-
                 }}
               >
                 <SvgStrokeText
@@ -231,7 +230,10 @@ export default function ArchiveScreen() {
   );
 }
 
-function createStyles(theme: Theme, palette: typeof import("@/assets/themes/colors").colors.light) {
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/design/colors").colors.light
+) {
   return StyleSheet.create({
     container: {
       flex: 1,

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, Spacer } from "../../components";
-import { AppModal } from "../ui/AppModal";
+import { AppModal } from "../custom/AppModal";
 
 export default function ModalCatalog() {
   const [alertVisible, setAlertVisible] = useState(false);

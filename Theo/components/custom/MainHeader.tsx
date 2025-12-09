@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 
-import { colors } from "@/assets/themes/colors";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { signOut } from "@/lib/supabase";
@@ -108,9 +108,7 @@ export default function MainHeader({ avatarUrl }: MainHeaderProps) {
             ) : (
               <TabBarIcon
                 name="user"
-                color={
-                  mode === "dark" ? palette.body : appTheme.colors.background
-                }
+                color={appTheme.colors.background}
                 size={32}
               />
             )}

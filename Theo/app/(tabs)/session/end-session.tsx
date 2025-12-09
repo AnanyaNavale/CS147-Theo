@@ -9,9 +9,9 @@ import {
 } from "react-native";
 
 import { Spacer, Text } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { ArrowAction } from "@/components/ui/ArrowAction";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { BasicButton } from "@/components/custom/BasicButton";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 
@@ -112,7 +112,7 @@ export default function EndSessionScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     container: {
@@ -127,12 +127,12 @@ function createStyles(
     goalLabel: {
       fontFamily: theme.typography.families.handwritten,
       fontSize: theme.typography.sizes.lg,
-      color: theme.colors.header2,
+      color: palette.header2,
     },
     goalValue: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       textAlign: "center",
       marginTop: theme.spacing.xs,
     },
@@ -143,7 +143,7 @@ function createStyles(
     note: {
       textAlign: "center",
       paddingHorizontal: theme.spacing.lg,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     image: {
       width: 260,

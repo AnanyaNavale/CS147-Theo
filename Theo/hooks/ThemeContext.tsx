@@ -1,4 +1,4 @@
-import { colors as palettes } from "@/assets/themes/colors";
+import { colors as palettes } from "@/design/colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
   createContext,
@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { useColorScheme } from "react-native";
 
-import { Theme, themes } from "../design/theme";
+import { themes } from "../design/theme";
 
 export type ThemeMode = "light" | "dark";
 

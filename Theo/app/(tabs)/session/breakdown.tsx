@@ -13,20 +13,20 @@ import DraggableFlatList, {
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fonts } from "@/assets/themes/typography";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { AppModal } from "@/components/ui/AppModal";
-import { ArrowAction } from "@/components/ui/ArrowAction";
-import { BreakdownItem } from "@/components/ui/BreakdownItem";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { InputField } from "@/components/ui/InputField";
-import { PawLoader } from "@/components/ui/PawLoader";
-import { Spacer } from "@/components/ui/Spacer";
-import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { Text } from "@/components/ui/Text";
+import { AppModal } from "@/components/custom/AppModal";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { BasicButton } from "@/components/custom/BasicButton";
+import { BreakdownItem } from "@/components/custom/BreakdownItem";
+import { Button } from "@/components/custom/Button";
+import { Icon } from "@/components/custom/Icon";
+import { InputField } from "@/components/custom/InputField";
+import { PawLoader } from "@/components/custom/PawLoader";
+import { Spacer } from "@/components/custom/Spacer";
+import { StepProgressIndicator } from "@/components/custom/StepProgressIndicator";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { generateTasksWithAI } from "@/lib/ai";
 
@@ -335,7 +335,7 @@ export default function SessionBreakdownScreen() {
                 }
               }}
             >
-              <Icon name="pencil" size={22} tint={theme.colors.background} />
+              <Icon name="pencil" size={22} tint={palette.background} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -345,7 +345,7 @@ export default function SessionBreakdownScreen() {
                 requestDeleteTask(item.id);
               }}
             >
-              <Icon name="trash" size={22} tint={theme.colors.background} />
+              <Icon name="trash" size={22} tint={palette.background} />
             </TouchableOpacity>
           </View>
         )}
@@ -548,7 +548,7 @@ export default function SessionBreakdownScreen() {
                 onPress={() => setShowAddModal(true)}
                 style={[styles.actionCircle, styles.actionCircleNeutral]}
               >
-                <Icon name="plus" size={40} tint={theme.colors.background} />
+                <Icon name="plus" size={40} tint={palette.background} />
               </TouchableOpacity>
               <Text variant="small" weight="bold" style={styles.actionLabel}>
                 Add task
@@ -561,7 +561,7 @@ export default function SessionBreakdownScreen() {
                 onPress={() => setShowRegenerateConfirm(true)}
                 style={[styles.actionCircle, styles.actionCircleGold]}
               >
-                <Icon name="refresh" size={35} tint={theme.colors.background} />
+                <Icon name="refresh" size={35} tint={palette.background} />
               </TouchableOpacity>
               <Text
                 variant="small"
@@ -578,7 +578,7 @@ export default function SessionBreakdownScreen() {
                 onPress={requestDeleteAll}
                 style={[styles.actionCircle, styles.actionCircletertiary]}
               >
-                <Icon name="trash" size={35} tint={theme.colors.background} />
+                <Icon name="trash" size={35} tint={palette.background} />
               </TouchableOpacity>
               <Text
                 variant="small"
@@ -761,15 +761,15 @@ export default function SessionBreakdownScreen() {
                 if (canAdd) addTask();
               }}
               disabled={!canAdd}
-              style={[
-                styles.actionCircle,
-                styles.actionCircleNeutral,
-                styles.smallActionCircle,
-                !canAdd && { opacity: 0.4 },
-              ]}
-            >
-              <Icon name="plus" size={40} tint={theme.colors.background} />
-            </TouchableOpacity>
+            style={[
+              styles.actionCircle,
+              styles.actionCircleNeutral,
+              styles.smallActionCircle,
+              !canAdd && { opacity: 0.4 },
+            ]}
+          >
+            <Icon name="plus" size={40} tint={palette.background} />
+          </TouchableOpacity>
           );
         })()}
       </AppModal>
@@ -856,7 +856,7 @@ export default function SessionBreakdownScreen() {
 /* STYLES */
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safe: {

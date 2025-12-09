@@ -1,10 +1,10 @@
-import { fonts } from "@/assets/themes/typography";
 import { Checkbox, Spacer } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { AppModal } from "@/components/ui/AppModal";
-import { Text } from "@/components/ui/Text";
+import { AppModal } from "@/components/custom/AppModal";
+import { BasicButton } from "@/components/custom/BasicButton";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import {
   fetchSessionById,
@@ -415,7 +415,7 @@ export default function SingleSessionScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     container: {
@@ -473,13 +473,13 @@ function createStyles(
     },
     label: {
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       marginRight: 5,
     },
     value: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     scrollContent: {
       paddingBottom: theme.spacing.xxl * 2,
@@ -494,7 +494,7 @@ function createStyles(
     },
     sectionHeading: {
       fontSize: theme.typography.sizes.lg,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     breakdownList: {
       gap: theme.spacing.sm,
@@ -514,13 +514,13 @@ function createStyles(
     taskText: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       marginRight: theme.spacing.sm,
     },
     taskMinutes: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header2,
+      color: palette.header2,
     },
     checkboxContainer: {
       paddingVertical: 0,

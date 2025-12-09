@@ -1,5 +1,5 @@
 // design/theme.ts
-import { colors as palettes } from "@/assets/themes/colors";
+import { colors as palettes } from "@/design/colors";
 
 const spacing = {
   xs: 4,
@@ -115,7 +115,7 @@ export const themes = {
     input: {
       ...baseInput,
       borderColor: darkColors.border,
-      placeholder: "#C9C9C9",
+      placeholder: "#616161ff",
     },
     checkbox: {
       ...baseCheckbox,

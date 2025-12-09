@@ -1,9 +1,9 @@
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Text } from "../ui/Text";
 import { Icon } from "./Icon";
-import { useAppTheme } from "@/hooks/ThemeContext";
-import { Theme } from "@/design/theme";
+import { Text } from "./Text";
 
 type TimerProps = {
   secondsLeft: number;
@@ -67,10 +67,10 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
       <TouchableOpacity
         onPress={() => cycleMode(-1)}
         hitSlop={10}
-      style={styles.carouselButton}
-    >
-      <Icon name="carousel-left" size={16} tint={palette.iconsStandalone} />
-    </TouchableOpacity>
+        style={styles.carouselButton}
+      >
+        <Icon name="carousel-left" size={16} tint={palette.iconsStandalone} />
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.shell} onPress={() => cycleMode(1)}>
         <Text
@@ -85,17 +85,17 @@ export function Timer({ secondsLeft, taskDuration, onToggle }: TimerProps) {
       <TouchableOpacity
         onPress={() => cycleMode(1)}
         hitSlop={10}
-      style={styles.carouselButton}
-    >
-      <Icon name="carousel-right" size={16} tint={palette.iconsStandalone} />
-    </TouchableOpacity>
-  </View>
-);
+        style={styles.carouselButton}
+      >
+        <Icon name="carousel-right" size={16} tint={palette.iconsStandalone} />
+      </TouchableOpacity>
+    </View>
+  );
 }
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     carousel: {

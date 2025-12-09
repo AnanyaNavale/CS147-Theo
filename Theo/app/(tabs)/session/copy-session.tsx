@@ -4,11 +4,11 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Spacer } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
-import CopySessionBox from "@/components/CopySessionBox";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { Text } from "@/components/ui/Text";
+import { BasicButton } from "@/components/custom/BasicButton";
+import CopySessionBox from "@/components/custom/CopySessionBox";
+import { StepProgressIndicator } from "@/components/custom/StepProgressIndicator";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { fetchRecentSessions, fetchTasksForSession } from "@/lib/supabase";
@@ -259,7 +259,7 @@ export default function CopySessionScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safeArea: {
@@ -310,7 +310,7 @@ function createStyles(
       textAlign: "center",
       marginTop: theme.spacing.sm,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.quote,
+      color: palette.quote,
     },
     center: {
       alignSelf: "center",
@@ -338,7 +338,7 @@ function createStyles(
       backgroundColor: palette.background,
     },
     noMoreText: {
-      color: theme.colors.quote,
+      color: palette.quote,
       fontFamily: theme.typography.families.medium,
     },
     emptyState: {
@@ -347,11 +347,11 @@ function createStyles(
       paddingVertical: theme.spacing.xl,
     },
     emptyTitle: {
-      color: theme.colors.header1,
+      color: palette.header1,
       textAlign: "center",
     },
     emptyBody: {
-      color: theme.colors.quote,
+      color: palette.quote,
       textAlign: "center",
     },
   });

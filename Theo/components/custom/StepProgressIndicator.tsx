@@ -10,17 +10,16 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 import { AppModal, InputField } from "@/components";
-import { Icon } from "@/components/ui/Icon";
-import { Text } from "@/components/ui/Text";
+import { Icon } from "@/components/custom/Icon";
+import { Text } from "@/components/custom/Text";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
-import { Button, ButtonVariant } from "./Button";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useSupabase } from "@/providers/SupabaseProvider";
-import { createReport } from "@/lib/supabase";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
+import { createReport } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { Button } from "./Button";
 // import { Button } from "react-native/Libraries/Components/Button";
 
 type StepProgressIndicatorProps = {
@@ -132,11 +131,7 @@ export function StepProgressIndicator({
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
-              <Icon
-                name="arrow-left"
-                size={36}
-                tint={iconTint}
-              />
+              <Icon name="arrow-left" size={36} tint={iconTint} />
             </TouchableOpacity>
             // <View style={{ width: iconSize, height: iconSize }} />
           )}
@@ -149,13 +144,35 @@ export function StepProgressIndicator({
               const isLast = index === steps.length - 1;
               const isFirst = index === 0;
 
+              const leftComplete = index > 0 && index <= activeCount - 1;
+              const rightComplete = index < activeCount - 1;
               return (
                 <View key={`${label}-track`} style={styles.stepWrapper}>
                   {!isFirst && (
-                    <View style={[styles.halfLine, styles.lineLeft]} />
+                    <View
+                      style={[
+                        styles.halfLine,
+                        styles.lineLeft,
+                        {
+                          backgroundColor: leftComplete
+                            ? palette.progressBarComplete
+                            : palette.progressBarIncomplete,
+                        },
+                      ]}
+                    />
                   )}
                   {!isLast && (
-                    <View style={[styles.halfLine, styles.lineRight]} />
+                    <View
+                      style={[
+                        styles.halfLine,
+                        styles.lineRight,
+                        {
+                          backgroundColor: rightComplete
+                            ? palette.progressBarComplete
+                            : palette.progressBarIncomplete,
+                        },
+                      ]}
+                    />
                   )}
 
                   <View
@@ -167,7 +184,9 @@ export function StepProgressIndicator({
                   <Text
                     style={[
                       styles.stepLabel,
-                      !isActive ? styles.stepLabelInactive : null,
+                      !isActive
+                        ? styles.stepLabelInactive
+                        : styles.stepLabelActive,
                     ]}
                   >
                     {label}
@@ -186,11 +205,7 @@ export function StepProgressIndicator({
               accessibilityRole="button"
               accessibilityLabel="Menu"
             >
-              <Icon
-                name="more-vertical"
-                size={36}
-                tint={iconTint}
-              />
+              <Icon name="more-vertical" size={36} tint={iconTint} />
             </TouchableOpacity>
           ) : (
             <View style={{ width: iconSize, height: iconSize }} />
@@ -205,9 +220,12 @@ export function StepProgressIndicator({
           animationType="fade"
           onRequestClose={() => setMenuOpen(false)}
         >
-            <View style={StyleSheet.absoluteFillObject}>
+          <View style={StyleSheet.absoluteFillObject}>
             <Pressable
-              style={[StyleSheet.absoluteFill, { backgroundColor: palette.overlay }]}
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: palette.overlay },
+              ]}
               onPress={() => setMenuOpen(false)}
             />
             <View style={styles.menuCard}>
@@ -374,7 +392,11 @@ const createStyles = (theme: Theme, palette: typeof colors.light) =>
       marginTop: theme.spacing.xs,
       fontSize: theme.typography.sizes.sm,
       fontFamily: theme.typography.families.regular,
-      color: palette.primary,
+      color: palette.progressBarIncomplete,
+    },
+
+    stepLabelActive: {
+      color: palette.progressBarComplete,
     },
 
     stepLabelInactive: {

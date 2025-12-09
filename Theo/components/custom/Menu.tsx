@@ -1,7 +1,8 @@
-import { Icon } from "@/components/ui/Icon";
-import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
-import React, { useRef, useState } from "react";
+import { Icon } from "@/components/custom/Icon";
+import { Text } from "@/components/custom/Text";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import React, { useMemo, useRef, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -22,6 +23,8 @@ type MenuProps = {
 };
 
 export function Menu({ options, width = 220 }: MenuProps) {
+  const { theme, colors: palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<View>(null);
   const { width: windowWidth } = useWindowDimensions();
@@ -91,32 +94,37 @@ export function Menu({ options, width = 220 }: MenuProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  fullscreen: StyleSheet.absoluteFillObject,
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/design/colors").colors.light
+) {
+  return StyleSheet.create({
+    fullscreen: StyleSheet.absoluteFillObject,
 
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
 
-  menuBox: {
-    position: "absolute",
-    top: 120,
-    right: 20,
-    backgroundColor: theme.colors.background,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    borderRadius: theme.radii.md,
-    overflow: "hidden",
-  },
+    menuBox: {
+      position: "absolute",
+      top: 120,
+      right: 20,
+      backgroundColor: palette.background,
+      borderWidth: 2,
+      borderColor: palette.primary,
+      borderRadius: theme.radii.md,
+      overflow: "hidden",
+    },
 
-  option: {
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.background,
-  },
+    option: {
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+      backgroundColor: palette.background,
+    },
 
-  optionBorder: {
-    borderBottomWidth: 2,
-    borderBottomColor: theme.colors.primary,
-  },
-});
+    optionBorder: {
+      borderBottomWidth: 2,
+      borderBottomColor: palette.primary,
+    },
+  });
+}

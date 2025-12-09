@@ -2,7 +2,7 @@ export const colors = {
   light: {
     // Screen
     background: "#FFFFFF",
-    overlay: "#523622BF",
+    overlay: "#5236223c",
 
     // Text
     body: "#000000",
@@ -38,6 +38,7 @@ export const colors = {
     tertiaryPressed: "#4C1616",
     iconStroke: "#FFFFFF",
     inactive: "#A9A9A9",
+    ghost: "#edeaeaff",
 
     iconsStandalone: "#8A5E3C",
     notificationInactive: "#8A5E3CBF",
@@ -61,7 +62,7 @@ export const colors = {
   dark: {
     // Screen
     background: "#1B1714",
-    overlay: "#CFBEADBF",
+    overlay: "#cfbead23",
 
     // Text
     body: "#E8DCCF",
@@ -69,11 +70,10 @@ export const colors = {
     header2: "#CFBEAD",
     date: "#C9C9C9",
 
-    navBar: "#B28F6D",
+    navBar: "#af8260ff",
 
     progressBarComplete: "#E8DCCF",
-    progressBarIncomplete: "#8A5E3C",
-    progressbarIncomplete: "#8A5E3C",
+    progressBarIncomplete: "#757575",
 
     inputLabel: "#CFBEAD",
     inputPlaceholder: "#C9C9C9",
@@ -86,15 +86,16 @@ export const colors = {
     buttonText: "#1B1714",
 
     // Buttons
-    primary: "#B28F6D",
+    primary: "#af8260ff",
     primaryPressed: "#8A5E3C",
     secondary: "#CF9841",
-    secondaryPressed: "#AF7925",
+    secondaryPressed: "#85622aff",
     tertiary: "#B35454",
     tertiaryPressed: "#7C3030",
     iconStroke: "#1B1714",
     text: "#1B1714",
     inactive: "#C9C9C9",
+    ghost: "#362e28",
 
     // Shadows
     shadowPrimary: "#8A5E3C80",
@@ -112,15 +113,11 @@ export const colors = {
     listPlaceholder: "#C9C9C9",
 
     // Archive
-    month: "#E8DCCF",
+    month: "#000",
     markedDates: "#CF9841",
 
     iconsStandalone: "#CFBEAD",
     notificationInactive: "#CFBEADBF",
     notificationActive: "#B35454",
   },
-  // TODO: Add more palettes
-  //   firelight: {},
-  //   forest: {},
-  //   cozy: {},
 };

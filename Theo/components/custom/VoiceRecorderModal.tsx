@@ -13,8 +13,8 @@ import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { transcribeAudioFile } from "@/lib/voice";
 
-import { BasicButton } from "../BasicButton";
 import { AppModal } from "./AppModal";
+import { BasicButton } from "./BasicButton";
 import { Icon } from "./Icon";
 import { Spacer } from "./Spacer";
 import { Text } from "./Text";
@@ -227,8 +227,8 @@ export function VoiceRecorderModal({
               size={20}
               tint={
                 status === "recording"
-                  ? theme.colors.buttonText ?? "#fff"
-                  : theme.colors.body
+                  ? palette.buttonText ?? "#fff"
+                  : palette.body
               }
             />
             <Text
@@ -264,7 +264,7 @@ export function VoiceRecorderModal({
             <View style={styles.transcriptHeader}>
               <Text style={styles.transcriptTitle}>Transcript</Text>
               {status === "transcribing" && (
-                <ActivityIndicator size="small" color={theme.colors.primary} />
+                <ActivityIndicator size="small" color={palette.primary} />
               )}
             </View>
             <ScrollView style={styles.transcriptScroll}>
@@ -293,97 +293,97 @@ export function VoiceRecorderModal({
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
-  scroller: {
-    width: "100%",
-  },
-  body: {
-    gap: theme.spacing.md,
-    paddingBottom: theme.spacing.sm,
-  },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: 999,
-    backgroundColor: palette.background,
-    borderWidth: 1.5,
-    borderColor: palette.border,
-    gap: theme.spacing.xs,
-  },
-  pillRecording: {
-    backgroundColor: palette.primary,
-    borderColor: palette.primary,
-  },
-  pillIdle: {
-    backgroundColor: palette.background,
-  },
-  pillText: {
-    fontFamily: theme.typography.families.regular,
-    color: palette.body,
-  },
-  pillTextActive: {
-    color: palette.buttonText ?? "#fff",
-  },
-  timer: {
-    fontFamily: theme.typography.families.regular,
-    color: palette.body,
-  },
-  controlsRow: {
-    width: "100%",
-    alignItems: "center",
-    marginBottom: -theme.spacing.md,
-  },
-  controlButton: {
-    width: "100%",
-  },
-  transcriptBox: {
-    borderWidth: 2,
-    borderColor: palette.primary,
-    borderRadius: theme.radii.md,
-    padding: theme.spacing.sm,
-    backgroundColor: palette.background,
-    maxHeight: 220,
-  },
-  transcriptHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.xs,
-  },
-  transcriptTitle: {
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.md,
-    color: palette.body,
-  },
-  transcriptScroll: {
-    maxHeight: 180,
-  },
-  transcriptText: {
-    color: palette.body,
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    lineHeight: theme.typography.sizes.md * 1.4,
-  },
-  footerActions: {
-    flexDirection: "column",
-    gap: theme.spacing.sm,
-    alignItems: "center",
-  },
-  footerButton: {
-    width: "100%",
-  },
-  error: {
-    textAlign: "center",
-    color: palette.error,
-  },
+    scroller: {
+      width: "100%",
+    },
+    body: {
+      gap: theme.spacing.md,
+      paddingBottom: theme.spacing.sm,
+    },
+    statusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    statusPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: theme.spacing.xs,
+      borderRadius: 999,
+      backgroundColor: palette.background,
+      borderWidth: 1.5,
+      borderColor: palette.border,
+      gap: theme.spacing.xs,
+    },
+    pillRecording: {
+      backgroundColor: palette.primary,
+      borderColor: palette.primary,
+    },
+    pillIdle: {
+      backgroundColor: palette.background,
+    },
+    pillText: {
+      fontFamily: theme.typography.families.regular,
+      color: palette.body,
+    },
+    pillTextActive: {
+      color: palette.buttonText ?? "#fff",
+    },
+    timer: {
+      fontFamily: theme.typography.families.regular,
+      color: palette.body,
+    },
+    controlsRow: {
+      width: "100%",
+      alignItems: "center",
+      marginBottom: -theme.spacing.md,
+    },
+    controlButton: {
+      width: "100%",
+    },
+    transcriptBox: {
+      borderWidth: 2,
+      borderColor: palette.primary,
+      borderRadius: theme.radii.md,
+      padding: theme.spacing.sm,
+      backgroundColor: palette.background,
+      maxHeight: 220,
+    },
+    transcriptHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: theme.spacing.xs,
+    },
+    transcriptTitle: {
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.md,
+      color: palette.body,
+    },
+    transcriptScroll: {
+      maxHeight: 180,
+    },
+    transcriptText: {
+      color: palette.body,
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      lineHeight: theme.typography.sizes.md * 1.4,
+    },
+    footerActions: {
+      flexDirection: "column",
+      gap: theme.spacing.sm,
+      alignItems: "center",
+    },
+    footerButton: {
+      width: "100%",
+    },
+    error: {
+      textAlign: "center",
+      color: palette.error,
+    },
   });
 }

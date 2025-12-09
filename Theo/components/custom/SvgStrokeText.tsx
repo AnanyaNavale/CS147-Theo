@@ -1,19 +1,18 @@
 import React from "react";
-import { View, StyleProp, TextStyle, ViewStyle } from "react-native";
+import { StyleProp, TextStyle, View, ViewStyle } from "react-native";
 import Svg, { Text as SvgText, TSpan } from "react-native-svg";
 
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 
 export type SvgStrokeTextProps = {
   text: string;
   stroke?: string;
   strokeWidth?: number;
-  
+
   textStyle?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
-  textAnchor?: "start" | "middle" | "end"
+  textAnchor?: "start" | "middle" | "end";
 };
 
 export default function SvgStrokeText({
@@ -45,7 +44,7 @@ export default function SvgStrokeText({
 
   return (
     <View style={containerStyle}>
-    {/* <View style={[containerStyle, { alignSelf: 'center' }]}> */}
+      {/* <View style={[containerStyle, { alignSelf: 'center' }]}> */}
       <Svg width={width} height={height}>
         <SvgText
           x={textAnchor === "start" ? 0 : textAnchor === "end" ? width : "50%"}
@@ -60,7 +59,13 @@ export default function SvgStrokeText({
           {lines.map((line, index) => (
             <TSpan
               key={index}
-              x={textAnchor === "start" ? 0 : textAnchor === "end" ? width : "50%"}
+              x={
+                textAnchor === "start"
+                  ? 0
+                  : textAnchor === "end"
+                  ? width
+                  : "50%"
+              }
               dy={index === 0 ? 0 : lineHeight}
             >
               {line}

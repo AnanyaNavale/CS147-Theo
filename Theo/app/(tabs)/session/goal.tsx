@@ -13,12 +13,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { InputField } from "@/components";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { ArrowAction } from "@/components/ui/ArrowAction";
-import { Icon } from "@/components/ui/Icon";
-import { Spacer } from "@/components/ui/Spacer";
-import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { Icon } from "@/components/custom/Icon";
+import { Spacer } from "@/components/custom/Spacer";
+import { StepProgressIndicator } from "@/components/custom/StepProgressIndicator";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { VoiceRecorderModal } from "@/components/custom/VoiceRecorderModal";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 
@@ -96,9 +96,9 @@ export default function GoalScreen() {
 
             <SvgStrokeText
               text="Goal:"
-              stroke={theme.colors.header2}
+              stroke={palette.header2}
               textStyle={{
-                color: theme.colors.header2,
+                color: palette.header2,
               }}
               containerStyle={{ alignSelf: "center" }}
             ></SvgStrokeText>
@@ -131,7 +131,7 @@ export default function GoalScreen() {
                     <Icon
                       name="mic"
                       size={micSize}
-                      tint={theme.colors.header2}
+                      tint={palette.header2}
                     />
                   </TouchableOpacity>
                 }
@@ -163,7 +163,7 @@ export default function GoalScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safeArea: {
@@ -186,15 +186,15 @@ function createStyles(
       fontSize: theme.typography.sizes.xl,
     },
     label: {
-      color: theme.colors.header2,
+      color: palette.header2,
       textAlign: "center",
     },
     goalInput: {},
     inputShell: {
       borderRadius: theme.radii.md,
       borderWidth: 1,
-      borderColor: theme.colors.header2,
-      backgroundColor: theme.colors.background,
+      borderColor: palette.header2,
+      backgroundColor: palette.background,
     },
     goalDisplayRow: {
       flexDirection: "row",
@@ -204,12 +204,12 @@ function createStyles(
       paddingHorizontal: theme.spacing.xl,
     },
     labelInline: {
-      color: theme.colors.header2,
+      color: palette.header2,
     },
     goalValue: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     teddy: {
       position: "absolute",

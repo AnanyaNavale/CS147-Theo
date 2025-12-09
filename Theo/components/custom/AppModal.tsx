@@ -10,9 +10,9 @@ import {
   View,
 } from "react-native";
 import { Theme } from "../../design/theme";
-import SvgStrokeText from "../SvgStrokeText";
 import { Button, ButtonVariant } from "./Button";
 import { Icon } from "./Icon";
+import SvgStrokeText from "./SvgStrokeText";
 import { Text } from "./Text";
 
 export type ModalVariant = "alert" | "custom" | "bottom-sheet";
@@ -116,7 +116,7 @@ export function AppModal({
                   onPress={onClose}
                   style={styles.closeBtnFloating}
                 >
-                  <Icon name="x"></Icon>
+                  <Icon name="x" tint={palette.iconsStandalone}></Icon>
                 </TouchableOpacity>
               )}
             </View>
@@ -141,7 +141,7 @@ export function AppModal({
               {title && <Text style={styles.sheetTitle}>{title}</Text>}
 
               <TouchableOpacity onPress={onClose} style={styles.closeBtnSheet}>
-                <Icon name="x" size={34}></Icon>
+                <Icon name="x" tint={palette.iconsStandalone} size={34}></Icon>
               </TouchableOpacity>
 
               <View>{children}</View>
@@ -159,7 +159,7 @@ export function AppModal({
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     centerLayout: {

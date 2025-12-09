@@ -11,12 +11,12 @@ import {
   View,
 } from "react-native";
 
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { Container } from "@/components/ui/Container";
-import { InputField } from "@/components/ui/InputField";
-import { Spacer } from "@/components/ui/Spacer";
-import { Text } from "@/components/ui/Text";
+import { BasicButton } from "@/components/custom/BasicButton";
+import { Container } from "@/components/custom/Container";
+import { InputField } from "@/components/custom/InputField";
+import { Spacer } from "@/components/custom/Spacer";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { signInWithEmail } from "@/lib/supabase";
@@ -139,7 +139,7 @@ export default function LoginScreen() {
             text={isSubmitting ? "Logging in..." : "Log in"}
             onPress={handleLogin}
             disabled={isSubmitting || !email.trim() || !password}
-            style={styles.sessionButton}
+            //style={styles.sessionButton}
             //labelStyle={styles.sessionButtonLabel}
           />
 
@@ -181,7 +181,7 @@ export default function LoginScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safe: {

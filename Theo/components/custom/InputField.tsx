@@ -53,7 +53,10 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
     ref
   ) => {
     const { colors: palette, theme } = useAppTheme();
-    const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
+    const styles = useMemo(
+      () => createStyles(theme, palette),
+      [theme, palette]
+    );
 
     return (
       <View
@@ -109,7 +112,7 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
 
 const createStyles = (
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) =>
   StyleSheet.create({
     container: {

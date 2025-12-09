@@ -99,8 +99,8 @@
 //   },
 // });
 
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
+import { colors } from "@/design/colors";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";

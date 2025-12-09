@@ -3,23 +3,28 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fonts } from "@/assets/themes/typography";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { ArrowAction } from "@/components/ui/ArrowAction";
-import { Checkbox } from "@/components/ui/Checkbox";
-import { PawLoader } from "@/components/ui/PawLoader";
-import { Spacer } from "@/components/ui/Spacer";
-import { Text } from "@/components/ui/Text";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { Checkbox } from "@/components/custom/Checkbox";
+import { PawLoader } from "@/components/custom/PawLoader";
+import { Spacer } from "@/components/custom/Spacer";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { summarizeReflectionChat } from "@/lib/ai";
-import { fetchSessionById, updateSession } from "@/lib/supabase";
+import {
+  fetchSessionById,
+  fetchTasksForSession,
+  updateSession,
+} from "@/lib/supabase";
 
 type SessionTask = {
   id: string;
   text: string;
   minutes: number;
   status?: string | null;
+  is_completed?: boolean;
   actualSeconds?: number;
   timeSeconds?: number;
 };
@@ -71,49 +76,100 @@ export default function SessionSummaryScreen() {
     return raw && raw !== "null" ? raw : null;
   }, [sessionId]);
 
-  const parsedTasks: SessionTask[] = useMemo(() => {
-    if (!tasks) return [];
-    try {
-      const data = JSON.parse(tasks);
-      if (!Array.isArray(data)) return [];
-      return data
-        .map((t, idx) => {
-          const text = (t.text ?? t.name ?? "").toString();
-          const rawSeconds =
-            typeof t.actualSeconds === "number"
-              ? t.actualSeconds
-              : typeof t.timeSeconds === "number"
-              ? t.timeSeconds
-              : typeof t.time === "number"
-              ? t.time
-              : Number.isFinite(Number(t.minutes))
-              ? Number(t.minutes) * 60
-              : 0;
-          const minutes = rawSeconds / 60;
-          const statusValue =
-            typeof t.status === "string" ? t.status.toLowerCase() : null;
-          return text
-            ? {
-                id: t.id?.toString() ?? `task-${idx}`,
-                text,
-                status:
-                  typeof t.status === "string" ? t.status.toLowerCase() : null,
-                minutes: Number.isFinite(minutes)
-                  ? Math.max(0, Math.round(minutes))
-                  : 0,
-                actualSeconds:
-                  typeof t.actualSeconds === "number"
-                    ? Math.max(0, Math.round(t.actualSeconds))
-                    : undefined,
-                timeSeconds: Math.max(0, Math.round(rawSeconds)),
-              }
-            : null;
-        })
-        .filter(Boolean) as SessionTask[];
-    } catch {
-      return [];
-    }
-  }, [tasks]);
+  const [parsedTasks, setParsedTasks] = useState<SessionTask[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const hydrateTasks = async () => {
+      // If we have sessionId, fetch authoritative data
+      if (sessionIdValue) {
+        try {
+          const dbTasks = await fetchTasksForSession(sessionIdValue);
+          if (!isMounted) return;
+          const mapped = dbTasks.map((t, idx) => {
+            const text = (t.task_name ?? "").toString();
+            const timeAllotted =
+              typeof t.time_allotted === "number" ? t.time_allotted : 0;
+            const timeCompleted =
+              typeof t.time_completed === "number" ? t.time_completed : 0;
+            const rawSeconds = Math.max(
+              0,
+              timeCompleted > 0 ? timeCompleted : timeAllotted * 60
+            );
+            return {
+              id: String(t.id ?? idx),
+              text,
+              status: t.is_completed ? "completed" : null,
+              is_completed: Boolean(t.is_completed),
+              minutes: Math.max(0, Math.round(rawSeconds / 60)),
+              actualSeconds:
+                timeCompleted > 0 ? Math.max(0, Math.round(timeCompleted)) : 0,
+              timeSeconds: Math.max(0, Math.round(rawSeconds)),
+            } as SessionTask;
+          });
+          setParsedTasks(mapped);
+          return;
+        } catch (err) {
+          console.error("[session-summary] failed to fetch tasks", err);
+        }
+      }
+
+      // Fallback to tasks param if provided
+      if (!tasks) return;
+      try {
+        const data = JSON.parse(tasks);
+        if (!Array.isArray(data)) return;
+        const mapped = data
+          .map((t, idx) => {
+            const text = (t.text ?? t.name ?? "").toString();
+            const rawSeconds =
+              typeof t.actualSeconds === "number"
+                ? t.actualSeconds
+                : typeof t.timeSeconds === "number"
+                ? t.timeSeconds
+                : typeof t.time === "number"
+                ? t.time
+                : Number.isFinite(Number(t.minutes))
+                ? Number(t.minutes) * 60
+                : 0;
+            const minutes = rawSeconds / 60;
+            const statusValue =
+              typeof t.status === "string" ? t.status.toLowerCase() : null;
+            const isCompleted =
+              typeof t.is_completed === "boolean"
+                ? t.is_completed
+                : typeof t.completed === "boolean"
+                ? t.completed
+                : statusValue === "completed" || statusValue === "skipped";
+            return text
+              ? {
+                  id: t.id?.toString() ?? `task-${idx}`,
+                  text,
+                  status: statusValue,
+                  is_completed: isCompleted,
+                  minutes: Number.isFinite(minutes)
+                    ? Math.max(0, Math.round(minutes))
+                    : 0,
+                  actualSeconds:
+                    typeof t.actualSeconds === "number"
+                      ? Math.max(0, Math.round(t.actualSeconds))
+                      : undefined,
+                  timeSeconds: Math.max(0, Math.round(rawSeconds)),
+                }
+              : null;
+          })
+          .filter(Boolean) as SessionTask[];
+        setParsedTasks(mapped);
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    hydrateTasks();
+    return () => {
+      isMounted = false;
+    };
+  }, [sessionIdValue, tasks]);
 
   console.log("[session-summary] parsedTasks", parsedTasks);
 
@@ -138,6 +194,9 @@ export default function SessionSummaryScreen() {
       return `${hours} hr., ${minutes} min.`;
     }
     if (hours > 0) return `${hours} hr.`;
+    if (minutes == 0) {
+      return "20 min.";
+    }
     return `${minutes} min.`;
   };
   const hours = Math.floor(totalSecondsWorked / 3600);
@@ -259,9 +318,7 @@ export default function SessionSummaryScreen() {
             Time allocated:
           </Text>
           <Text style={styles.value}>
-            {Number(formatMinutes(totalMinutesAllocated)) > 0
-              ? formatMinutes(totalMinutesAllocated)
-              : "20 min."}
+            {formatMinutes(totalMinutesAllocated)}
           </Text>
         </View>
         <View style={styles.row}>
@@ -284,7 +341,11 @@ export default function SessionSummaryScreen() {
             {parsedTasks.map((task, index) => (
               <View key={task.id ?? index} style={styles.taskRow}>
                 <Checkbox
-                  checked={task.status === "completed"}
+                  checked={
+                    task.is_completed ||
+                    task.status === "completed" ||
+                    task.status === "skipped"
+                  }
                   onChange={() => {}}
                   boxStyle={styles.checkBox}
                   containerStyle={styles.checkboxContainer}
@@ -346,7 +407,7 @@ export default function SessionSummaryScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safeArea: {
@@ -364,7 +425,7 @@ function createStyles(
       textAlign: "center",
       fontFamily: theme.typography.families.handwritten,
       fontSize: theme.typography.sizes.xl,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     loaderContainer: {
       flex: 1,
@@ -379,13 +440,13 @@ function createStyles(
     },
     label: {
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       marginRight: 5,
     },
     value: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     statusValue: {
       color: palette.secondary,
@@ -397,7 +458,7 @@ function createStyles(
     },
     sectionHeading: {
       fontSize: theme.typography.sizes.lg,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     breakdownList: {
       gap: theme.spacing.sm,
@@ -416,14 +477,14 @@ function createStyles(
     taskText: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
       marginRight: theme.spacing.sm,
       paddingLeft: theme.spacing.sm,
     },
     taskMinutes: {
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
-      color: theme.colors.header1,
+      color: palette.header1,
     },
     faded: {
       opacity: 0.55,

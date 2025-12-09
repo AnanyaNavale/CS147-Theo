@@ -12,11 +12,11 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { colors } from "@/assets/themes/colors";
-import { BasicButton } from "@/components/BasicButton";
-import QuoteOfTheDay from "@/components/Quote";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import MainHeader from "@/components/ui/MainHeader";
+import { BasicButton } from "@/components/custom/BasicButton";
+import MainHeader from "@/components/custom/MainHeader";
+import QuoteOfTheDay from "@/components/custom/Quote";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { fetchUserProfile } from "@/lib/supabase";
@@ -238,7 +238,7 @@ function createStyles(theme: Theme, palette: typeof colors.light) {
       zIndex: 3,
     },
     menuCard: {
-      backgroundColor: theme.colors.header2,
+      backgroundColor: palette.background,
       borderRadius: theme.radii.lg,
       paddingVertical: theme.spacing.xs,
       minWidth: 200,
@@ -249,13 +249,13 @@ function createStyles(theme: Theme, palette: typeof colors.light) {
       paddingHorizontal: theme.spacing.md,
     },
     menuLabel: {
-      color: theme.colors.background,
+      color: palette.header1,
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
     },
     menuDivider: {
       height: 1,
-      backgroundColor: theme.colors.border,
+      backgroundColor: palette.border,
       opacity: 0.6,
       marginHorizontal: theme.spacing.sm,
       marginTop: theme.spacing.sm,

@@ -10,17 +10,17 @@ import {
   View,
 } from "react-native";
 
-import { AppModal } from "@/components/ui/AppModal";
-import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Checkbox";
-import { Icon } from "@/components/ui/Icon";
-import { InputField } from "@/components/ui/InputField";
-import { Spacer } from "@/components/ui/Spacer";
-import { Text } from "@/components/ui/Text";
-import { Timer } from "@/components/ui/Timer";
+import { AppModal } from "@/components/custom/AppModal";
+import { Button } from "@/components/custom/Button";
+import { Checkbox } from "@/components/custom/Checkbox";
+import { Icon } from "@/components/custom/Icon";
+import { InputField } from "@/components/custom/InputField";
+import { Spacer } from "@/components/custom/Spacer";
+import { Text } from "@/components/custom/Text";
+import { Timer } from "@/components/custom/Timer";
 
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { PawLoader } from "@/components/ui/PawLoader";
+import { PawLoader } from "@/components/custom/PawLoader";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import {
@@ -64,8 +64,14 @@ export default function SessionScreen() {
   }>();
 
   const sessionGoal = goal ?? "";
-  const { colors: palette, theme } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { colors: palette, theme, mode } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
+  const isDark = mode === "dark";
+  const playIcon = isDark ? "play-dark" : "play";
+  const pauseIcon = isDark ? "pause-dark" : "pause";
+  const stopIcon = isDark ? "stop-dark" : "stop";
+  const chatIcon = isDark ? "chat-dark" : "chat";
+  const breakIcon = isDark ? "break-dark" : "break";
 
   // tasks may not exist OR may not parse
   let parsedTasks: Task[] = [];
@@ -222,8 +228,20 @@ export default function SessionScreen() {
     return spent;
   };
 
-  const computeTaskProgress = () => {
-    const taskPayload = sessionTasks.map((t, idx) => {
+  // If timer has hit zero, make sure the task is marked complete before leaving it.
+  const finalizeTimedOutTask = () => {
+    if (!currentTask) return;
+    if (secondsLeft <= 0 && currentTask.status !== "completed") {
+      closeOutCurrentTask("completed");
+    }
+  };
+
+  const computeTaskProgress = (tasksSnapshot: SessionTask[] = sessionTasks) => {
+    const taskPayload = tasksSnapshot.map((t, idx) => {
+      const isCompleted =
+        t.status === "completed" ||
+        t.status === "skipped" ||
+        (idx === currentTaskIndex && secondsLeft <= 0 && !isBreak);
       const spentSeconds =
         typeof t.actualSeconds === "number"
           ? Math.max(0, t.actualSeconds)
@@ -234,8 +252,7 @@ export default function SessionScreen() {
       const updatedTime = Math.max(0, prevTime + spentSeconds);
       return {
         id: t.id,
-        is_completed:
-          t.status === "completed" || t.status === "skipped" ? true : false,
+        is_completed: Boolean(isCompleted),
         time_completed: updatedTime,
       };
     });
@@ -249,11 +266,14 @@ export default function SessionScreen() {
     return { taskPayload, totalSpentSeconds };
   };
 
-  const persistTaskCompletion = async () => {
+  const persistTaskCompletion = async (
+    tasksSnapshot: SessionTask[] = sessionTasks
+  ) => {
     if (!sessionId || isPersistingTasks) return { totalSpentSeconds: 0 };
     setIsPersistingTasks(true);
     try {
-      const { taskPayload, totalSpentSeconds } = computeTaskProgress();
+      const { taskPayload, totalSpentSeconds } =
+        computeTaskProgress(tasksSnapshot);
       await updateTaskCompletionStates(sessionId, taskPayload);
       return { totalSpentSeconds };
     } catch (err) {
@@ -279,6 +299,7 @@ export default function SessionScreen() {
   };
 
   const goToEndSession = async () => {
+    finalizeTimedOutTask();
     const { totalSpentSeconds } = await persistTaskCompletion();
     await markSessionCompleted(totalSpentSeconds);
 
@@ -314,6 +335,7 @@ export default function SessionScreen() {
     if (!sessionId || isSavingForLater) return;
     setIsSavingForLater(true);
     try {
+      finalizeTimedOutTask();
       const { totalSpentSeconds } = await persistTaskCompletion();
 
       await updateSession(sessionId, {
@@ -519,6 +541,7 @@ export default function SessionScreen() {
   };
 
   const handleNextTask = () => {
+    finalizeTimedOutTask();
     const isLast = currentTaskIndex >= sessionTasks.length - 1;
     if (isLast) {
       goToEndSession();
@@ -868,8 +891,8 @@ export default function SessionScreen() {
           <>
             <SvgStrokeText
               text="Goal:"
-              stroke={theme.colors.header2}
-              textStyle={{ color: theme.colors.header2 }}
+              stroke={palette.header2}
+              textStyle={{ color: palette.header2 }}
             ></SvgStrokeText>
 
             <Text
@@ -886,8 +909,8 @@ export default function SessionScreen() {
           <>
             <SvgStrokeText
               text="Work session"
-              stroke={theme.colors.header2}
-              textStyle={{ color: theme.colors.header2 }}
+              stroke={palette.header2}
+              textStyle={{ color: palette.header2 }}
             ></SvgStrokeText>
           </>
         )}
@@ -898,8 +921,8 @@ export default function SessionScreen() {
           <>
             <SvgStrokeText
               text="Task:"
-              stroke={theme.colors.header2}
-              textStyle={{ color: theme.colors.header2 }}
+              stroke={palette.header2}
+              textStyle={{ color: palette.header2 }}
             ></SvgStrokeText>
 
             <View style={styles.taskRow}>
@@ -999,12 +1022,15 @@ export default function SessionScreen() {
       <View style={styles.row}>
         {!isBreak && currentTask && (
           <Pressable onPress={handlePlayPause}>
-            <Icon name={isRunning ? "pause" : "play"} size={iconSize} />
+            <Icon
+              name={isRunning ? pauseIcon : playIcon}
+              size={iconSize}
+            />
           </Pressable>
         )}
 
         <Pressable onPress={() => setShowStopModal(true)}>
-          <Icon name="stop" size={iconSize} />
+          <Icon name={stopIcon} size={iconSize} />
         </Pressable>
 
         <Pressable
@@ -1015,12 +1041,12 @@ export default function SessionScreen() {
             })
           }
         >
-          <Icon name="chat" size={iconSize} />
+          <Icon name={chatIcon} size={iconSize} />
         </Pressable>
 
         {!isBreak && currentTask && (
           <Pressable onPress={() => setShowStartBreakConfirm(true)}>
-            <Icon name="break" size={iconSize} />
+            <Icon name={breakIcon} size={iconSize} />
           </Pressable>
         )}
       </View>
@@ -1195,7 +1221,7 @@ export default function SessionScreen() {
             !canAddTime && { opacity: 0.4 },
           ]}
         >
-          <Icon name="plus" size={40} tint={theme.colors.background} />
+          <Icon name="plus" size={40} tint={palette.background} />
         </TouchableOpacity>
       </AppModal>
 
@@ -1281,14 +1307,14 @@ export default function SessionScreen() {
                 if (canAddTask) handleAddTask();
               }}
               disabled={!canAddTask}
-              style={[
-                styles.actionCircle,
-                styles.actionCircleNeutral,
-                styles.smallActionCircle,
-                !canAddTask && { opacity: 0.4 },
-              ]}
-            >
-              <Icon name="plus" size={40} tint={theme.colors.background} />
+            style={[
+              styles.actionCircle,
+              styles.actionCircleNeutral,
+              styles.smallActionCircle,
+              !canAddTask && { opacity: 0.4 },
+            ]}
+          >
+            <Icon name="plus" size={40} tint={palette.background} />
             </TouchableOpacity>
           );
         })()}
@@ -1349,7 +1375,7 @@ export default function SessionScreen() {
             !canRenameTask && { opacity: 0.4 },
           ]}
         >
-          <Icon name="check" size={30} tint={theme.colors.background} />
+          <Icon name="check" size={30} tint={palette.background} />
         </TouchableOpacity>
       </AppModal>
     </View>
@@ -1357,7 +1383,10 @@ export default function SessionScreen() {
 }
 
 /* STYLES */
-function createStyles(theme: Theme) {
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/design/colors").colors.light
+) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -1365,7 +1394,7 @@ function createStyles(theme: Theme) {
       paddingBottom: theme.spacing.lg,
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: theme.colors.background,
+      backgroundColor: palette.background,
     },
     menuAnchor: {
       position: "absolute",
@@ -1385,27 +1414,27 @@ function createStyles(theme: Theme) {
       position: "absolute",
       top: 40,
       right: 0,
-      backgroundColor: theme.colors.background,
+      backgroundColor: palette.background,
       borderRadius: theme.radii.lg,
       paddingVertical: theme.spacing.xs,
       minWidth: 200,
       ...theme.shadow.medium,
       zIndex: 4,
       borderWidth: 1,
-      borderColor: theme.colors.border,
+      borderColor: palette.border,
     },
     menuItem: {
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
     menuLabel: {
-      color: theme.colors.header1,
+      color: palette.header1,
       fontFamily: theme.typography.families.regular,
       fontSize: theme.typography.sizes.md,
     },
     menuDivider: {
       height: 1,
-      backgroundColor: theme.colors.border,
+      backgroundColor: palette.border,
       opacity: 0.6,
       marginHorizontal: theme.spacing.sm,
     },
@@ -1425,14 +1454,14 @@ function createStyles(theme: Theme) {
       gap: theme.spacing.xs,
     },
     breakBox: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: palette.background,
       paddingHorizontal: theme.spacing.xl,
       paddingVertical: theme.spacing.md,
       borderRadius: theme.radii.md,
       alignItems: "center",
       minWidth: 250,
       borderWidth: 2,
-      borderColor: theme.colors.border,
+      borderColor: palette.border,
       ...theme.shadow.soft,
     },
     actionCircle: {
@@ -1445,7 +1474,7 @@ function createStyles(theme: Theme) {
     },
 
     actionCircleNeutral: {
-      backgroundColor: theme.colors.header2,
+      backgroundColor: palette.header2,
     },
     smallActionCircle: {
       alignSelf: "flex-end",
@@ -1453,7 +1482,7 @@ function createStyles(theme: Theme) {
       height: 50,
     },
     completedTaskLabel: {
-      color: theme.colors.quote,
+      color: palette.quote,
     },
   });
 }
