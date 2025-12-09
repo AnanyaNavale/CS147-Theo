@@ -4,6 +4,7 @@ import Svg, { Text as SvgText, TSpan } from "react-native-svg";
 
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
+import { useAppTheme } from "@/hooks/ThemeContext";
 
 export type SvgStrokeTextProps = {
   text: string;
@@ -17,12 +18,14 @@ export type SvgStrokeTextProps = {
 
 export default function SvgStrokeText({
   text,
-  stroke = colors.light.header1,
+  stroke,
   strokeWidth = 0.3,
   textStyle,
   containerStyle,
   textAnchor = "middle",
 }: SvgStrokeTextProps) {
+  const { colors: palette } = useAppTheme();
+
   // Flatten textStyle so we can extract font props
   const flattened = Array.isArray(textStyle)
     ? Object.assign({}, ...textStyle)
@@ -30,7 +33,8 @@ export default function SvgStrokeText({
 
   const fontSize = flattened.fontSize || fonts.sizes.header;
   const fontFamily = flattened.fontFamily || fonts.typeface.header;
-  const fill = flattened.color || colors.light.header1;
+  const fill = flattened.color || palette.header1;
+  const resolvedStroke = stroke || palette.header1;
 
   const lines = text.split(/\r?\n/);
 
@@ -50,7 +54,7 @@ export default function SvgStrokeText({
           fontSize={fontSize}
           fontFamily={fontFamily}
           fill={fill}
-          stroke={stroke}
+          stroke={resolvedStroke}
           strokeWidth={strokeWidth}
         >
           {lines.map((line, index) => (

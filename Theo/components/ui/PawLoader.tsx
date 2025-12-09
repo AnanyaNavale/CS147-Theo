@@ -1,7 +1,8 @@
-import { theme } from "@/design/theme";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { Text } from "./Text";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import { Theme } from "@/design/theme";
 
 type PawLoaderProps = {
   message?: string;
@@ -10,6 +11,8 @@ type PawLoaderProps = {
 export function PawLoader({
   message = "Getting your session ready...",
 }: PawLoaderProps) {
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
   const anims = [
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
@@ -67,51 +70,55 @@ export function PawLoader({
     </View>
   );
 }
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  const brown = palette.primary;
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: palette.background,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-const brown = theme.colors.accentDark;
+    pawContainer: {
+      width: "55%",
+      aspectRatio: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      position: "relative",
+    },
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    mainPad: {
+      width: "68%",
+      height: "68%",
+      borderRadius: 999,
+      backgroundColor: brown,
+      position: "absolute",
+      bottom: "8%",
+    },
 
-  pawContainer: {
-    width: "55%",
-    aspectRatio: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-  },
+    toe: {
+      position: "absolute",
+      width: "14%",
+      height: "14%",
+      borderRadius: 999,
+      backgroundColor: brown,
+    },
 
-  mainPad: {
-    width: "68%",
-    height: "68%",
-    borderRadius: 999,
-    backgroundColor: brown,
-    position: "absolute",
-    bottom: "8%",
-  },
+    // Relative to pawContainer, not screen
+    toe1: { top: "12%", left: "15%" },
+    toe2: { top: "3%", left: "40%" },
+    toe3: { top: "10%", right: "20%" },
+    toe4: { top: "22%", right: "6%" },
+    toe5: { top: "40%", right: "0%" },
 
-  toe: {
-    position: "absolute",
-    width: "14%",
-    height: "14%",
-    borderRadius: 999,
-    backgroundColor: brown,
-  },
-
-  // Relative to pawContainer, not screen
-  toe1: { top: "12%", left: "15%" },
-  toe2: { top: "3%", left: "40%" },
-  toe3: { top: "10%", right: "20%" },
-  toe4: { top: "22%", right: "6%" },
-  toe5: { top: "40%", right: "0%" },
-
-  message: {
-    marginTop: theme.spacing.md,
-    textAlign: "center",
-  },
-});
+    message: {
+      marginTop: theme.spacing.md,
+      textAlign: "center",
+      color: palette.body,
+    },
+  });
+}

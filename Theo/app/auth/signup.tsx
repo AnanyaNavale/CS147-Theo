@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -17,7 +17,8 @@ import { Container } from "@/components/ui/Container";
 import { InputField } from "@/components/ui/InputField";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { signUpWithEmail } from "@/lib/supabase";
 
 const logo = require("@/assets/images/logo.png");
@@ -25,6 +26,7 @@ const teddy = require("@/assets/theo/waving.png");
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { colors: palette, theme } = useAppTheme();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +35,7 @@ export default function SignUpScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
 
   const handleSignUp = async () => {
     if (isSubmitting) return;
@@ -120,7 +123,7 @@ export default function SignUpScreen() {
                   <Feather
                     name={showPassword ? "eye-off" : "eye"}
                     size={20}
-                    color={theme.colors.accentDark}
+                    color={palette.primary}
                   />
                 </TouchableOpacity>
               }
@@ -140,7 +143,7 @@ export default function SignUpScreen() {
                   <Feather
                     name={showConfirmPassword ? "eye-off" : "eye"}
                     size={20}
-                    color={theme.colors.accentDark}
+                    color={palette.primary}
                   />
                 </TouchableOpacity>
               }
@@ -148,7 +151,7 @@ export default function SignUpScreen() {
           </View>
 
           {error && (
-            <Text color="danger" style={styles.errorText}>
+            <Text color="tertiary" style={styles.errorText}>
               {error}
             </Text>
           )}
@@ -180,59 +183,62 @@ export default function SignUpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: theme.spacing.xl,
-    paddingBottom: theme.spacing.xl,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hero: {
-    alignItems: "center",
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
-  },
-  logo: {
-    width: 120,
-    height: 52,
-    resizeMode: "contain",
-  },
-  teddy: {
-    width: 140,
-    height: 150,
-    resizeMode: "contain",
-  },
-  sessionButton: {
-    // width: "100%",
-    marginTop: theme.spacing.lg,
-  },
-  form: {
-    width: "100%",
-    marginTop: theme.spacing.md,
-  },
-  errorText: {
-    width: "100%",
-    marginTop: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
-
-  linkRow: {
-    alignItems: "center",
-    marginTop: theme.spacing.lg,
-  },
-  linkPrompt: {
-    color: theme.solidColors.textSecondary,
-    fontFamily: theme.typography.families.regular,
-  },
-  linkAction: {
-    color: theme.solidColors.accentDark,
-    fontFamily: theme.typography.families.bold,
-    marginTop: 4,
-    textDecorationLine: "underline",
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    scroll: {
+      flexGrow: 1,
+      paddingHorizontal: theme.spacing.xl,
+      paddingBottom: theme.spacing.xl,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    hero: {
+      alignItems: "center",
+      marginTop: theme.spacing.md,
+      marginBottom: theme.spacing.sm,
+    },
+    logo: {
+      width: 120,
+      height: 52,
+      resizeMode: "contain",
+    },
+    teddy: {
+      width: 140,
+      height: 150,
+      resizeMode: "contain",
+    },
+    sessionButton: {
+      marginTop: theme.spacing.lg,
+    },
+    form: {
+      width: "100%",
+      marginTop: theme.spacing.md,
+    },
+    errorText: {
+      width: "100%",
+      marginTop: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
+    },
+    linkRow: {
+      alignItems: "center",
+      marginTop: theme.spacing.lg,
+    },
+    linkPrompt: {
+      color: palette.quote ?? palette.inactive ?? palette.body,
+      fontFamily: theme.typography.families.regular,
+    },
+    linkAction: {
+      color: palette.primary,
+      fontFamily: theme.typography.families.bold,
+      marginTop: 4,
+      textDecorationLine: "underline",
+    },
+  });
+}

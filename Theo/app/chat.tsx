@@ -1,12 +1,12 @@
-import { colors } from "@/assets/themes/colors";
 import { InputField } from "@/components";
 import SvgStrokeText from "@/components/SvgStrokeText";
+import { AppModal } from "@/components/ui/AppModal";
 import { ChatBubble } from "@/components/ui/ChatBubble";
 import { Icon } from "@/components/ui/Icon";
-import { AppModal } from "@/components/ui/AppModal";
 import { Text } from "@/components/ui/Text";
 import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { generateReflectionReply } from "@/lib/ai";
 import {
   ReflectionChatMessage,
@@ -18,7 +18,13 @@ import { useSupabase } from "@/providers/SupabaseProvider";
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   Animated,
@@ -52,7 +58,7 @@ export type Message = {
 /* ------------------------------------------------------
    TYPING INDICATOR BUBBLE
 ------------------------------------------------------- */
-function TypingBubble() {
+function TypingBubble({ styles }: { styles: ReturnType<typeof createStyles> }) {
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
   const dot3 = useRef(new Animated.Value(0)).current;
@@ -137,6 +143,8 @@ export default function ChatScreen() {
     sessionId?: string;
     goal?: string;
   }>();
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
   const insets = useSafeAreaInsets();
   const { session } = useSupabase();
   const navigation = useRouter();
@@ -448,7 +456,7 @@ export default function ChatScreen() {
           <Icon
             name="mic"
             size={18}
-            tint={theme.solidColors.white}
+            tint={theme.colors.background}
             style={{ marginRight: theme.spacing.xs }}
           />
           <Text style={styles.voiceButtonLabel}>Voice message</Text>
@@ -485,7 +493,7 @@ export default function ChatScreen() {
             <Feather
               name={"arrow-left"}
               size={36}
-              color={colors.light.iconsStandalone}
+              color={palette.iconsStandalone}
             />
           </TouchableOpacity>
           <View style={styles.dateContainer}>
@@ -509,7 +517,7 @@ export default function ChatScreen() {
             ListFooterComponent={
               assistantTyping ? (
                 <View style={{ paddingTop: theme.spacing.sm }}>
-                  <TypingBubble />
+                  <TypingBubble styles={styles} />
                 </View>
               ) : (
                 <View style={{ height: theme.spacing.md }} />
@@ -529,14 +537,14 @@ export default function ChatScreen() {
         )} */}
         {/* {persisting && (
           <Text
-            color="accentDark"
+            color="header2"
             style={{ textAlign: "center", paddingBottom: theme.spacing.xs }}
           >
             Saving reflection...
           </Text>
         )} */}
         {error && (
-          <Text color="danger" style={{ textAlign: "center" }}>
+          <Text color="tertiary" style={{ textAlign: "center" }}>
             {error}
           </Text>
         )}
@@ -602,151 +610,147 @@ export default function ChatScreen() {
 /* ------------------------------------------------------
    STYLES
 ------------------------------------------------------- */
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: theme.solidColors.white,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: theme.solidColors.white,
-  },
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
 
-  header: {
-    height: 70,
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-    justifyContent: "center",
-    backgroundColor: colors.light.background,
-  },
-  backButton: {
-    position: "absolute",
-    left: 16,
-    top: 22,
-    zIndex: 2,
-    backgroundColor: colors.light.background,
-  },
-  dateContainer: {
-    position: "absolute",
-    top: 25,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 1,
-    width: "100%",
-    backgroundColor: colors.light.background,
-  },
+    header: {
+      height: 70,
+      flexDirection: "row",
+      alignItems: "center",
+      position: "relative",
+      justifyContent: "center",
+      backgroundColor: palette.background,
+    },
+    backButton: {
+      position: "absolute",
+      left: 16,
+      top: 22,
+      zIndex: 2,
+      backgroundColor: palette.background,
+    },
+    dateContainer: {
+      position: "absolute",
+      top: 25,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 1,
+      width: "100%",
+      backgroundColor: palette.background,
+    },
 
-  listContent: {
-    flexGrow: 1,
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-  },
+    listContent: {
+      flexGrow: 1,
+      padding: theme.spacing.lg,
+      paddingBottom: theme.spacing.md,
+    },
 
-  inputBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-    height: theme.input.height + theme.spacing.md + theme.spacing.xl,
-  },
+    inputBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.xl,
+      height: theme.input.height + theme.spacing.md + theme.spacing.xl,
+      backgroundColor: palette.background,
+    },
 
-  sessionLink: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xs,
-  },
+    sessionLink: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.xs,
+    },
 
-  textboxWrapper: {
-    flex: 1,
-    //position: "relative",
-    //minHeight: theme.input.height,
-  },
+    textboxWrapper: {
+      flex: 1,
+    },
 
-  textInput: {
-    //position: "relative",
-    borderWidth: 2,
-    marginTop: 11,
-    // borderRadius: theme.radii.md,
-    // paddingLeft: theme.spacing.md,
-    paddingRight: 35,
-    // height: theme.input.height,
-    //paddingVertical: 0,
-    //textAlignVertical: "center",
-    //marginBottom: 0,
-  },
+    textInput: {
+      borderWidth: 2,
+      marginTop: 11,
+      paddingRight: 35,
+    },
 
-  sendAccessory: {
-    position: "absolute",
-    right: theme.spacing.sm,
-    top: 19,
-    //bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 2,
-  },
+    sendAccessory: {
+      position: "absolute",
+      right: theme.spacing.sm,
+      top: 19,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 2,
+    },
 
-  sendIcon: {
-    width: 28,
-    height: 28,
-    tintColor: theme.colors.accentDark,
-  },
+    sendIcon: {
+      width: 28,
+      height: 28,
+      tintColor: palette.primary,
+    },
 
-  micWrapper: {
-    marginLeft: theme.spacing.md,
-    height: theme.input.height,
-    width: theme.input.height,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    micWrapper: {
+      marginLeft: theme.spacing.md,
+      height: theme.input.height,
+      width: theme.input.height,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  micIcon: {
-    tintColor: theme.colors.accentDark,
-    height: theme.input.height - 4,
-    width: theme.input.height - 4,
-    resizeMode: "contain",
-    top: 1,
-  },
-  voiceButton: {
-    backgroundColor: theme.colors.accentDark,
-    borderRadius: theme.radii.md,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-  },
-  voiceButtonRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: theme.spacing.xs,
-  },
-  voiceButtonLabel: {
-    color: theme.solidColors.white,
-    fontFamily: theme.typography.families.medium,
-    fontSize: theme.typography.sizes.md,
-  },
-  voiceTranscriptPreview: {
-    color: theme.solidColors.white,
-    opacity: 0.9,
-    fontFamily: theme.typography.families.regular,
-    lineHeight: theme.typography.sizes.md * 1.3,
-  },
+    micIcon: {
+      tintColor: palette.primary,
+      height: theme.input.height - 4,
+      width: theme.input.height - 4,
+      resizeMode: "contain",
+      top: 1,
+    },
+    voiceButton: {
+      backgroundColor: palette.primary,
+      borderRadius: theme.radii.md,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    voiceButtonRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: theme.spacing.xs,
+    },
+    voiceButtonLabel: {
+      color: palette.buttonText ?? palette.user ?? "#fff",
+      fontFamily: theme.typography.families.medium,
+      fontSize: theme.typography.sizes.md,
+    },
+    voiceTranscriptPreview: {
+      color: palette.buttonText ?? palette.user ?? "#fff",
+      opacity: 0.9,
+      fontFamily: theme.typography.families.regular,
+      lineHeight: theme.typography.sizes.md * 1.3,
+    },
 
-  typingBubble: {
-    flexDirection: "row",
-    backgroundColor: theme.colors.accentDark,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: theme.radii.lg,
-    alignSelf: "flex-start",
-    marginBottom: theme.spacing.md,
-  },
+    typingBubble: {
+      flexDirection: "row",
+      backgroundColor: palette.primary,
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+      borderRadius: theme.radii.lg,
+      alignSelf: "flex-start",
+      marginBottom: theme.spacing.md,
+    },
 
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "white",
-    marginHorizontal: 3,
-  },
-});
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.colors.background,
+      marginHorizontal: 3,
+    },
+  });
+}

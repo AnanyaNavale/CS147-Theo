@@ -1,5 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -8,8 +8,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 import { PawLoader } from "@/components/ui/PawLoader";
-import { useColorScheme } from "@/components/useColorScheme";
 import { fontMap } from "@/design/fonts";
+import { AppThemeProvider, useAppTheme } from "@/hooks/ThemeContext";
 import { SupabaseProvider, useSupabase } from "@/providers/SupabaseProvider";
 import { StatusBar } from "expo-status-bar";
 
@@ -50,16 +50,18 @@ function RootLayoutNav({ onReady }: { onReady: () => void }) {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onReady}>
       <SupabaseProvider>
-        <StatusBar style="dark" />
-        <AppNavigator />
+        <AppThemeProvider>
+          <AppNavigator />
+        </AppThemeProvider>
       </SupabaseProvider>
     </GestureHandlerRootView>
   );
 }
 
 function AppNavigator() {
-  const colorScheme = useColorScheme();
   const { session, isSessionLoading } = useSupabase();
+  const { mode } = useAppTheme();
+  const navigationTheme = mode === "dark" ? DarkTheme : DefaultTheme;
 
   // While Supabase is checking the session → show loader
   if (isSessionLoading) {
@@ -69,19 +71,21 @@ function AppNavigator() {
   // Logged-in navigation stack
   if (session) {
     return (
-      <ThemeProvider value={DefaultTheme}>
+      <NavigationThemeProvider value={navigationTheme}>
+        <StatusBar style={mode === "dark" ? "light" : "dark"} />
         <Stack screenOptions={{ headerShown: false }} key="app-stack">
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
           <Stack.Screen name="chat" options={{ presentation: "modal" }} />
         </Stack>
-      </ThemeProvider>
+      </NavigationThemeProvider>
     );
   }
 
   // Logged-out navigation stack
   return (
-    <ThemeProvider value={DefaultTheme}>
+    <NavigationThemeProvider value={navigationTheme}>
+      <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <Stack
         screenOptions={{ headerShown: false }}
         key="auth-stack"
@@ -90,6 +94,6 @@ function AppNavigator() {
         <Stack.Screen name="auth/login" />
         <Stack.Screen name="auth/signup" />
       </Stack>
-    </ThemeProvider>
+    </NavigationThemeProvider>
   );
 }

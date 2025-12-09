@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { AppModal } from "../ui/AppModal";
+import { StyleSheet, Text, View } from "react-native";
 import { Button, Spacer } from "../../components";
+import { AppModal } from "../ui/AppModal";
 
 export default function ModalCatalog() {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -77,7 +77,7 @@ export default function ModalCatalog() {
         <Spacer size="sm" />
         <Button
           label="Delete Session"
-          variant="danger"
+          variant="tertiary"
           onPress={() => console.log("Delete")}
         />
       </AppModal>

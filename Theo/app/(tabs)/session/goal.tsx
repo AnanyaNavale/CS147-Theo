@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -19,7 +19,8 @@ import { Icon } from "@/components/ui/Icon";
 import { Spacer } from "@/components/ui/Spacer";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 
 const teddy = require("../../../assets/theo/waving.png");
 
@@ -34,6 +35,7 @@ export default function GoalScreen() {
 
   const baseTeddySize = isCompact ? 170 : 220;
   const arrowFootprint = 160; // approx width of ArrowAction (text + icon)
+  const { colors: palette, theme } = useAppTheme();
   const horizontalMargin = theme.spacing.md * 2;
   const maxTeddyWidth = Math.max(
     140,
@@ -56,6 +58,7 @@ export default function GoalScreen() {
     setGoal(text);
     setShowRecorder(false);
   };
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -93,9 +96,9 @@ export default function GoalScreen() {
 
             <SvgStrokeText
               text="Goal:"
-              stroke={theme.colors.accentDark}
+              stroke={theme.colors.header2}
               textStyle={{
-                color: theme.colors.accentDark,
+                color: theme.colors.header2,
               }}
               containerStyle={{ alignSelf: "center" }}
             ></SvgStrokeText>
@@ -128,7 +131,7 @@ export default function GoalScreen() {
                     <Icon
                       name="mic"
                       size={micSize}
-                      tint={theme.colors.accentDark}
+                      tint={theme.colors.header2}
                     />
                   </TouchableOpacity>
                 }
@@ -158,75 +161,77 @@ export default function GoalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  prompt: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.xl,
-  },
-  label: {
-    color: theme.colors.accentDark,
-    textAlign: "center",
-  },
-  goalInput: {
-    //textAlignVertical: "center",
-    //paddingVertical: theme.spacing.sm,
-  },
-  inputShell: {
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    borderColor: theme.colors.accentDark,
-    backgroundColor: theme.colors.background,
-  },
-  goalDisplayRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.xl,
-  },
-  labelInline: {
-    color: theme.colors.accentDark,
-  },
-  goalValue: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-  },
-  teddy: {
-    position: "absolute",
-    left: theme.spacing.sm,
-    bottom: theme.spacing.xl,
-    resizeMode: "contain",
-  },
-  micWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: theme.spacing.md,
-  },
-  button: {
-    paddingVertical: theme.spacing.md,
-  },
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    content: {
+      flexGrow: 1,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    prompt: {
+      textAlign: "center",
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.xl,
+    },
+    label: {
+      color: theme.colors.header2,
+      textAlign: "center",
+    },
+    goalInput: {},
+    inputShell: {
+      borderRadius: theme.radii.md,
+      borderWidth: 1,
+      borderColor: theme.colors.header2,
+      backgroundColor: theme.colors.background,
+    },
+    goalDisplayRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.xl,
+    },
+    labelInline: {
+      color: theme.colors.header2,
+    },
+    goalValue: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.header1,
+    },
+    teddy: {
+      position: "absolute",
+      left: theme.spacing.sm,
+      bottom: theme.spacing.xl,
+      resizeMode: "contain",
+    },
+    micWrapper: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: theme.spacing.md,
+    },
+    button: {
+      paddingVertical: theme.spacing.md,
+    },
 
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    paddingHorizontal: theme.spacing.lg,
-  },
-});
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      paddingHorizontal: theme.spacing.lg,
+    },
+  });
+}

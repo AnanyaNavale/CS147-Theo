@@ -656,7 +656,7 @@ ${recent
           threshold: "BLOCK_NONE",
         },
         {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          category: "HARM_CATEGORY_tertiaryOUS_CONTENT",
           threshold: "BLOCK_NONE",
         },
       ],
@@ -728,7 +728,7 @@ ${recent
           threshold: "BLOCK_NONE",
         },
         {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          category: "HARM_CATEGORY_tertiaryOUS_CONTENT",
           threshold: "BLOCK_NONE",
         },
       ],

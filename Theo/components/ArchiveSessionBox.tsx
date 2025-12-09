@@ -1,10 +1,12 @@
+import { Text, View } from "@/components/Themed";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { View, Text } from "@/components/Themed";
 // SUPABASE
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { fonts } from "@/assets/themes/typography";
 import { colors } from "@/assets/themes/colors";
-import { theme } from "@/design/theme";
+import { fonts } from "@/assets/themes/typography";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useMemo } from "react";
 
 interface ArchiveSessionBoxProps {
   title: string | null;
@@ -22,6 +24,8 @@ export default function ArchiveSessionBox({
   onPress,
 }: ArchiveSessionBoxProps) {
   const timeDisplay = formatMinutes(time);
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   const hasTitle = title?.trim() !== "";
   if (!hasTitle) {
@@ -30,10 +34,26 @@ export default function ArchiveSessionBox({
 
   return (
     <TouchableOpacity
-      style={[styles.container, getBoxStyle(status)]}
+      style={[
+        styles.container,
+        status === "complete"
+          ? styles.containerCompleted
+          : status === "planned"
+          ? styles.containerPlan
+          : styles.containerSession,
+      ]}
       onPress={onPress}
     >
-      <View style={[styles.timeContainer, getTimeStyle(status)]}>
+      <View
+        style={[
+          styles.timeContainer,
+          status === "complete"
+            ? styles.timeContainerCompleted
+            : status === "planned"
+            ? styles.timeContainerPlan
+            : styles.timeContainerSession,
+        ]}
+      >
         {timeDisplay !== "0 min." ? (
           <Text style={styles.time}>{timeDisplay}</Text>
         ) : (
@@ -80,82 +100,68 @@ function formatMinutes(totalMinutes: number) {
   return `${minutes} min.`;
 }
 
-function getBoxStyle(status: string) {
-  if (status === "complete") return styles.containerCompleted;
-  if (status !== "complete" && status !== "planned")
-    return styles.containerSession;
-  return styles.containerPlan;
-}
-
-function getTimeStyle(status: string) {
-  if (status === "complete") return styles.timeContainerCompleted;
-  if (status !== "complete" && status !== "planned")
-    return styles.timeContainerSession;
-  return styles.timeContainerPlan;
-}
-
-const styles = StyleSheet.create({
-  container: {
-    height: 100,
-    marginHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: colors.light.background,
-    borderWidth: 2,
-    marginBottom: 12,
-    flexDirection: "row",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    overflow: "hidden",
-  },
-  containerSession: {
-    borderColor: "#B28F6D",
-    borderStyle: "dashed",
-    shadowColor: colors.light.shadowPrimary,
-  },
-  containerCompleted: {
-    borderColor: colors.light.primary,
-    shadowColor: colors.light.shadowPrimary,
-  },
-  containerPlan: {
-    borderColor: colors.light.secondary,
-    shadowColor: colors.light.shadowSecondary,
-  },
-  timeContainer: {
-    width: "25%",
-    height: "100%",
-    //borderRadius: 5,
-    padding: 10,
-    backgroundColor: "white",
-  },
-  timeContainerSession: {
-    backgroundColor: "#B28F6D",
-  },
-  timeContainerCompleted: {
-    backgroundColor: colors.light.primary,
-  },
-  timeContainerPlan: {
-    backgroundColor: colors.light.secondary,
-  },
-  titleContainer: {
-    flex: 1,
-    flexShrink: 1,
-    padding: 10,
-    backgroundColor: colors.light.background,
-  },
-  title: {
-    fontSize: theme.typography.sizes.sm + 2,
-    fontFamily: fonts.typeface.body,
-    color: colors.light.body,
-    width: "100%",
-    flexWrap: "wrap",
-  },
-  italicTitle: {
-    fontFamily: fonts.typeface.bodyItalic,
-  },
-  time: {
-    fontSize: theme.typography.sizes.md,
-    fontFamily: "Raleway-Regular",
-    color: "white",
-  },
-});
+const createStyles = (theme: Theme, palette: typeof colors.light) =>
+  StyleSheet.create({
+    container: {
+      height: 100,
+      marginHorizontal: 20,
+      borderRadius: 10,
+      backgroundColor: palette.background,
+      borderWidth: 2,
+      marginBottom: 12,
+      flexDirection: "row",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.5,
+      shadowRadius: 4,
+      overflow: "hidden",
+    },
+    containerSession: {
+      borderColor: "#B28F6D",
+      borderStyle: "dashed",
+      shadowColor: palette.shadowPrimary ?? palette.overlay,
+    },
+    containerCompleted: {
+      borderColor: palette.primary,
+      shadowColor: palette.shadowPrimary ?? palette.overlay,
+    },
+    containerPlan: {
+      borderColor: palette.secondary,
+      shadowColor: palette.shadowSecondary ?? palette.overlay,
+    },
+    timeContainer: {
+      width: "25%",
+      height: "100%",
+      padding: 10,
+      backgroundColor: palette.background,
+    },
+    timeContainerSession: {
+      backgroundColor: "#B28F6D",
+    },
+    timeContainerCompleted: {
+      backgroundColor: palette.primary,
+    },
+    timeContainerPlan: {
+      backgroundColor: palette.secondary,
+    },
+    titleContainer: {
+      flex: 1,
+      flexShrink: 1,
+      padding: 10,
+      backgroundColor: palette.background,
+    },
+    title: {
+      fontSize: theme.typography.sizes.sm + 2,
+      fontFamily: fonts.typeface.body,
+      color: palette.body,
+      width: "100%",
+      flexWrap: "wrap",
+    },
+    italicTitle: {
+      fontFamily: fonts.typeface.bodyItalic,
+    },
+    time: {
+      fontSize: theme.typography.sizes.md,
+      fontFamily: "Raleway-Regular",
+      color: "white",
+    },
+  });

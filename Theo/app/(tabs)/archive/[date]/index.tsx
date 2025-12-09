@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SvgStrokeText from "@/components/SvgStrokeText";
 
 // SUPABASE
@@ -15,9 +15,10 @@ import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchSessionsForDaySorted } from "@/lib/supabase";
 
 import { Feather } from "@expo/vector-icons";
-import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import ArchiveSessionBox from "@/components/ArchiveSessionBox";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import { Theme } from "@/design/theme";
 
 export default function SingleDayScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -29,6 +30,8 @@ export default function SingleDayScreen() {
 
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   // Parse the string into a Date
   const currentDate = new Date(year, month - 1, day); // works if date is "YYYY-MM-DD"
@@ -102,7 +105,7 @@ export default function SingleDayScreen() {
           <Feather
             name={"arrow-left"}
             size={36}
-            color={colors.light.iconsStandalone}
+            color={palette.iconsStandalone}
           />
         </TouchableOpacity>
         <View style={styles.dateContainer}>
@@ -147,14 +150,14 @@ export default function SingleDayScreen() {
               <View
                 style={{
                   alignItems: "center",
-                  backgroundColor: colors.light.background,
+                  backgroundColor: palette.background,
                 }}
               >
                 <Text
                   style={{
                     fontFamily: fonts.typeface.body,
                     fontSize: fonts.sizes.body,
-                    color: colors.light.listPlaceholder,
+                    color: palette.listPlaceholder,
                     padding: 16,
                     opacity: 0.6,
                   }}
@@ -170,7 +173,7 @@ export default function SingleDayScreen() {
           contentContainerStyle={{
             paddingHorizontal: 16,
           }}
-          style={{ backgroundColor: colors.light.background }}
+          style={{ backgroundColor: palette.background }}
         />
       </View>
 
@@ -189,7 +192,7 @@ export default function SingleDayScreen() {
           <Feather
             name="arrow-left"
             size={20}
-            color={colors.light.iconsStandalone}
+            color={palette.iconsStandalone}
           />
           <Text style={styles.dates}>{displayPrevious}</Text>
         </TouchableOpacity>
@@ -206,7 +209,7 @@ export default function SingleDayScreen() {
           <Feather
             name="arrow-right"
             size={20}
-            color={colors.light.iconsStandalone}
+            color={palette.iconsStandalone}
           />
         </TouchableOpacity>
       </View>
@@ -214,94 +217,84 @@ export default function SingleDayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.light.background,
-    justifyContent: "space-between",
-  },
-  topContentWrapper: {
-    flex: 1, // fills all space above bottom navigator
-    marginBottom: 90,
-    backgroundColor: colors.light.background,
-    justifyContent: "space-between",
-  },
-  header: {
-    height: 130,
-    flexDirection: "row",
-    position: "relative",
-    backgroundColor: colors.light.background,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 }, // subtle bottom shadow
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderColor: "red",
-  },
-  backButton: {
-    position: "absolute",
-    left: 16,
-    top: 80,
-    zIndex: 2,
-    backgroundColor: colors.light.background,
-  },
-  dateContainer: {
-    position: "absolute",
-    top: 83,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 1,
-    width: "100%",
-    backgroundColor: colors.light.background,
-  },
-  shadowBottom: {
-    height: 4,
-    backgroundColor: "transparent",
-    shadowColor: colors.light.shadowPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-    marginBottom: 5,
-  },
-  headerContainer: {
-    padding: 10,
-    backgroundColor: "white",
-    width: "100%",
-  },
-  bottomNavigator: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 80,
-    width: "100%",
-    backgroundColor: colors.light.background,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 }, // subtle bottom shadow
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  shadowTop: {
-    height: 4,
-    backgroundColor: "transparent",
-    shadowColor: colors.light.shadowPrimary,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-    marginTop: 5,
-  },
-  dates: {
-    fontFamily: fonts.typeface.body,
-    color: colors.light.primary,
-    fontSize: 18,
-    marginHorizontal: 7,
-  },
-});
+function createStyles(theme: Theme, palette: typeof import("@/assets/themes/colors").colors.light) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    header: {
+      height: 130,
+      flexDirection: "row",
+      alignItems: "center",
+      position: "relative",
+      justifyContent: "flex-end",
+      backgroundColor: palette.background,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      zIndex: 2,
+    },
+    backButton: {
+      position: "absolute",
+      left: 16,
+      top: 80,
+      zIndex: 2,
+      backgroundColor: palette.background,
+    },
+    dateContainer: {
+      position: "absolute",
+      top: 83,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 1,
+      width: "100%",
+      backgroundColor: palette.background,
+    },
+    shadowBottom: {
+      height: 4,
+      backgroundColor: "transparent",
+      shadowColor: palette.shadowPrimary ?? palette.overlay,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 5,
+      marginBottom: 5,
+    },
+    topContentWrapper: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    headerContainer: {
+      marginBottom: 10,
+      alignItems: "center",
+      backgroundColor: palette.background,
+    },
+    dates: {
+      fontFamily: fonts.typeface.body,
+      fontSize: fonts.sizes.body,
+      color: palette.header1,
+      marginHorizontal: 5,
+    },
+    bottomNavigator: {
+      height: 100,
+      backgroundColor: palette.background,
+      alignItems: "center",
+      justifyContent: "space-around",
+      flexDirection: "row",
+      paddingHorizontal: 20,
+    },
+    shadowTop: {
+      height: 4,
+      backgroundColor: "transparent",
+      shadowColor: palette.shadowPrimary ?? palette.overlay,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+  });
+}

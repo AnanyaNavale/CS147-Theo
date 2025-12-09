@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -15,11 +15,12 @@ import { fonts } from "@/assets/themes/typography";
 import { AppModal, InputField } from "@/components";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
 import { Button, ButtonVariant } from "./Button";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { createReport } from "@/lib/supabase";
+import { useAppTheme } from "@/hooks/ThemeContext";
 // import { Button } from "react-native/Libraries/Components/Button";
 
 type StepProgressIndicatorProps = {
@@ -47,11 +48,15 @@ export function StepProgressIndicator({
   showMenuIcon = true,
   onPressBack,
   onPressMenu,
-  tint = theme.colors.accentDark,
+  tint,
   iconSize = 26,
   helpMessagept1,
   helpMessagept2,
 }: StepProgressIndicatorProps) {
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
+  const iconTint = tint ?? palette.iconsStandalone;
+
   const { session } = useSupabase();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -118,7 +123,7 @@ export function StepProgressIndicator({
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
-              <Icon name="x" size={36} tint={colors.light.iconsStandalone} />
+              <Icon name="x" size={36} tint={iconTint} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -130,7 +135,7 @@ export function StepProgressIndicator({
               <Icon
                 name="arrow-left"
                 size={36}
-                tint={colors.light.iconsStandalone}
+                tint={iconTint}
               />
             </TouchableOpacity>
             // <View style={{ width: iconSize, height: iconSize }} />
@@ -184,7 +189,7 @@ export function StepProgressIndicator({
               <Icon
                 name="more-vertical"
                 size={36}
-                tint={colors.light.iconsStandalone}
+                tint={iconTint}
               />
             </TouchableOpacity>
           ) : (
@@ -200,27 +205,33 @@ export function StepProgressIndicator({
           animationType="fade"
           onRequestClose={() => setMenuOpen(false)}
         >
-          <View style={StyleSheet.absoluteFillObject}>
+            <View style={StyleSheet.absoluteFillObject}>
             <Pressable
-              style={StyleSheet.absoluteFill}
+              style={[StyleSheet.absoluteFill, { backgroundColor: palette.overlay }]}
               onPress={() => setMenuOpen(false)}
             />
             <View style={styles.menuCard}>
               <MenuItem
                 label="Exit setup"
                 icon="exit"
+                styles={styles}
+                iconTint={palette.iconsStandalone}
                 onPress={handleMenuAction(() => setShowExitConfirm(true))}
               />
               <View style={styles.menuDivider} />
               <MenuItem
                 label="Help"
                 icon="help"
+                styles={styles}
+                iconTint={palette.iconsStandalone}
                 onPress={handleMenuAction(() => setShowHelpModal(true))}
               />
               <View style={styles.menuDivider} />
               <MenuItem
                 label="Report a problem   "
                 icon="report"
+                styles={styles}
+                iconTint={palette.iconsStandalone}
                 onPress={handleMenuAction(() => setShowReportModal(true))}
               />
             </View>
@@ -288,9 +299,11 @@ type MenuItemProps = {
   label: string;
   icon: React.ComponentProps<typeof Icon>["name"];
   onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  iconTint: string;
 };
 
-function MenuItem({ label, icon, onPress }: MenuItemProps) {
+function MenuItem({ label, icon, onPress, styles, iconTint }: MenuItemProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -298,133 +311,136 @@ function MenuItem({ label, icon, onPress }: MenuItemProps) {
       activeOpacity={0.85}
     >
       <Text style={styles.menuLabel}>{label}</Text>
-      <Icon name={icon} size={24} tint={theme.solidColors.white} />
+      <Icon name={icon} size={24} tint={iconTint} />
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: theme.spacing.md,
-    width: "100%",
-    position: "relative",
-  },
+const createStyles = (theme: Theme, palette: typeof colors.light) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingTop: theme.spacing.md,
+      width: "100%",
+      position: "relative",
+    },
 
-  progressArea: {
-    flex: 1,
-  },
+    progressArea: {
+      flex: 1,
+    },
 
-  trackRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    trackRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  stepWrapper: {
-    flex: 1,
-    alignItems: "center",
-    position: "relative",
-    paddingHorizontal: theme.spacing.xs,
-  },
+    stepWrapper: {
+      flex: 1,
+      alignItems: "center",
+      position: "relative",
+      paddingHorizontal: theme.spacing.xs,
+    },
 
-  halfLine: {
-    position: "absolute",
-    top: 7,
-    height: 2,
-    backgroundColor: theme.colors.border,
-    width: "50%",
-  },
+    halfLine: {
+      position: "absolute",
+      top: 7,
+      height: 2,
+      backgroundColor: palette.border,
+      width: "50%",
+    },
 
-  lineLeft: {
-    left: 0,
-  },
+    lineLeft: {
+      left: 0,
+    },
 
-  lineRight: {
-    right: 0,
-  },
+    lineRight: {
+      right: 0,
+    },
 
-  stepDot: {
-    width: 14,
-    height: 14,
-    marginTop: 1,
-    borderRadius: 7,
-    backgroundColor: colors.light.progressBarIncomplete,
-  },
+    stepDot: {
+      width: 14,
+      height: 14,
+      marginTop: 1,
+      borderRadius: 7,
+      backgroundColor: palette.progressBarIncomplete,
+    },
 
-  stepDotActive: {
-    backgroundColor: colors.light.progressBarComplete,
-  },
+    stepDotActive: {
+      backgroundColor: palette.progressBarComplete,
+    },
 
-  stepLabel: {
-    marginTop: theme.spacing.xs,
-    fontSize: theme.typography.sizes.sm,
-    fontFamily: theme.typography.families.regular,
-    color: theme.colors.accentDark,
-  },
+    stepLabel: {
+      marginTop: theme.spacing.xs,
+      fontSize: theme.typography.sizes.sm,
+      fontFamily: theme.typography.families.regular,
+      color: palette.primary,
+    },
 
-  stepLabelInactive: {
-    color: colors.light.progressBarIncomplete,
-  },
+    stepLabelInactive: {
+      color: palette.progressBarIncomplete,
+    },
 
-  iconSlot: {
-    width: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    iconSlot: {
+      width: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  menuCard: {
-    position: "absolute",
-    top: theme.spacing.xxl * 2 + theme.spacing.lg, // offset so the menu sits lower than the icon
-    right: theme.spacing.md,
-    backgroundColor: theme.colors.accentDark,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
-    minWidth: 190,
-    ...theme.shadow.medium,
-    zIndex: 3,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-  },
-  menuLabel: {
-    color: theme.solidColors.white,
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: theme.colors.border,
-    opacity: 0.6,
-    marginHorizontal: theme.spacing.sm,
-  },
+    menuCard: {
+      position: "absolute",
+      top: theme.spacing.xxl * 2 + theme.spacing.lg, // offset so the menu sits lower than the icon
+      right: theme.spacing.md,
+      backgroundColor: theme.modal.cardBg,
+      borderRadius: theme.radii.lg,
+      paddingVertical: theme.spacing.xs,
+      minWidth: 200,
+      ...theme.shadow.medium,
+      zIndex: 3,
+      borderWidth: theme.modal.borderWidth,
+      borderColor: theme.modal.borderColor,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    menuLabel: {
+      color: palette.body,
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+    },
+    menuDivider: {
+      height: 1,
+      backgroundColor: palette.border,
+      opacity: 0.6,
+      marginHorizontal: theme.spacing.sm,
+    },
 
-  overlay: {
-    position: "absolute",
-    top: -1000,
-    bottom: -1000,
-    left: -1000,
-    right: -1000,
-    zIndex: 2,
-  },
+    overlay: {
+      position: "absolute",
+      top: -1000,
+      bottom: -1000,
+      left: -1000,
+      right: -1000,
+      zIndex: 2,
+    },
 
-  modalBody: {
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.text,
-  },
+    modalBody: {
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+      color: palette.body,
+    },
 
-  submitBanner: {
-    textAlign: "center",
-    marginBottom: 10,
-    padding: 7,
-    fontSize: fonts.sizes.body,
-    backgroundColor: "#B28F6D75",
-    borderRadius: 10,
-    color: "black",
-  },
-});
+    submitBanner: {
+      textAlign: "center",
+      marginBottom: 10,
+      padding: 7,
+      fontSize: fonts.sizes.body,
+      backgroundColor: palette.overlay,
+      borderRadius: 10,
+      color: palette.body,
+    },
+  });

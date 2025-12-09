@@ -1,8 +1,9 @@
 import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import { Icon, IconName } from "@/components/ui/Icon";
-import { theme } from "@/design/theme";
-import React from "react";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import React, { useMemo } from "react";
 import {
   DimensionValue,
   StyleSheet,
@@ -34,40 +35,47 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
       variant = "primary",
       width = "70%",
       height = 50,
-      backgroundColor = colors.light.primary,
-      shadowColor = colors.light.shadowPrimary,
+      backgroundColor,
+      shadowColor,
       textStyle,
       style,
       iconName,
       iconSize = 20,
-      iconTint = colors.light.buttonText,
+      iconTint,
       ...rest
     },
     ref
   ) => {
+    const { colors: palette, theme } = useAppTheme();
+    const styles = useMemo(() => createStyles(palette, theme), [palette, theme]);
+
     const isDisabled = rest.disabled ?? false;
 
     const getColors = (variant: "primary" | "secondary" | "tertiary") => {
       switch (variant) {
         case "primary":
           return {
-            backgroundColor: colors.light.primary,
-            shadowColor: colors.light.shadowPrimary,
+            backgroundColor: palette.primary,
+            shadowColor: palette.shadowPrimary ?? palette.overlay,
           };
         case "secondary":
           return {
-            backgroundColor: colors.light.secondary,
-            shadowColor: colors.light.shadowSecondary,
+            backgroundColor: palette.secondary,
+            shadowColor: palette.shadowSecondary ?? palette.overlay,
           };
         case "tertiary":
           return {
-            backgroundColor: colors.light.tertiary,
-            shadowColor: colors.light.shadowTertiary,
+            backgroundColor: palette.tertiary,
+            shadowColor: palette.shadowTertiary ?? palette.overlay,
           };
       }
     };
 
     const { backgroundColor: bg, shadowColor: sc } = getColors(variant);
+    const resolvedBg = backgroundColor ?? bg;
+    const resolvedShadow = shadowColor ?? sc;
+    const resolvedIconTint = iconTint ?? palette.buttonText ?? palette.body;
+    const resolvedTextColor = palette.buttonText ?? palette.body;
 
     return (
       <TouchableOpacity
@@ -77,8 +85,8 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
           {
             width,
             height,
-            backgroundColor: bg,
-            shadowColor: sc,
+            backgroundColor: resolvedBg,
+            shadowColor: resolvedShadow,
             opacity: isDisabled ? 0.5 : 1,
           },
           style,
@@ -89,37 +97,40 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
           <Icon
             name={iconName}
             size={iconSize}
-            tint={iconTint}
+            tint={resolvedIconTint}
             style={styles.icon}
           />
         )}
-        <Text style={[styles.text, textStyle]}>{text}</Text>
+        <Text style={[styles.text, { color: resolvedTextColor }, textStyle]}>
+          {text}
+        </Text>
       </TouchableOpacity>
     );
   }
 );
 
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: theme.radii.md,
-    margin: 10,
+const createStyles = (palette: typeof colors.light, theme: Theme) =>
+  StyleSheet.create({
+    base: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: theme.radii.md,
+      margin: 10,
 
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
+      shadowOpacity: 0.5,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 4,
+      backgroundColor: palette.primary,
+    },
 
-  text: {
-    color: colors.light.buttonText,
-    fontSize: fonts.sizes.button,
-    fontFamily: "Raleway-Regular",
-  },
+    text: {
+      fontSize: fonts.sizes.button,
+      fontFamily: "Raleway-Regular",
+    },
 
-  icon: {
-    marginRight: 8,
-  },
-});
+    icon: {
+      marginRight: 8,
+    },
+  });

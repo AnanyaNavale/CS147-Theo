@@ -1,8 +1,7 @@
 // components/InputField.tsx
 
-import { colors } from "@/assets/themes/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyleProp,
   StyleSheet,
@@ -13,7 +12,9 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { theme } from "../../design/theme";
+
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 
 export type InputFieldProps = {
   label?: string;
@@ -51,6 +52,9 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
     },
     ref
   ) => {
+    const { colors: palette, theme } = useAppTheme();
+    const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
+
     return (
       <View
         style={[
@@ -92,7 +96,7 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
             </Text>
             <MaterialCommunityIcons
               name="alert-circle"
-              color={colors.light.error}
+              color={palette.error}
               size={16}
               style={[{ marginLeft: 6 }, small && styles.smallErrorIcon]}
             />
@@ -103,107 +107,109 @@ export const InputField = React.forwardRef<TextInput, InputFieldProps>(
   }
 );
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    paddingBottom: 20,
-    position: "relative",
-  },
+const createStyles = (
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) =>
+  StyleSheet.create({
+    container: {
+      width: "100%",
+      paddingBottom: 20,
+      position: "relative",
+    },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-  },
-  inputWrapper: {
-    width: "100%",
-    justifyContent: "center",
-  },
-  inputWrapperRow: {
-    width: "auto",
-  },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+    },
+    inputWrapper: {
+      width: "100%",
+      justifyContent: "center",
+    },
+    inputWrapperRow: {
+      width: "auto",
+    },
 
-  label: {
-    fontSize: theme.typography.sizes.lg,
-    fontFamily: theme.typography.families.regular,
-    marginBottom: theme.spacing.sm,
-    color: theme.colors.accentDark,
-  },
+    label: {
+      fontSize: theme.typography.sizes.lg,
+      fontFamily: theme.typography.families.regular,
+      marginBottom: theme.spacing.sm,
+      color: palette.primary,
+    },
 
-  input: {
-    //width: "100%",
-    height: theme.input.height,
-    paddingHorizontal: theme.input.paddingHorizontal,
-    fontSize: theme.typography.sizes.md,
-    backgroundColor: theme.colors.background,
-    borderWidth: theme.input.borderWidth,
-    borderColor: theme.input.borderColor,
-    borderRadius: theme.radii.md,
-    color: theme.colors.text,
-    fontFamily: theme.typography.families.regular,
-    paddingRight: theme.spacing.xl * 1.6,
-    ...theme.shadow.soft,
-  },
+    input: {
+      height: theme.input.height,
+      paddingHorizontal: theme.input.paddingHorizontal,
+      fontSize: theme.typography.sizes.md,
+      backgroundColor: palette.background,
+      borderWidth: theme.input.borderWidth,
+      borderColor: palette.border,
+      borderRadius: theme.input.borderRadius,
+      color: palette.body,
+      fontFamily: theme.typography.families.regular,
+      paddingRight: theme.spacing.xl * 1.6,
+      ...theme.shadow.soft,
+    },
 
-  smallInput: {
-    width: 70,
-    height: 40,
-    paddingHorizontal: 10,
-    fontSize: theme.typography.sizes.sm,
-    borderRadius: theme.radii.md,
-    alignSelf: "flex-start",
-  },
+    smallInput: {
+      width: 70,
+      height: 40,
+      paddingHorizontal: 10,
+      fontSize: theme.typography.sizes.sm,
+      borderRadius: theme.radii.md,
+      alignSelf: "flex-start",
+    },
 
-  rowInput: {
-    marginLeft: theme.spacing.sm,
-    width: "100%",
-    paddingRight: theme.spacing.sm,
-  },
-  centeredInput: {
-    textAlign: "center",
-  },
+    rowInput: {
+      marginLeft: theme.spacing.sm,
+      width: "100%",
+      paddingRight: theme.spacing.sm,
+    },
+    centeredInput: {
+      textAlign: "center",
+    },
 
-  noBorder: {
-    borderWidth: 0,
-    backgroundColor: "transparent",
-    paddingLeft: 0,
-    marginTop: -theme.spacing.sm,
-    shadowColor: "transparent",
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
-  },
+    noBorder: {
+      borderWidth: 0,
+      backgroundColor: "transparent",
+      paddingLeft: 0,
+      marginTop: -theme.spacing.sm,
+      shadowColor: "transparent",
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 0,
+    },
 
-  inputError: {
-    borderColor: theme.colors.danger,
-  },
+    inputError: {
+      borderColor: palette.error,
+    },
 
-  error: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.danger,
-    fontFamily: theme.typography.families.regular,
-  },
+    error: {
+      fontSize: theme.typography.sizes.sm,
+      color: palette.error,
+      fontFamily: theme.typography.families.regular,
+    },
 
-  errorRow: {
-    flexDirection: "row",
-    alignSelf: "flex-end",
-    justifyContent: "flex-start",
-    position: "absolute",
-  },
+    errorRow: {
+      flexDirection: "row",
+      alignSelf: "flex-end",
+      justifyContent: "flex-start",
+      position: "absolute",
+    },
 
-  smallError: {
-    marginTop: theme.spacing.xxl + theme.spacing.sm,
-  },
-  smallErrorIcon: {
-    //position: "absolute",
-    marginTop: theme.spacing.xxl + theme.spacing.sm + 3,
-  },
-  rightAccessory: {
-    position: "absolute",
-    right: theme.spacing.md,
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100%",
-  },
-});
+    smallError: {
+      marginTop: theme.spacing.xxl + theme.spacing.sm,
+    },
+    smallErrorIcon: {
+      marginTop: theme.spacing.xxl + theme.spacing.sm + 3,
+    },
+    rightAccessory: {
+      position: "absolute",
+      right: theme.spacing.md,
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100%",
+    },
+  });

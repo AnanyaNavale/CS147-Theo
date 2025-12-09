@@ -1,22 +1,22 @@
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Spacer } from "@/components";
+import { BasicButton } from "@/components/BasicButton";
+import CopySessionBox from "@/components/CopySessionBox";
+import SvgStrokeText from "@/components/SvgStrokeText";
+import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
+import { Text } from "@/components/ui/Text";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import {
   fetchPlannedOrIncompleteSessions,
   fetchTasksForSession,
 } from "@/lib/supabase";
-import { colors } from "@/assets/themes/colors";
-import { Spacer } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
-import CopySessionBox from "@/components/CopySessionBox";
-import { WorkSession } from "@/types/database.types";
 import { useSupabase } from "@/providers/SupabaseProvider";
+import { WorkSession } from "@/types/database.types";
 
 const PAGE_SIZE = 5;
 
@@ -38,6 +38,8 @@ export default function CompleteSessionScreen() {
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const showEmpty = !isLoadingList && sessions.length === 0;
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   useEffect(() => {
     if (!userId) {
@@ -267,96 +269,102 @@ export default function CompleteSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    // paddingVertical: theme.spacing.sm,
-    paddingBottom: theme.spacing.xxl * 1.5,
-    alignItems: "center",
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  subtitle: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.xl,
-  },
-  headerProgress: {
-    flex: 1,
-    marginHorizontal: theme.spacing.lg,
-    paddingHorizontal: 0,
-  },
-  actionBlock: {
-    alignItems: "center",
-  },
-  actionButton: {
-    alignSelf: "center",
-    paddingVertical: theme.spacing.md,
-  },
-  actionDescription: {
-    textAlign: "center",
-    fontSize: theme.typography.sizes.sm + 2,
-    paddingHorizontal: theme.spacing.lg,
-    alignSelf: "center",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.light.separator,
-    marginHorizontal: theme.spacing.lg,
-  },
-  modalMessage: {
-    textAlign: "center",
-    marginTop: theme.spacing.sm,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.mutedText,
-  },
-  center: {
-    alignSelf: "center",
-    width: "100%",
-    maxWidth: "100%",
-  },
-  listContainer: {
-    flex: 1,
-    width: "100%",
-  },
-  list: {
-    flex: 1,
-    width: "100%",
-  },
-  listContent: {
-    paddingTop: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-    gap: theme.spacing.sm,
-  },
-  loadMoreWrapper: {
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  noMoreText: {
-    color: theme.colors.mutedText,
-    fontFamily: theme.typography.families.medium,
-  },
-  emptyState: {
-    width: "100%",
-    alignItems: "center",
-    paddingVertical: theme.spacing.xl,
-  },
-  emptyTitle: {
-    color: theme.colors.text,
-    textAlign: "center",
-  },
-  emptyBody: {
-    color: theme.colors.mutedText,
-    textAlign: "center",
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    content: {
+      flexGrow: 1,
+      paddingBottom: theme.spacing.xxl * 1.5,
+      alignItems: "center",
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    subtitle: {
+      textAlign: "center",
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.xl,
+      color: palette.body,
+    },
+    headerProgress: {
+      flex: 1,
+      marginHorizontal: theme.spacing.lg,
+      paddingHorizontal: 0,
+    },
+    actionBlock: {
+      alignItems: "center",
+    },
+    actionButton: {
+      alignSelf: "center",
+      paddingVertical: theme.spacing.md,
+    },
+    actionDescription: {
+      textAlign: "center",
+      fontSize: theme.typography.sizes.sm + 2,
+      paddingHorizontal: theme.spacing.lg,
+      alignSelf: "center",
+      color: palette.body,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: palette.separator,
+      marginHorizontal: theme.spacing.lg,
+    },
+    modalMessage: {
+      textAlign: "center",
+      marginTop: theme.spacing.sm,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.quote,
+    },
+    center: {
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: "100%",
+    },
+    listContainer: {
+      flex: 1,
+      width: "100%",
+    },
+    list: {
+      flex: 1,
+      width: "100%",
+    },
+    listContent: {
+      paddingTop: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
+      gap: theme.spacing.sm,
+    },
+    loadMoreWrapper: {
+      paddingVertical: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+      alignItems: "center",
+      backgroundColor: palette.background,
+    },
+    noMoreText: {
+      color: theme.colors.quote,
+      fontFamily: theme.typography.families.medium,
+    },
+    emptyState: {
+      width: "100%",
+      alignItems: "center",
+      paddingVertical: theme.spacing.xl,
+    },
+    emptyTitle: {
+      color: theme.colors.header1,
+      textAlign: "center",
+    },
+    emptyBody: {
+      color: theme.colors.quote,
+      textAlign: "center",
+    },
+  });
+}

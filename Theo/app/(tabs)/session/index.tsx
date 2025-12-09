@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -8,14 +8,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "@/assets/themes/colors";
 import { Spacer } from "@/components";
 import { BasicButton } from "@/components/BasicButton";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import { AppModal } from "@/components/ui/AppModal";
 import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
 import { Text } from "@/components/ui/Text";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 
 export default function StartSessionScreen() {
   const handleCreateNew = () => router.push("../(tabs)/session/goal");
@@ -24,6 +24,8 @@ export default function StartSessionScreen() {
     router.push("../(tabs)/session/complete-session");
   const { width } = useWindowDimensions();
   const [showComingSoon, setShowComingSoon] = React.useState(false);
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -125,58 +127,63 @@ export default function StartSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    paddingVertical: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxl * 1.5,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  subtitle: {
-    textAlign: "center",
-    fontFamily: theme.typography.families.serif,
-    fontSize: theme.typography.sizes.xl,
-  },
-  headerProgress: {
-    flex: 1,
-    marginHorizontal: theme.spacing.md,
-    paddingHorizontal: 0,
-  },
-  actionBlock: {
-    alignItems: "center",
-  },
-  actionButton: {
-    alignSelf: "center",
-    paddingVertical: theme.spacing.md,
-  },
-  actionDescription: {
-    textAlign: "center",
-    fontSize: theme.typography.sizes.sm + 2,
-
-    paddingHorizontal: theme.spacing.xl,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.light.separator,
-    marginHorizontal: theme.spacing.lg,
-  },
-  modalMessage: {
-    textAlign: "center",
-    marginTop: theme.spacing.sm,
-    fontSize: theme.typography.sizes.md,
-    color: theme.colors.mutedText,
-  },
-  center: {
-    alignSelf: "center",
-    width: "100%",
-    maxWidth: "100%",
-  },
-});
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/assets/themes/colors").colors.light
+) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    content: {
+      flexGrow: 1,
+      paddingVertical: theme.spacing.lg,
+      paddingBottom: theme.spacing.xxl * 1.5,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    subtitle: {
+      textAlign: "center",
+      fontFamily: theme.typography.families.serif,
+      fontSize: theme.typography.sizes.xl,
+    },
+    headerProgress: {
+      flex: 1,
+      marginHorizontal: theme.spacing.md,
+      paddingHorizontal: 0,
+    },
+    actionBlock: {
+      alignItems: "center",
+    },
+    actionButton: {
+      alignSelf: "center",
+      paddingVertical: theme.spacing.md,
+    },
+    actionDescription: {
+      textAlign: "center",
+      fontSize: theme.typography.sizes.sm + 2,
+      color: palette.body,
+      paddingHorizontal: theme.spacing.xl,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: palette.separator,
+      marginHorizontal: theme.spacing.lg,
+    },
+    modalMessage: {
+      textAlign: "center",
+      marginTop: theme.spacing.sm,
+      fontSize: theme.typography.sizes.md,
+      color: theme.colors.quote,
+    },
+    center: {
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: "100%",
+    },
+  });
+}

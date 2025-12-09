@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 
 // SUPABASE
@@ -10,10 +10,10 @@ import { fetchSessionDatesForMonth, getCurrentSession } from "@/lib/supabase";
 // import EditScreenInfo from '@/components/EditScreenInfo';
 import { View } from "@/components/Themed";
 
-import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import SvgStrokeText from "@/components/SvgStrokeText";
-import { theme } from "@/design/theme";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
@@ -77,6 +77,8 @@ export default function ArchiveScreen() {
 
   const { session: authSession } = useSupabase();
   const router = useRouter();
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [palette, theme]);
 
   // RETRIEVE MONTHLY SESSIONS FROM SUPABASE
 
@@ -103,14 +105,14 @@ export default function ArchiveScreen() {
           marked[localDay] = {
             customStyles: {
               container: {
-                borderColor: colors.light.markedDates,
+                borderColor: palette.markedDates,
                 borderWidth: 2,
                 borderRadius: 50,
                 justifyContent: "center",
                 alignItems: "center",
               },
               text: {
-                color: colors.light.body,
+                color: palette.body,
                 marginBottom: 3,
               },
             },
@@ -127,7 +129,7 @@ export default function ArchiveScreen() {
     };
 
     fetchMonthSessionsData();
-  }, [authSession, currentMonth, currentYear]);
+  }, [authSession, currentMonth, currentYear, palette]);
 
   const today = new Date().toLocaleDateString("en-CA"); // outputs YYYY-MM-DD
 
@@ -137,12 +139,12 @@ export default function ArchiveScreen() {
       ...(monthSessions[today] || {}), // keep DB styling if today is also a session
       customStyles: {
         container: {
-          backgroundColor: colors.light.primary,
+          backgroundColor: palette.primary,
           // borderColor: colors.light.border,
           borderRadius: 50,
         },
         text: {
-          color: colors.light.month,
+          color: palette.month,
         },
       },
     },
@@ -153,13 +155,14 @@ export default function ArchiveScreen() {
       <SvgStrokeText text="Session & Plan Archive" />
       <View style={styles.calendarContainer}>
         <Calendar
+          key={palette.background}
           renderHeader={(date) => {
             const month = date.toString("MMMM yyyy"); // or use moment/Date API
 
             return (
               <View
                 style={{
-                  backgroundColor: colors.light.primary,
+                  backgroundColor: palette.primary,
                   paddingVertical: 4,
                   paddingTop: 7,
                   paddingHorizontal: 16,
@@ -172,9 +175,9 @@ export default function ArchiveScreen() {
               >
                 <SvgStrokeText
                   text={month}
-                  stroke={colors.light.month}
+                  stroke={palette.month}
                   strokeWidth={0.5}
-                  textStyle={{ fontSize: 20, color: colors.light.month }}
+                  textStyle={{ fontSize: 20, color: palette.month }}
                 />
               </View>
             );
@@ -185,7 +188,7 @@ export default function ArchiveScreen() {
             <Feather
               name={direction === "left" ? "arrow-left" : "arrow-right"}
               size={30}
-              color={colors.light.iconsStandalone}
+              color={palette.iconsStandalone}
             />
           )}
           onDayPress={(day) => {
@@ -206,16 +209,21 @@ export default function ArchiveScreen() {
                 monthText: {
                   fontFamily: "AnticDidone-Regular",
                   fontSize: 22,
-                  color: "black",
+                  color: palette.month,
                 },
               },
             } as any),
-            textSectionTitleColor: colors.light.header1,
+            textSectionTitleColor: palette.header1,
             textDayHeaderFontFamily: fonts.typeface.header,
             textDayHeaderFontSize: 18,
             textDayFontFamily: fonts.typeface.body,
-            textDisabledColor: colors.light.inactive,
-            backgroundColor: colors.light.background,
+            textDayFontSize: 16,
+            textDisabledColor: palette.inactive,
+            backgroundColor: palette.background,
+            calendarBackground: palette.background,
+            dayTextColor: palette.body,
+            monthTextColor: palette.month,
+            arrowColor: palette.iconsStandalone,
           }}
         />
       </View>
@@ -223,21 +231,23 @@ export default function ArchiveScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    paddingTop: SCREEN_WIDTH * 0.2,
-    backgroundColor: colors.light.background,
-  },
-  calendarContainer: {
-    position: "relative",
-    justifyContent: "center", // vertical centering
-    alignItems: "center", // horizontal centering
-    backgroundColor: colors.light.background,
-  },
-  calendar: {
-    marginTop: SCREEN_WIDTH * 0.1,
-    width: SCREEN_WIDTH * 0.9,
-  },
-});
+function createStyles(theme: Theme, palette: typeof import("@/assets/themes/colors").colors.light) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      paddingTop: SCREEN_WIDTH * 0.2,
+      backgroundColor: palette.background,
+    },
+    calendarContainer: {
+      position: "relative",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: palette.background,
+    },
+    calendar: {
+      marginTop: SCREEN_WIDTH * 0.1,
+      width: SCREEN_WIDTH * 0.9,
+    },
+  });
+}

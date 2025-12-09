@@ -1,15 +1,16 @@
 // components/ui/IconButton.tsx
 
+import { theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import { FontAwesome } from "@expo/vector-icons";
 import React from "react";
 import {
+  StyleSheet,
+  Text,
   TouchableOpacity,
   View,
-  Text,
-  StyleSheet,
   ViewStyle,
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import { theme } from "@/design/theme";
 
 export type FAIconName = React.ComponentProps<typeof FontAwesome>["name"];
 
@@ -18,7 +19,7 @@ type IconButtonProps = {
   icon: FAIconName;
   onPress: () => void;
 
-  variant?: "gold" | "danger";
+  variant?: "gold" | "tertiary";
   style?: ViewStyle | ViewStyle[];
 };
 
@@ -29,9 +30,12 @@ export function IconButton({
   style,
   variant = "gold",
 }: IconButtonProps) {
+  const { colors: palette } = useAppTheme();
   const backgroundColor =
-    variant === "gold" ? theme.colors.accent : theme.colors.danger;
-  const textColor = theme.solidColors.white;
+    variant === "gold"
+      ? palette.secondary
+      : palette.error ?? palette.tertiary ?? "#7C3030";
+  const textColor = palette.buttonText ?? palette.user ?? "#fff";
 
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={style}>

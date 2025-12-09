@@ -1,5 +1,6 @@
+import { useAppTheme } from "@/hooks/ThemeContext";
 import React, { ReactNode } from "react";
-import { View, StyleSheet, ViewStyle } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { theme } from "../../design/theme";
 
@@ -16,15 +17,16 @@ export function Container({
   style,
   padded = true,
   safe = true,
-  bg = theme.colors.background,
+  bg,
 }: ContainerProps) {
+  const { colors: palette } = useAppTheme();
   const Wrapper = safe ? SafeAreaView : View;
 
   return (
     <Wrapper
       style={[
         styles.base,
-        { backgroundColor: bg },
+        { backgroundColor: bg ?? palette.background },
         padded && styles.padded,
         style,
       ]}

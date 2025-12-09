@@ -1,10 +1,9 @@
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
   Pressable,
   StyleSheet,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -18,9 +17,10 @@ import { BasicButton } from "@/components/BasicButton";
 import QuoteOfTheDay from "@/components/Quote";
 import SvgStrokeText from "@/components/SvgStrokeText";
 import MainHeader from "@/components/ui/MainHeader";
-import { theme } from "@/design/theme";
-import { useSupabase } from "@/providers/SupabaseProvider";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import { fetchUserProfile } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
 import { useFocusEffect } from "@react-navigation/native";
 
 const teddyBear = require("@/assets/theo/working.png");
@@ -36,6 +36,8 @@ export default function HomeScreen() {
   const { height: screenHeight } = useWindowDimensions();
   const { session } = useSupabase();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { colors: palette, theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, palette), [theme, palette]);
 
   const loadAvatar = useCallback(() => {
     let isActive = true;
@@ -121,8 +123,8 @@ export default function HomeScreen() {
           <View style={styles.dateContainer}>
             <SvgStrokeText
               text={today}
-              stroke={colors.light.date}
-              textStyle={{ color: colors.light.date, fontSize: 20 }}
+              stroke={palette.date}
+              textStyle={{ color: palette.date, fontSize: 20 }}
               containerStyle={styles.dateText}
               textAnchor="start"
             />
@@ -177,86 +179,86 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.light.background,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.lg,
-    justifyContent: "space-between",
-  },
-  headerContainer: {
-    flexDirection: "column",
-    width: "100%",
-    marginTop: theme.spacing.lg,
-    marginLeft: theme.spacing.md,
-    alignItems: "flex-start",
-  },
-  dateContainer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  dateText: {
-    alignSelf: "center",
-    // marginBottom: theme.spacing.xs,
-    //marginLeft: 5,
-  },
-  hiText: {
-    alignSelf: "flex-start",
-  },
-  heroBlock: {
-    alignItems: "center",
-    gap: theme.spacing.md,
-  },
-  heroImage: {
-    alignSelf: "center",
-    height: 240,
-    aspectRatio: 1,
-    resizeMode: "contain",
-  },
-  ctaRow: {
-    alignItems: "center",
-    marginBottom: "10%",
-  },
-  menuOverlay: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 2,
-  },
-  menuAnchor: {
-    position: "absolute",
-    top: 120,
-    left: theme.spacing.lg,
-    zIndex: 3,
-  },
-  menuCard: {
-    backgroundColor: theme.colors.accentDark,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
-    minWidth: 200,
-    ...theme.shadow.medium,
-  },
-  menuItem: {
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-  },
-  menuLabel: {
-    color: theme.solidColors.white,
-    fontFamily: theme.typography.families.regular,
-    fontSize: theme.typography.sizes.md,
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: theme.colors.border,
-    opacity: 0.6,
-    marginHorizontal: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
-  },
-});
+function createStyles(theme: Theme, palette: typeof colors.light) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: theme.spacing.lg,
+      justifyContent: "space-between",
+    },
+    headerContainer: {
+      flexDirection: "column",
+      width: "100%",
+      marginTop: theme.spacing.lg,
+      marginLeft: theme.spacing.md,
+      alignItems: "flex-start",
+    },
+    dateContainer: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      width: "100%",
+    },
+    dateText: {
+      alignSelf: "center",
+    },
+    hiText: {
+      alignSelf: "flex-start",
+    },
+    heroBlock: {
+      alignItems: "center",
+      gap: theme.spacing.md,
+    },
+    heroImage: {
+      alignSelf: "center",
+      height: 240,
+      aspectRatio: 1,
+      resizeMode: "contain",
+    },
+    ctaRow: {
+      alignItems: "center",
+      marginBottom: "10%",
+    },
+    menuOverlay: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      zIndex: 2,
+    },
+    menuAnchor: {
+      position: "absolute",
+      top: 120,
+      left: theme.spacing.lg,
+      zIndex: 3,
+    },
+    menuCard: {
+      backgroundColor: theme.colors.header2,
+      borderRadius: theme.radii.lg,
+      paddingVertical: theme.spacing.xs,
+      minWidth: 200,
+      ...theme.shadow.medium,
+    },
+    menuItem: {
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    menuLabel: {
+      color: theme.colors.background,
+      fontFamily: theme.typography.families.regular,
+      fontSize: theme.typography.sizes.md,
+    },
+    menuDivider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      opacity: 0.6,
+      marginHorizontal: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
+  });
+}
