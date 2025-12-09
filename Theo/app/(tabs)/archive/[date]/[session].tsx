@@ -37,7 +37,9 @@ export default function SingleSessionScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
+  const [showResumeConfirm, setShowResumeConfirm] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [resuming, setResuming] = useState(false);
 
   const [year, month, day] = date.split("-").map(Number);
   const dateObj = new Date(year, month - 1, day); // month is 0-based
@@ -119,10 +121,10 @@ export default function SingleSessionScreen() {
     const hours = Math.floor(mins / 60);
     const minutes = mins % 60;
     if (hours > 0 && minutes > 0) {
-      return `${hours} hr${hours > 1 ? "s" : ""}., ${minutes} min.`;
+      return `${hours} hr., ${minutes} min.`;
     }
-    if (hours > 0) return `${hours} hr${hours > 1 ? "s" : ""}`;
-    return `${minutes} min`;
+    if (hours > 0) return `${hours} hr.`;
+    return `${minutes} min.`;
   };
 
   const handleStartSession = async () => {
@@ -136,7 +138,11 @@ export default function SingleSessionScreen() {
       const mappedTasks = tasks.map((t) => ({
         id: String(t.id),
         text: t.task_name,
-        minutes: Number(t.time_allotted ?? t.time_completed) || 0,
+        minutes: Number.isFinite(Number(t.time_allotted))
+          ? Number(t.time_allotted)
+          : t.time_completed
+          ? Math.round(Number(t.time_completed) / 60)
+          : 0,
         completed: Boolean(t.is_completed),
       }));
 
@@ -154,6 +160,38 @@ export default function SingleSessionScreen() {
     } finally {
       setStarting(false);
       setShowStartConfirm(false);
+    }
+  };
+
+  const handleResumeSession = async () => {
+    if (!sessionData) return;
+    setResuming(true);
+    try {
+      const mappedTasks = tasks.map((t) => ({
+        id: String(t.id),
+        text: t.task_name,
+        minutes: Number.isFinite(Number(t.time_allotted))
+          ? Number(t.time_allotted)
+          : t.time_completed
+          ? Math.round(Number(t.time_completed) / 60)
+          : 0,
+        completed: Boolean(t.is_completed),
+      }));
+
+      router.push({
+        pathname: "/(tabs)/session/in-session",
+        params: {
+          goal: sessionData.goal ?? "",
+          tasks: JSON.stringify(mappedTasks),
+          sessionId: sessionData.id,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to resume session", err);
+      setError("Failed to resume session. Please try again.");
+    } finally {
+      setResuming(false);
+      setShowResumeConfirm(false);
     }
   };
 
@@ -212,12 +250,14 @@ export default function SingleSessionScreen() {
           </Text>
         </View>
 
-        <View style={styles.row}>
-          <Text weight="bold" style={styles.label}>
-            Time allocated:
-          </Text>
-          <Text style={styles.value}>{formatMinutes(plannedMinutes)}</Text>
-        </View>
+        {sessionData.status !== "planned" && (
+          <View style={styles.row}>
+            <Text weight="bold" style={styles.label}>
+              Time allocated:
+            </Text>
+            <Text style={styles.value}>{formatMinutes(plannedMinutes)}</Text>
+          </View>
+        )}
 
         <View style={styles.row}>
           <Text weight="bold" style={styles.label}>
@@ -239,26 +279,30 @@ export default function SingleSessionScreen() {
             {tasks.length > 0 ? (
               tasks.map((task, index) => (
                 <View key={task.id ?? index} style={styles.taskRow}>
-                  {sessionData.status !== "planned" && (
-                    <Checkbox
-                      checked={task.is_completed} // or `true` if all should appear checked
-                      onChange={() => {}}
-                      boxStyle={styles.checkBox}
-                      containerStyle={styles.checkboxContainer}
-                    />
-                  )}
+                  <Checkbox
+                    checked={task.is_completed}
+                    onChange={() => {}}
+                    boxStyle={styles.checkBox}
+                    containerStyle={styles.checkboxContainer}
+                  />
                   <View style={styles.taskTextWrap}>
                     <Text style={styles.taskText}>
                       {task.task_name}{" "}
                       <Text style={styles.taskMinutes}>
                         (
-                        {Math.max(
-                          0,
-                          Math.round(
-                            (task.time_completed ?? task.time_allotted ?? 0) /
-                              60
-                          )
-                        )}{" "}
+                        {task.is_completed
+                          ? Math.max(
+                              0,
+                              Math.round(
+                                typeof task.time_completed === "number"
+                                  ? task.time_completed / 60
+                                  : Number(task.time_allotted ?? 0)
+                              )
+                            )
+                          : Math.max(
+                              0,
+                              Math.round(Number(task.time_allotted ?? 0))
+                            )}{" "}
                         min.)
                       </Text>
                     </Text>
@@ -282,21 +326,6 @@ export default function SingleSessionScreen() {
           </>
         )}
 
-        {sessionData.status === "planned" && (
-          <>
-            <Spacer size="xl" />
-            <View
-              style={{ paddingHorizontal: 20, marginBottom: theme.spacing.xl }}
-            >
-              <BasicButton
-                text={starting ? "Starting..." : "Begin this session"}
-                onPress={() => setShowStartConfirm(true)}
-                disabled={starting}
-              />
-            </View>
-          </>
-        )}
-
         <AppModal
           visible={showStartConfirm}
           onClose={() => setShowStartConfirm(false)}
@@ -307,6 +336,18 @@ export default function SingleSessionScreen() {
           confirmVariant="brown"
           cancelVariant="ghost"
           onConfirm={handleStartSession}
+        />
+
+        <AppModal
+          visible={showResumeConfirm}
+          onClose={() => setShowResumeConfirm(false)}
+          title="Resume session?"
+          message="Resume this incomplete session from where you left off?"
+          confirmLabel="Resume"
+          cancelLabel="Cancel"
+          confirmVariant="brown"
+          cancelVariant="ghost"
+          onConfirm={handleResumeSession}
         />
 
         {/* <View style={styles.topContent}>
@@ -344,6 +385,28 @@ export default function SingleSessionScreen() {
           </View>
         </View> */}
       </ScrollView>
+
+      {sessionData.status === "planned" && (
+        <View style={styles.bottomAction}>
+          <BasicButton
+            text={starting ? "Starting..." : "Begin this session"}
+            onPress={() => setShowStartConfirm(true)}
+            disabled={starting}
+            style={{ width: "100%" }}
+          />
+        </View>
+      )}
+
+      {sessionData.status === "incomplete" && (
+        <View style={styles.bottomAction}>
+          <BasicButton
+            text={resuming ? "Resuming..." : "Resume session"}
+            onPress={() => setShowResumeConfirm(true)}
+            disabled={resuming}
+            style={{ width: "100%" }}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -415,7 +478,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: theme.spacing.xxl * 2,
   },
   statusValue: {
     color: colors.light.secondary,
@@ -463,6 +526,23 @@ const styles = StyleSheet.create({
   },
   checkBox: {
     marginTop: theme.spacing.xs / 2,
+  },
+  bottomAction: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
+    backgroundColor: colors.light.background,
+    shadowColor: colors.light.shadowPrimary,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   // topContent: {
   //   borderColor: "red",

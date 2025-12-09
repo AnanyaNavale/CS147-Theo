@@ -331,7 +331,11 @@ export default function SessionSummaryScreen() {
 
         <Spacer size="xl" />
       </ScrollView>
-      <ArrowAction label="Return to home" onPress={handleBackHome} />
+      <ArrowAction
+        label="Return to home"
+        style={{ width: "100%" }}
+        onPress={handleBackHome}
+      />
     </SafeAreaView>
   );
 }

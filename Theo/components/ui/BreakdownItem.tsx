@@ -11,7 +11,11 @@ export type BreakdownItemProps = {
   onDelete?: () => void;
 };
 
-export function BreakdownItem({ minutes, text, completed }: BreakdownItemProps) {
+export function BreakdownItem({
+  minutes,
+  text,
+  completed,
+}: BreakdownItemProps) {
   return (
     <View style={[styles.row, completed && styles.rowCompleted]}>
       <View style={[styles.timeBox, completed && styles.timeBoxCompleted]}>
@@ -19,7 +23,11 @@ export function BreakdownItem({ minutes, text, completed }: BreakdownItemProps) 
       </View>
 
       <View style={styles.taskBox}>
-        <Text style={[styles.taskText, completed && styles.taskTextCompleted]}>
+        <Text
+          style={[styles.taskText, completed && styles.taskTextCompleted]}
+          numberOfLines={4}
+          ellipsizeMode="tail"
+        >
           {text}
         </Text>
         <View style={styles.grip}>

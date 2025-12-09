@@ -48,7 +48,8 @@ export function ArrowAction({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: theme.spacing.xxl,
+    bottom: 0,
+
     right: theme.spacing.lg,
     flexDirection: "row",
     alignItems: "center",
@@ -56,6 +57,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     zIndex: 3,
     backgroundColor: theme.colors.background,
+    paddingBottom: theme.spacing.xxl,
   },
   text: {
     color: theme.colors.text,
