@@ -4,6 +4,13 @@ const DEFAULT_TASK_MINUTES = 20;
 
 export type AiTask = { text: string; minutes: number };
 export type ReflectionTurn = { from: "user" | "assistant"; text: string };
+type GenericReflectionMessage = {
+  from?: string | null;
+  role?: string | null;
+  sender?: string | null;
+  text?: string | null;
+  content?: string | null;
+};
 
 type GeminiTaskCallResult = {
   text: string;
@@ -724,5 +731,101 @@ ${recent
   } catch (err) {
     console.error("Gemini reflection error", err);
     return safeFallback;
+  }
+}
+
+/**
+ * Summarizes a reflection chat into 1-3 sentences using Gemini.
+ * Returns null if no user messages are present or if the call fails.
+ */
+export async function summarizeReflectionChat(
+  reflectionChat: GenericReflectionMessage[] | null | undefined
+): Promise<string | null> {
+  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+  if (!apiKey) {
+    console.warn("Missing EXPO_PUBLIC_GEMINI_API_KEY for reflection summary.");
+    return null;
+  }
+
+  if (!Array.isArray(reflectionChat) || reflectionChat.length === 0) {
+    return null;
+  }
+
+  const normalizedTurns = reflectionChat
+    .map((turn) => {
+      const text =
+        (typeof turn?.text === "string" && turn.text.trim()) ||
+        (typeof turn?.content === "string" && turn.content.trim()) ||
+        "";
+      if (!text) return null;
+      const fromRaw = (turn?.from || turn?.role || turn?.sender || "").trim();
+      const from =
+        fromRaw.toLowerCase() === "assistant" ||
+        fromRaw.toLowerCase() === "theo"
+          ? "assistant"
+          : "user";
+      return { from, text };
+    })
+    .filter(Boolean) as ReflectionTurn[];
+
+  if (normalizedTurns.length === 0) return null;
+  const hasUserMessage = normalizedTurns.some((t) => t.from === "user");
+  if (!hasUserMessage) return null;
+
+  const transcript = normalizedTurns
+    .slice(-12)
+    .map((t) => `${t.from === "assistant" ? "Theo" : "User"}: ${t.text}`)
+    .join("\n");
+
+  const prompt = `
+You are Theo, a warm and concise reflection summarizer.
+- Write a short summary of the reflection in 1-2 sentences.
+- Capture the user's main themes, feelings, and any progress noted.
+- Be supportive and specific to the transcript. No bullet points.
+- Keep it under 50 words.
+
+Reflection chat:
+${transcript}
+`.trim();
+
+  try {
+    const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 512,
+          topP: 0.8,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const fallback = await response.text().catch(() => "");
+      console.warn(
+        "[Gemini][reflection-summary] request failed",
+        response.status,
+        fallback
+      );
+      return null;
+    }
+
+    const data = await response.json();
+    const parts =
+      (data?.candidates?.[0]?.content?.parts as
+        | Array<{ text?: string }>
+        | undefined) ?? [];
+    const text =
+      parts
+        .map((p) => (typeof p.text === "string" ? p.text : ""))
+        .join("")
+        .trim() || "";
+
+    return text || null;
+  } catch (err) {
+    console.error("[Gemini][reflection-summary] error", err);
+    return null;
   }
 }

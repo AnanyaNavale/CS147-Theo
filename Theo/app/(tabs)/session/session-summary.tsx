@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -12,6 +12,8 @@ import { PawLoader } from "@/components/ui/PawLoader";
 import { Spacer } from "@/components/ui/Spacer";
 import { Text } from "@/components/ui/Text";
 import { theme } from "@/design/theme";
+import { summarizeReflectionChat } from "@/lib/ai";
+import { fetchSessionById, updateSession } from "@/lib/supabase";
 
 type SessionTask = {
   id: string;
@@ -23,14 +25,21 @@ type SessionTask = {
 };
 
 export default function SessionSummaryScreen() {
-  const { goal, tasks, status, sessionStatus } = useLocalSearchParams<{
-    goal?: string;
-    tasks?: string;
-    status?: string;
-    sessionStatus?: string;
-  }>();
+  const { goal, tasks, status, sessionStatus, sessionId } =
+    useLocalSearchParams<{
+      goal?: string;
+      tasks?: string;
+      status?: string;
+      sessionStatus?: string;
+      sessionId?: string;
+    }>();
   const goalText = goal ?? "";
   const [showLoader, setShowLoader] = useState(false);
+  const [reflectionSummary, setReflectionSummary] = useState<string | null>(
+    null
+  );
+  const [reflectionLoading, setReflectionLoading] = useState(false);
+  const [summaryPersisted, setSummaryPersisted] = useState(false);
 
   console.log("[session-summary] raw tasks param", tasks);
 
@@ -53,6 +62,14 @@ export default function SessionSummaryScreen() {
           (Array.isArray(status) && status.length > 0 ? status[0] : status);
     return raw ? raw.toString().trim().toLowerCase() : null;
   }, [sessionStatus, status]);
+
+  const sessionIdValue = useMemo(() => {
+    const raw =
+      Array.isArray(sessionId) && sessionId.length > 0
+        ? sessionId[0]
+        : sessionId;
+    return raw && raw !== "null" ? raw : null;
+  }, [sessionId]);
 
   const parsedTasks: SessionTask[] = useMemo(() => {
     if (!tasks) return [];
@@ -116,6 +133,48 @@ export default function SessionSummaryScreen() {
     (!normalizedStatusParam && !sessionSkipped);
   const statusLabel =
     sessionSkipped || !sessionEnded ? "Incomplete" : "Complete";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadReflectionSummary = async () => {
+      if (!sessionIdValue) return;
+      try {
+        setReflectionLoading(true);
+        const session = await fetchSessionById(sessionIdValue);
+        const reflectionChat = (session as any)?.reflection_chat;
+        const summary = await summarizeReflectionChat(
+          reflectionChat as unknown as any[]
+        );
+        if (isMounted) {
+          setReflectionSummary(summary);
+        }
+      } catch (err) {
+        console.error("[session-summary] failed to summarize reflection", err);
+      } finally {
+        if (isMounted) setReflectionLoading(false);
+      }
+    };
+
+    loadReflectionSummary();
+    return () => {
+      isMounted = false;
+    };
+  }, [sessionIdValue]);
+
+  useEffect(() => {
+    const persistSummary = async () => {
+      if (!sessionIdValue || !reflectionSummary || summaryPersisted) return;
+      try {
+        await updateSession(sessionIdValue, { summary: reflectionSummary });
+        setSummaryPersisted(true);
+      } catch (err) {
+        console.error("[session-summary] failed to persist summary", err);
+      }
+    };
+
+    persistSummary();
+  }, [sessionIdValue, reflectionSummary, summaryPersisted]);
 
   const handleBackHome = () => {
     setShowLoader(true);
@@ -226,6 +285,23 @@ export default function SessionSummaryScreen() {
         </View>
 
         <Spacer size="lg" />
+
+        {reflectionSummary && (
+          <View style={{ margin: theme.spacing.xs }}>
+            <Text style={styles.sectionHeading}>Reflection summary:</Text>
+            <Spacer size="sm" />
+            <Text style={styles.value}>{reflectionSummary}</Text>
+          </View>
+        )}
+
+        {reflectionLoading && !reflectionSummary && (
+          <>
+            <View style={{ margin: theme.spacing.xs }}>
+              <Text style={styles.value}>Summarizing your reflection...</Text>
+            </View>
+            <Spacer size="lg" />
+          </>
+        )}
 
         <Spacer size="xl" />
       </ScrollView>

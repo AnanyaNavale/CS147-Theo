@@ -44,7 +44,7 @@ create table public.sessions (
     has_goal boolean not null default false,
     goal text,
     has_tasks boolean not null default false,
-    summary json,
+    summary text,
     reflection_chat jsonb[],
     completed_at timestamptz,
     title text not null default 'title',

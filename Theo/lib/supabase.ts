@@ -322,12 +322,15 @@ export async function createSession(
   hasTasks: boolean = false,
   totalTime: number = 0
 ): Promise<WorkSession> {
+  const computedTotalTime =
+    hasTasks && totalTime > 0 ? totalTime : totalTime > 0 ? totalTime : 20;
+
   const { data, error } = await getSupabase()
     .from("sessions")
     .insert({
       user_id: userId,
       title: title, // required
-      total_time: totalTime, // required
+      total_time: computedTotalTime, // required
       status: "active",
       has_goal: hasGoal,
       goal: goal,
@@ -354,12 +357,15 @@ export async function createPlan(
   goal?: string | null,
   created_at?: string
 ): Promise<WorkSession> {
+  const computedTotalTime =
+    hasTasks && total_time > 0 ? total_time : total_time > 0 ? total_time : 20;
+
   const { data, error } = await getSupabase()
     .from("sessions")
     .insert({
       user_id: userId,
       title: title,
-      total_time: total_time, // required
+      total_time: computedTotalTime, // required
       status: "planned",
       has_goal: hasGoal,
       goal: goal,

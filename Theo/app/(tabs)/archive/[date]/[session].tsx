@@ -2,8 +2,14 @@ import { colors } from "@/assets/themes/colors";
 import { fonts } from "@/assets/themes/typography";
 import { Checkbox, Spacer } from "@/components";
 import SvgStrokeText from "@/components/SvgStrokeText";
+import { AppModal } from "@/components/ui/AppModal";
+import { BasicButton } from "@/components/BasicButton";
 import { theme } from "@/design/theme";
-import { fetchSessionById, fetchTasksForSession } from "@/lib/supabase";
+import {
+  fetchSessionById,
+  fetchTasksForSession,
+  updateSession,
+} from "@/lib/supabase";
 import { Task, WorkSession } from "@/types/database.types";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -30,6 +36,8 @@ export default function SingleSessionScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showStartConfirm, setShowStartConfirm] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   const [year, month, day] = date.split("-").map(Number);
   const dateObj = new Date(year, month - 1, day); // month is 0-based
@@ -91,6 +99,38 @@ export default function SingleSessionScreen() {
       return `${minutes} min`;
     }
   }
+
+  const handleStartSession = async () => {
+    if (!sessionData) return;
+    setStarting(true);
+    try {
+      if (sessionData.status === "planned") {
+        await updateSession(sessionData.id, { status: "incomplete" });
+      }
+
+      const mappedTasks = tasks.map((t) => ({
+        id: String(t.id),
+        text: t.task_name,
+        minutes: Number(t.time_allotted ?? t.time_completed) || 0,
+        completed: Boolean(t.is_completed),
+      }));
+
+      router.push({
+        pathname: "/(tabs)/session/in-session",
+        params: {
+          goal: sessionData.goal ?? "",
+          tasks: JSON.stringify(mappedTasks),
+          sessionId: sessionData.id,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to start planned session", err);
+      setError("Failed to start session. Please try again.");
+    } finally {
+      setStarting(false);
+      setShowStartConfirm(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -184,6 +224,44 @@ export default function SingleSessionScreen() {
           )}
         </View>
       </View>
+
+      {sessionData.summary && (
+        <>
+          <Spacer size="lg" />
+          <View style={{ margin: theme.spacing.xs, paddingHorizontal: 20 }}>
+            <Text style={styles.sectionHeading}>Reflection summary:</Text>
+            <Spacer size="sm" />
+            <Text style={styles.value}>{sessionData.summary}</Text>
+          </View>
+        </>
+      )}
+
+      {sessionData.status === "planned" && (
+        <>
+          <Spacer size="xl" />
+          <View
+            style={{ paddingHorizontal: 20, marginBottom: theme.spacing.xl }}
+          >
+            <BasicButton
+              text={starting ? "Starting..." : "Begin this session"}
+              onPress={() => setShowStartConfirm(true)}
+              disabled={starting}
+            />
+          </View>
+        </>
+      )}
+
+      <AppModal
+        visible={showStartConfirm}
+        onClose={() => setShowStartConfirm(false)}
+        title="Start session?"
+        message="Begin this planned session now?"
+        confirmLabel="Start"
+        cancelLabel="Cancel"
+        confirmVariant="brown"
+        cancelVariant="ghost"
+        onConfirm={handleStartSession}
+      />
 
       {/* <View style={styles.topContent}>
         <View style={styles.subsection}>
