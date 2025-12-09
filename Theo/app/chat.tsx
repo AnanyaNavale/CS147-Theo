@@ -1,10 +1,10 @@
 import { InputField } from "@/components";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { AppModal } from "@/components/ui/AppModal";
-import { ChatBubble } from "@/components/ui/ChatBubble";
-import { Icon } from "@/components/ui/Icon";
-import { Text } from "@/components/ui/Text";
-import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
+import { AppModal } from "@/components/custom/AppModal";
+import { ChatBubble } from "@/components/custom/ChatBubble";
+import { Icon } from "@/components/custom/Icon";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
+import { VoiceRecorderModal } from "@/components/custom/VoiceRecorderModal";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { generateReflectionReply } from "@/lib/ai";
@@ -612,7 +612,7 @@ export default function ChatScreen() {
 ------------------------------------------------------- */
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safe: {

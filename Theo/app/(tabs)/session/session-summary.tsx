@@ -3,14 +3,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fonts } from "@/assets/themes/typography";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { ArrowAction } from "@/components/ui/ArrowAction";
-import { Checkbox } from "@/components/ui/Checkbox";
-import { PawLoader } from "@/components/ui/PawLoader";
-import { Spacer } from "@/components/ui/Spacer";
-import { Text } from "@/components/ui/Text";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { Checkbox } from "@/components/custom/Checkbox";
+import { PawLoader } from "@/components/custom/PawLoader";
+import { Spacer } from "@/components/custom/Spacer";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { summarizeReflectionChat } from "@/lib/ai";
 import { fetchSessionById, updateSession } from "@/lib/supabase";
@@ -346,7 +346,7 @@ export default function SessionSummaryScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safeArea: {

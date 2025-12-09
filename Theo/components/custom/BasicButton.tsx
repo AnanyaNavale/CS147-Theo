@@ -1,7 +1,7 @@
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
-import { Icon, IconName } from "@/components/ui/Icon";
+import { Icon, IconName } from "@/components/custom/Icon";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import React, { useMemo } from "react";
 import {
@@ -47,7 +47,10 @@ export const BasicButton = React.forwardRef<View, BasicButtonProps>(
     ref
   ) => {
     const { colors: palette, theme } = useAppTheme();
-    const styles = useMemo(() => createStyles(palette, theme), [palette, theme]);
+    const styles = useMemo(
+      () => createStyles(palette, theme),
+      [palette, theme]
+    );
 
     const isDisabled = rest.disabled ?? false;
 

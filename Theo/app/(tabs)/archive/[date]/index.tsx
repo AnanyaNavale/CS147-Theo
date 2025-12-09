@@ -1,24 +1,23 @@
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Dimensions,
   SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import SvgStrokeText from "@/components/SvgStrokeText";
 
 // SUPABASE
-import { useSupabase } from "@/providers/SupabaseProvider";
 import { fetchSessionsForDaySorted } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
-import { Feather } from "@expo/vector-icons";
-import { fonts } from "@/assets/themes/typography";
-import ArchiveSessionBox from "@/components/ArchiveSessionBox";
-import { useAppTheme } from "@/hooks/ThemeContext";
+import ArchiveSessionBox from "@/components/custom/ArchiveSessionBox";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
+import { useAppTheme } from "@/hooks/ThemeContext";
+import { Feather } from "@expo/vector-icons";
 
 export default function SingleDayScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -217,7 +216,10 @@ export default function SingleDayScreen() {
   );
 }
 
-function createStyles(theme: Theme, palette: typeof import("@/assets/themes/colors").colors.light) {
+function createStyles(
+  theme: Theme,
+  palette: typeof import("@/design/colors").colors.light
+) {
   return StyleSheet.create({
     container: {
       flex: 1,

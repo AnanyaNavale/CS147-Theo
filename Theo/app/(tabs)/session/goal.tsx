@@ -13,12 +13,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { InputField } from "@/components";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { ArrowAction } from "@/components/ui/ArrowAction";
-import { Icon } from "@/components/ui/Icon";
-import { Spacer } from "@/components/ui/Spacer";
-import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { VoiceRecorderModal } from "@/components/ui/VoiceRecorderModal";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { Icon } from "@/components/custom/Icon";
+import { Spacer } from "@/components/custom/Spacer";
+import { StepProgressIndicator } from "@/components/custom/StepProgressIndicator";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { VoiceRecorderModal } from "@/components/custom/VoiceRecorderModal";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 
@@ -163,7 +163,7 @@ export default function GoalScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safeArea: {

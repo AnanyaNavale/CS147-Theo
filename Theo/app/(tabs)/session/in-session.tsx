@@ -10,17 +10,17 @@ import {
   View,
 } from "react-native";
 
-import { AppModal } from "@/components/ui/AppModal";
-import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Checkbox";
-import { Icon } from "@/components/ui/Icon";
-import { InputField } from "@/components/ui/InputField";
-import { Spacer } from "@/components/ui/Spacer";
-import { Text } from "@/components/ui/Text";
-import { Timer } from "@/components/ui/Timer";
+import { AppModal } from "@/components/custom/AppModal";
+import { Button } from "@/components/custom/Button";
+import { Checkbox } from "@/components/custom/Checkbox";
+import { Icon } from "@/components/custom/Icon";
+import { InputField } from "@/components/custom/InputField";
+import { Spacer } from "@/components/custom/Spacer";
+import { Text } from "@/components/custom/Text";
+import { Timer } from "@/components/custom/Timer";
 
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { PawLoader } from "@/components/ui/PawLoader";
+import { PawLoader } from "@/components/custom/PawLoader";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import {

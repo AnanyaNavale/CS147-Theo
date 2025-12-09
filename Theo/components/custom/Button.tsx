@@ -91,7 +91,7 @@ function getBorderWidth(v: ButtonVariant) {
 function getBorderColor(
   v: ButtonVariant,
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   if (v === "outlineBrown") return palette.body;
   if (v === "outlineGold") return palette.secondary;
@@ -101,7 +101,7 @@ function getBorderColor(
 function getBackground(
   v: ButtonVariant,
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   if (v === "gold") return palette.secondary;
   if (v === "brown") return palette.primary;
@@ -113,7 +113,7 @@ function getBackground(
 function getLabelColor(
   v: ButtonVariant,
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   if (v === "outlineBrown") return palette.body;
   if (v === "outlineGold") return palette.secondary;

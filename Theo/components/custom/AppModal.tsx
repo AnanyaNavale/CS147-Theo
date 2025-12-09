@@ -10,9 +10,9 @@ import {
   View,
 } from "react-native";
 import { Theme } from "../../design/theme";
-import SvgStrokeText from "../SvgStrokeText";
 import { Button, ButtonVariant } from "./Button";
 import { Icon } from "./Icon";
+import SvgStrokeText from "./SvgStrokeText";
 import { Text } from "./Text";
 
 export type ModalVariant = "alert" | "custom" | "bottom-sheet";
@@ -159,7 +159,7 @@ export function AppModal({
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     centerLayout: {

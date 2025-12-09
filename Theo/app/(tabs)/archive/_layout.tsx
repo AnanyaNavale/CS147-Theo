@@ -1,6 +1,6 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import MainHeader from "@/components/custom/MainHeader";
 import { Feather } from "@expo/vector-icons";
-import MainHeader from "@/components/ui/MainHeader";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 

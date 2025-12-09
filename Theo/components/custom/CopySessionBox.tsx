@@ -1,7 +1,7 @@
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 import { Text, View } from "@/components/Themed";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { WorkSession } from "@/types/database.types";
 import { MaterialCommunityIcons } from "@expo/vector-icons";

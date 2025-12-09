@@ -1,10 +1,10 @@
+import { colors } from "@/design/colors";
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
-import { useAppTheme } from "@/hooks/ThemeContext";
-import { Theme } from "@/design/theme";
-import { colors } from "@/assets/themes/colors";
 
 export type BreakdownItemProps = {
   minutes: number;
@@ -35,7 +35,7 @@ export function BreakdownItem({
           {text}
         </Text>
         <View style={styles.grip}>
-        <Icon name="drag" size={24} tint={palette.border} />
+          <Icon name="drag" size={24} tint={palette.border} />
         </View>
       </View>
     </View>

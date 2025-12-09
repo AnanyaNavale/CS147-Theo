@@ -1,10 +1,10 @@
 // components/index.ts
 
-export { AppModal } from "./ui/AppModal";
-export { Button } from "./ui/Button";
-export { Container } from "./ui/Container";
-export { Header } from "./ui/Header";
-export { InputField } from "./ui/InputField";
-export { Checkbox } from "./ui/Checkbox";
-export { Spacer } from "./ui/Spacer";
-export { Text } from "./ui/Text";
+export { AppModal } from "./custom/AppModal";
+export { Button } from "./custom/Button";
+export { Checkbox } from "./custom/Checkbox";
+export { Container } from "./custom/Container";
+export { Header } from "./custom/Header";
+export { InputField } from "./custom/InputField";
+export { Spacer } from "./custom/Spacer";
+export { Text } from "./custom/Text";

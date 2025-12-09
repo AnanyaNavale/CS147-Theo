@@ -4,11 +4,11 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Spacer } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
-import CopySessionBox from "@/components/CopySessionBox";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { Text } from "@/components/ui/Text";
+import { BasicButton } from "@/components/custom/BasicButton";
+import CopySessionBox from "@/components/custom/CopySessionBox";
+import { StepProgressIndicator } from "@/components/custom/StepProgressIndicator";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import {
@@ -271,7 +271,7 @@ export default function CompleteSessionScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safeArea: {

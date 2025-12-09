@@ -12,11 +12,11 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { colors } from "@/assets/themes/colors";
-import { BasicButton } from "@/components/BasicButton";
-import QuoteOfTheDay from "@/components/Quote";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import MainHeader from "@/components/ui/MainHeader";
+import { BasicButton } from "@/components/custom/BasicButton";
+import MainHeader from "@/components/custom/MainHeader";
+import QuoteOfTheDay from "@/components/custom/Quote";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { fetchUserProfile } from "@/lib/supabase";

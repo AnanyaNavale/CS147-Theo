@@ -1,10 +1,10 @@
-import { fonts } from "@/assets/themes/typography";
 import { Checkbox, Spacer } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { AppModal } from "@/components/ui/AppModal";
-import { Text } from "@/components/ui/Text";
+import { AppModal } from "@/components/custom/AppModal";
+import { BasicButton } from "@/components/custom/BasicButton";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import {
   fetchSessionById,
@@ -415,7 +415,7 @@ export default function SingleSessionScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     container: {

@@ -13,20 +13,20 @@ import DraggableFlatList, {
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fonts } from "@/assets/themes/typography";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { AppModal } from "@/components/ui/AppModal";
-import { ArrowAction } from "@/components/ui/ArrowAction";
-import { BreakdownItem } from "@/components/ui/BreakdownItem";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { InputField } from "@/components/ui/InputField";
-import { PawLoader } from "@/components/ui/PawLoader";
-import { Spacer } from "@/components/ui/Spacer";
-import { StepProgressIndicator } from "@/components/ui/StepProgressIndicator";
-import { Text } from "@/components/ui/Text";
+import { AppModal } from "@/components/custom/AppModal";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { BasicButton } from "@/components/custom/BasicButton";
+import { BreakdownItem } from "@/components/custom/BreakdownItem";
+import { Button } from "@/components/custom/Button";
+import { Icon } from "@/components/custom/Icon";
+import { InputField } from "@/components/custom/InputField";
+import { PawLoader } from "@/components/custom/PawLoader";
+import { Spacer } from "@/components/custom/Spacer";
+import { StepProgressIndicator } from "@/components/custom/StepProgressIndicator";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { generateTasksWithAI } from "@/lib/ai";
 
@@ -856,7 +856,7 @@ export default function SessionBreakdownScreen() {
 /* STYLES */
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     safe: {

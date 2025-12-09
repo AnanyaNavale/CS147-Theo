@@ -1,8 +1,8 @@
+import { Theme } from "@/design/theme";
+import { useAppTheme } from "@/hooks/ThemeContext";
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { Text } from "./Text";
-import { useAppTheme } from "@/hooks/ThemeContext";
-import { Theme } from "@/design/theme";
 
 type PawLoaderProps = {
   message?: string;
@@ -72,7 +72,7 @@ export function PawLoader({
 }
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   const brown = palette.primary;
   return StyleSheet.create({

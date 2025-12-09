@@ -6,10 +6,10 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { Icon } from "@/components/ui/Icon";
+import { Icon } from "@/components/custom/Icon";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
-import SvgStrokeText from "../SvgStrokeText";
+import SvgStrokeText from "./SvgStrokeText";
 
 type ArrowActionProps = {
   label: string;
@@ -49,7 +49,10 @@ export function ArrowAction({
   );
 }
 
-const createStyles = (theme: Theme, palette: typeof import("@/assets/themes/colors").colors.light) =>
+const createStyles = (
+  theme: Theme,
+  palette: typeof import("@/design/colors").colors.light
+) =>
   StyleSheet.create({
     container: {
       position: "absolute",

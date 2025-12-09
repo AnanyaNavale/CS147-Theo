@@ -1,5 +1,5 @@
 // design/theme.ts
-import { colors as palettes } from "@/assets/themes/colors";
+import { colors as palettes } from "@/design/colors";
 
 const spacing = {
   xs: 4,

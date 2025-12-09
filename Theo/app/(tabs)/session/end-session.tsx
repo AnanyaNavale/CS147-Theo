@@ -9,9 +9,9 @@ import {
 } from "react-native";
 
 import { Spacer, Text } from "@/components";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { ArrowAction } from "@/components/ui/ArrowAction";
+import { ArrowAction } from "@/components/custom/ArrowAction";
+import { BasicButton } from "@/components/custom/BasicButton";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
 import { Theme } from "@/design/theme";
 import { useAppTheme } from "@/hooks/ThemeContext";
 
@@ -112,7 +112,7 @@ export default function EndSessionScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     container: {

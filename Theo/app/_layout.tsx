@@ -1,5 +1,9 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavigationThemeProvider,
+} from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -7,7 +11,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import { PawLoader } from "@/components/ui/PawLoader";
+import { PawLoader } from "@/components/custom/PawLoader";
 import { fontMap } from "@/design/fonts";
 import { AppThemeProvider, useAppTheme } from "@/hooks/ThemeContext";
 import { SupabaseProvider, useSupabase } from "@/providers/SupabaseProvider";

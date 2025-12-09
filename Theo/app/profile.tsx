@@ -15,14 +15,14 @@ import {
   View,
 } from "react-native";
 
-import { fonts } from "@/assets/themes/typography";
-import { BasicButton } from "@/components/BasicButton";
-import SvgStrokeText from "@/components/SvgStrokeText";
-import { AppModal } from "@/components/ui/AppModal";
-import { InputField } from "@/components/ui/InputField";
-import { Spacer } from "@/components/ui/Spacer";
-import { Text } from "@/components/ui/Text";
+import { AppModal } from "@/components/custom/AppModal";
+import { BasicButton } from "@/components/custom/BasicButton";
+import { InputField } from "@/components/custom/InputField";
+import { Spacer } from "@/components/custom/Spacer";
+import SvgStrokeText from "@/components/custom/SvgStrokeText";
+import { Text } from "@/components/custom/Text";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import {
   ensureUserProfile,
@@ -447,7 +447,7 @@ export default function ProfileScreen() {
 
 function createStyles(
   theme: Theme,
-  palette: typeof import("@/assets/themes/colors").colors.light
+  palette: typeof import("@/design/colors").colors.light
 ) {
   return StyleSheet.create({
     container: {

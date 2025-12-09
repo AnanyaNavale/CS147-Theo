@@ -10,17 +10,16 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
 import { AppModal, InputField } from "@/components";
-import { Icon } from "@/components/ui/Icon";
-import { Text } from "@/components/ui/Text";
+import { Icon } from "@/components/custom/Icon";
+import { Text } from "@/components/custom/Text";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
-import { Button, ButtonVariant } from "./Button";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useSupabase } from "@/providers/SupabaseProvider";
-import { createReport } from "@/lib/supabase";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
+import { createReport } from "@/lib/supabase";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { Button } from "./Button";
 // import { Button } from "react-native/Libraries/Components/Button";
 
 type StepProgressIndicatorProps = {
@@ -132,11 +131,7 @@ export function StepProgressIndicator({
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
-              <Icon
-                name="arrow-left"
-                size={36}
-                tint={iconTint}
-              />
+              <Icon name="arrow-left" size={36} tint={iconTint} />
             </TouchableOpacity>
             // <View style={{ width: iconSize, height: iconSize }} />
           )}
@@ -186,11 +181,7 @@ export function StepProgressIndicator({
               accessibilityRole="button"
               accessibilityLabel="Menu"
             >
-              <Icon
-                name="more-vertical"
-                size={36}
-                tint={iconTint}
-              />
+              <Icon name="more-vertical" size={36} tint={iconTint} />
             </TouchableOpacity>
           ) : (
             <View style={{ width: iconSize, height: iconSize }} />
@@ -205,9 +196,12 @@ export function StepProgressIndicator({
           animationType="fade"
           onRequestClose={() => setMenuOpen(false)}
         >
-            <View style={StyleSheet.absoluteFillObject}>
+          <View style={StyleSheet.absoluteFillObject}>
             <Pressable
-              style={[StyleSheet.absoluteFill, { backgroundColor: palette.overlay }]}
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: palette.overlay },
+              ]}
               onPress={() => setMenuOpen(false)}
             />
             <View style={styles.menuCard}>

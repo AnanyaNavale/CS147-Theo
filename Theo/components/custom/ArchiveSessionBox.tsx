@@ -1,9 +1,9 @@
 import { Text, View } from "@/components/Themed";
 import { StyleSheet, TouchableOpacity } from "react-native";
 // SUPABASE
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
+import { colors } from "@/design/colors";
 import { Theme } from "@/design/theme";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo } from "react";

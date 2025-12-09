@@ -5,8 +5,8 @@ import { Redirect, Tabs, usePathname } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "@/assets/themes/colors";
-import { fonts } from "@/assets/themes/typography";
+import { colors } from "@/design/colors";
+import { fonts } from "@/design/typography";
 import { useAppTheme } from "@/hooks/ThemeContext";
 import { useSupabase } from "@/providers/SupabaseProvider";
 

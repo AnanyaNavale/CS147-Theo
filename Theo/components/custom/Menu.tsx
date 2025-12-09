@@ -1,5 +1,5 @@
-import { Icon } from "@/components/ui/Icon";
-import { Text } from "@/components/ui/Text";
+import { Icon } from "@/components/custom/Icon";
+import { Text } from "@/components/custom/Text";
 import { theme } from "@/design/theme";
 import React, { useRef, useState } from "react";
 import {
