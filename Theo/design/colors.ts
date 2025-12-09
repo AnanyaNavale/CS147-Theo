@@ -38,7 +38,7 @@ export const colors = {
     tertiaryPressed: "#4C1616",
     iconStroke: "#FFFFFF",
     inactive: "#A9A9A9",
-    ghost: "#cacaca",
+    ghost: "#edeaeaff",
 
     iconsStandalone: "#8A5E3C",
     notificationInactive: "#8A5E3CBF",

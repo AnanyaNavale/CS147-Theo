@@ -139,7 +139,7 @@ export default function LoginScreen() {
             text={isSubmitting ? "Logging in..." : "Log in"}
             onPress={handleLogin}
             disabled={isSubmitting || !email.trim() || !password}
-            style={styles.sessionButton}
+            //style={styles.sessionButton}
             //labelStyle={styles.sessionButtonLabel}
           />
 
