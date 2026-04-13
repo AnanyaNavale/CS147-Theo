@@ -18,7 +18,7 @@
 
 > ⭐ **Voted Best Visual Design — CS 147 Fall 2025 Final Project Expo**
 
-> **Note:** The backend database for this prototype is currently inactive. The app may be explored but account creation and data saving are unavailable at this time. View the [full project website](https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/) for demos and process documentation.
+> **Note:** The backend database for this prototype is currently inactive – as a result, account creation is not available at this time. Please view the [full project website](https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/) for demos and process documentation.
 
 ---
 
