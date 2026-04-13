@@ -11,7 +11,6 @@
   <br></br>
   <p align="center">
     <a href="https://web.stanford.edu/class/cs147/projects/EmpoweringLearnerswithAI/Theo/" target="_blank">Visit our website!</a>
-    &nbsp;·&nbsp;
   </p>
 </p>
 
